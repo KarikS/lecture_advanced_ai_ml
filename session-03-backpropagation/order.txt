@@ -1,0 +1,56 @@
+This session compiles to a single deck: slides-backpropagation.tex
+
+Split off 2026-08-23 from the original single "Optimization" session
+(session-03-optimization, 86 frame-topics / 163 pages, roughly 2.3x the size
+of Sessions 1-2, too big for one 2-hour slot). Per user decision: rather than
+cut backprop/optimization-challenges content to fit one session, the material
+stays intact and the session splits in two. The user considers deep
+optimization understanding (how losses propagate, how and why training fails)
+one of the most durable, transferable skills in DL, more so than breadth
+across architectures. This half keeps the foundational "why training is
+hard" arc; [[session-04-optimizers]] (folder session-04-optimizers/) keeps
+the "how we fix it in practice" arc (momentum/LR/adaptive optimizers/batch
+norm/hyperparameter tuning/NAS).
+
+Merged from 5 original i2dl decks (now in _sources/, kept for reference and
+excluded from tex.mk's build glob):
+
+1. slides-opt1-comp-graphs.tex              [Chain Rule and Computational Graphs]
+2. slides-opt1-basic-backpropagation1.tex   [Basic Backpropagation 1, worked XOR example]
+3. slides-opt1-basic-backpropagation2.tex   [Basic Backpropagation 2, general formalism]
+4. slides-initialization.tex                [Network Initializations]
+5. slides-optim-challenges.tex              [Ill-Conditioning / Local Minima / Saddle
+                                              Points / Cliffs and Exploding Gradients,
+                                              keeps its own internal \section per sub-topic]
+
+Reordered from outline_mapping.md's file list to a pedagogical arc:
+foundations (chain rule, worked backprop example, general formalism), then
+initialization (needed before training), then optimization challenges (motivate
+why better optimizers are needed, picked up in Session 4).
+
+slides-advanced-optim.tex (Momentum/LR/Adaptive/BatchNorm) and the two
+gap-filled sections (Hyperparameter Tuning, NAS) moved to
+session-04-optimizers/. See that session's order.txt for their provenance
+(i2ml chapters for tuning, automl.org ESSAI 2023 lecture for NAS).
+
+Per-section \bibitem key prefixes carried over unchanged (bp2*, init*,
+chal*); no renumbering needed since each half's key set is disjoint from
+the other's (adv*, hp1, nas1 live in Session 4 now).
+
+Figures: split from the original session's shared figure/ (62 images) by
+grepping which images this half's content actually references. 41 files
+remain here (including the unused orphan figure/difficult_vs_easy_intro.png,
+carried over harmlessly, same as Session 1's orphan). The 23 images used
+only by Momentum/LR/Adaptive/BatchNorm/Hyperparameters/NAS moved to
+session-04-optimizers/figure/. figure/spiral_planar_data/ stays here
+(initialization.tex references it as a nested path).
+
+Not copied: templates/ (editable .pptx originals), left in the source tree.
+
+Branding (\lecture{I2DL} footer, LMU background) deliberately left
+unchanged, deferred to one later rebranding pass across all sessions, not
+done piecemeal.
+
+Cutting for a shorter "normal" build variant (vs. this full "long" content)
+is deferred; no \iflong markers added yet. To be done jointly, section by
+section, once the long/normal build toggle infrastructure exists.

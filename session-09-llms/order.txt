@@ -1,0 +1,11 @@
+Suggested order of slides (planned — none authored yet):
+
+- slides-08-training        [copy+adapt: dl4nlp/chapter11-training-llms/* — compute-memory,
+                              reduce-comp, scaling, x-optimize]
+- slides-08-fine-tuning      [copy+adapt: dl4nlp/chapter09-llm/slides-91-instruction-tuning.tex,
+                              dl4nlp/chapter04-bert/slides-44-pretrain-finetune.tex,
+                              dl4nlp/chapter10-rlhf/9itune.tex]
+- slides-08-chain-of-thought [copy+adapt: dl4nlp/chapter09-llm/slides-92-chain-of-thought.tex]
+- slides-08-architectures    [copy+adapt: dl4nlp/chapter09-llm/slides-94-big-models.tex,
+                              dl4nlp/chapter09-llm/slides-94-deepseek.tex,
+                              dl4nlp/chapter07-gpt/* — GPT/GPT-2/GPT-3]

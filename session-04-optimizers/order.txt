@@ -1,0 +1,68 @@
+This session compiles to a single deck: slides-optimizers.tex
+
+Split off 2026-08-23 from the original single "Optimization" session (see
+[[session-03-backpropagation]]/order.txt for the full split rationale: the
+merged session was 86 frame-topics / 163 pages, roughly 2.3x Sessions 1-2,
+too big for one 2-hour slot; user chose to split rather than cut, since deep
+optimization understanding is considered a core, durable DL skill). This
+half is the "how we fix it in practice" arc: optimizer algorithms, batch
+norm, and hyperparameter tuning as a practical skill, plus a short NAS
+section.
+
+1. slides-advanced-optim.tex  [Momentum / Learning Rates / Algorithms with
+                                Adaptive Learning Rates / Batch Normalization,
+                                keeps its own internal \section per
+                                sub-topic]
+
+Two more outline bullets, Hyperparameters and NAS, were both original ❌ gaps
+in outline_mapping.md (no i2dl source at all), filled per its "Gaps needing
+new material" strategy and carried over into this session unchanged:
+
+- Hyperparameter Tuning: assembled from three i2ml chapters (verified via
+  their actual slide PDFs): "Tuning & Nested Resampling: In a Nutshell"
+  (tuning problem, guitar analogy, black-box search space, untouched-test-set
+  principle / nested resampling), "Basic Techniques" (grid vs. random search,
+  the "only one hyperparameter matters" argument), and "Advanced Tuning
+  Techniques" (Bayesian optimization, multi-fidelity optimization /
+  Successive Halving / Hyperband). Five figures extracted via
+  pdfimages/pdftoppm. Cited (SLDS LMU, I2ML) in a References frame.
+
+- Neural Architecture Search: assembled from the automl.org ESSAI 2023 NAS
+  lecture (Lindauer & Eggensperger, verified authorship from the PDF's title
+  slide): motivation, formal definition, search spaces, search strategies
+  in passing, one-shot NAS, ENAS and DARTS in depth, zero-cost proxies, and a
+  closing limitations frame. Two figures extracted via pdfimages. Cited in a
+  References frame.
+
+  User asked for NAS to only be hinted at, not covered in this much depth
+  (2026-08-23, same conversation as the session split). Trimmed the same
+  day: kept Motivation, NAS Components and Definition (with its figure),
+  and Final Thoughts unchanged; collapsed Search Spaces, Search Strategies
+  Overview, One-Shot NAS, ENAS, DARTS Training/Caveats, and Zero-Cost
+  Proxies (6 frames) down into one "One Example: DARTS" frame that keeps
+  the DARTS pipeline figure and names the other methods in passing rather
+  than covering each in depth. NAS went from 10 frames to 4; both original
+  figures (nas-components.png, nas-darts-pipeline.png) preserved. Rebuilt
+  clean, 72 pages (down from 79), no errors, figures confirmed present in
+  the build log.
+
+Per-section \bibitem key prefixes carried over unchanged (adv*, hp1, nas1),
+disjoint from Session 3's key set (bp2*, init*, chal*), so no renumbering
+was needed when the References frames split across the two sessions.
+
+Figures: 23 images moved here from the original session's shared figure/,
+selected by grepping which images Momentum/LR/Adaptive/BatchNorm/
+Hyperparameters/NAS actually reference (verified zero overlap with Session
+3's 41 remaining images).
+
+Not copied: templates/ (editable .pptx originals), left in the source tree.
+
+Branding (\lecture{I2DL} footer, LMU background) deliberately left
+unchanged, deferred to one later rebranding pass across all sessions, not
+done piecemeal.
+
+Cutting for a shorter "normal" build variant (vs. a future full "long"
+content) is otherwise deferred; no \iflong markers exist anywhere yet.
+The NAS trim above was a direct content edit (permanently shortened, not
+gated behind a toggle), done because the user asked for it explicitly,
+independent of the long/normal build-toggle infrastructure discussion.

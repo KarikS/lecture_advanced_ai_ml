@@ -1,0 +1,17 @@
+Suggested order of slides (planned — none authored yet):
+
+- slides-05-rnn              [copy+adapt: i2dl/slides/rnn/slides-introduction.tex,
+                               rnn/slides-backprop.tex, rnn/slides-modernrnn.tex,
+                               rnn/slides-applications.tex; also dl4nlp/chapter02-deeplearningbasics/
+                               slides-21-rnn.tex]
+- slides-05-vae              [copy+adapt: i2dl/slides/ae/* — autoencoders,
+                               autoencoders-regularized, autoencoders-specific, vae,
+                               manifold-learning, unsupervised-learning]
+- slides-05-transformer-link [pointer only — full coverage lives in session-06-transformer;
+                               attention already touched in i2dl/slides/rnn/slides-attention.tex]
+- slides-05-gans             [copy+adapt: i2dl/slides/gan1/slides-GAN-intro.tex,
+                               gan1/slides-GAN-challenges.tex, gan1/slides-GAN-variants.tex]
+- slides-05-diffusion        [NEW — gap. i2dl/slides/diff/ exists but is an empty stub. Keep
+                               brief: a hint, not a full chapter — generic explanatory images
+                               and high-level information only. See outline_mapping.md
+                               gap-strategy #1.]

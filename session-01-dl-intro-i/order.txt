@@ -1,0 +1,41 @@
+This session compiles to a single deck: slides-dl-intro-i.tex
+
+Merged from 8 original i2dl decks (now in _sources/, kept for reference and
+excluded from tex.mk's build glob), in this order:
+
+1. slides-intro-brief-history.tex               [DL History]
+2. slides-mlps-single-neuron.tex                 [Single Neuron / Perceptron]
+3. slides-mlps-single-hidden-layer-networks.tex  [Single Hidden Layer NNs]
+4. slides-mlps-matrix-notation.tex               [Matrix Notation]
+5. slides-mlps-xor.tex                           [The XOR Problem]
+6. slides-mlps-multiclass-classification.tex     [Multi-Class Classification]
+7. slides-mlps-multilayer-FNNs.tex               [Multi-Layer Feedforward NNs]
+8. slides-mlp-univ-approx-theorem.tex            [Universal Approximation]
+
+Reordered from outline_mapping.md's original listing (single-neuron,
+single-hidden-layer, multilayer-FNNs, matrix-notation, multiclass-classification,
+XOR, univ-approx-theorem) to fix a notation dependency: the XOR deck uses
+\Wmat/\wtu/\biasb matrix notation that matrix-notation.tex defines, so matrix
+notation now precedes XOR. Multilayer-FNNs and the universal approximation
+theorem moved to the end as the session's capstone (arbitrary depth, then why
+these architectures are expressive) rather than sitting mid-sequence.
+
+Each original sub-topic keeps its own \section{...} (PDF bookmark navigation
+only, no visible progress bar). One consolidated title/learning-goals frame at
+the top (\titlefigure = figure/rosenblatt_perceptron.jpg), goals rewritten as
+one semantically-reduced ~6-bullet list rather than concatenating all 8
+sources' goals.
+
+Figures merged from i2dl's intro/figure/, mlps/figure/, and mlps/figure_man/
+into one shared figure/ here; no filename collisions. figure/sinlay_six.png is
+now unused (was matrix-notation.tex's own \titlefigure, dropped when
+consolidating to one session-level title frame), left in place, harmless.
+
+Excluded on purpose: i2dl/slides/mlps/slides-mlps-mlps-as-predictor.tex (not in
+outline_mapping.md's MLP file list; overlaps with Session 2's Activations topic).
+
+Not copied: templates/ (editable .pptx originals), left in the source tree.
+
+Branding (\lecture{I2DL} / \lecture{Deep Learning} footer, LMU background)
+deliberately left unchanged, deferred to one later rebranding pass across all
+sessions, not done piecemeal.

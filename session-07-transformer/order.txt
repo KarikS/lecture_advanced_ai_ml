@@ -1,0 +1,8 @@
+Suggested order of slides (planned — none authored yet):
+
+- slides-06-intro-params  [copy+adapt, optional context: dl4nlp/chapter03-transformer/
+                            slides-31-intro-trafo.tex, slides-34-trafo-params.tex]
+- slides-06-encoder       [copy+adapt: dl4nlp/chapter03-transformer/slides-32-encoder.tex]
+- slides-06-decoder       [copy+adapt: dl4nlp/chapter03-transformer/slides-33-decoder.tex]
+- slides-06-long-sequences [copy+adapt: dl4nlp/chapter03-transformer/slides-35-trafo-xl.tex]
+- slides-06-efficient     [copy+adapt: dl4nlp/chapter03-transformer/slides-36-efficient.tex]

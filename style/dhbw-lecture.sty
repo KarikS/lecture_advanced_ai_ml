@@ -1,0 +1,286 @@
+\RequirePackage{graphicx}
+\RequirePackage{amsmath,amssymb}
+\RequirePackage{array}
+
+% ------------------------------------------------------------------------
+% Ink & Slate palette
+
+\RequirePackage{xcolor}
+\definecolor{dhbwink}{HTML}{1B1F23}
+\definecolor{dhbwslate}{HTML}{5B6470}
+\definecolor{dhbwaccent}{HTML}{0F6E6E}
+\definecolor{dhbwpaper}{HTML}{FFFFFF}
+\definecolor{dhbwhint}{HTML}{EEF2F2}
+\DeclareSymbolFont{mysymbols}{OMS}{cmsy}{m}{n}
+\SetSymbolFont{mysymbols}{bold}{OMS}{cmsy}{b}{n}
+\DeclareMathSymbol{\myRightarrow}{\mathrel}{symbols}{"29}
+\let\Rightarrow\myRightarrow
+
+% ------------------------------------------------------------------------
+% R (sweave) related stuff
+
+\RequirePackage{ifthen}
+\newboolean{Sweave@gin}
+\setboolean{Sweave@gin}{true}
+
+\DeclareOption{nogin}{\setboolean{Sweave@gin}{false}}
+\ProcessOptions
+
+\ifthenelse{\boolean{Sweave@gin}}{\setkeys{Gin}{width=0.8\textwidth}}{}%
+
+\RequirePackage{fancyvrb}
+\renewcommand{\ttdefault}{laett}
+\DefineVerbatimEnvironment{Sinput}{Verbatim}{}
+\DefineVerbatimEnvironment{Scode}{Verbatim}{}
+\DefineVerbatimEnvironment{Soutput}{Verbatim}{}
+\newenvironment{Schunk}{}{}
+
+% ------------------------------------------------------------------------
+% special numbering for lectures
+
+\newenvironment{rightbox}[1]
+ {\itemize[
+    nosep,
+    leftmargin=\dimexpr\textwidth-#1\relax,
+    rightmargin=0pt,
+    itemindent=\parindent,
+    listparindent=\parindent,
+  ]\item[]\relax}
+ {\enditemize}
+
+\AtBeginLecture{%
+  \begin{frame}[plain]
+    \global\advance\c@lecture by -1
+    \vspace*{0.2 cm}
+    {\color{dhbwslate}\scriptsize\sffamily DHBW \,--\, ADVANCED AI \& ML}\\[0.1cm]
+    {\Large\bfseries\inserttitle}
+    \vspace*{0.02cm}
+
+    \ifx\lecturesection\@empty\relax\else%
+    {\lecturesection}%
+    \fi%
+    \vspace*{0.05cm}
+
+    {\color{dhbwaccent}\rule{3cm}{1.4pt}}
+    \vspace*{0.15 cm}
+
+% NOTE: title/frame height is tighter under aspectratio=169 (paperheight
+% dropped from 9.6cm to 9cm) -- spacing here is deliberately compact, and
+% the titlefigure is height-capped (not just width-capped) so a portrait
+% image can't blow past the frame the way width-only sizing did before.
+\ifcsname learninggoals\endcsname
+  {\vspace*{0.1 cm}
+  \begin{minipage}{0.32\textwidth}
+  \ifcsname titlefigure\endcsname
+    {\begin{center}
+    \begin{figure}[!b]
+    \includegraphics[width=0.9\textwidth, height=0.36\paperheight, keepaspectratio]{\titlefigure}
+     \ifcsname titlecaption\endcsname
+     \caption*{\titlecaption}
+     \fi
+    \end{figure}
+    \end{center}}
+  \else
+    $\;$
+  \fi
+  \end{minipage}\hfill
+  \begin{minipage}{0.62\textwidth}
+  \small\bfseries
+  Learning goals
+   \normalfont
+   \scriptsize
+  \vspace*{-3pt}
+  \begin{itemize}
+  \setlength{\itemsep}{0pt}
+  \learninggoals
+  \end{itemize}
+  \end{minipage}}
+\fi
+
+    % \vspace*{\stretch{1}}
+    % \normalsize
+    % \insertshortauthor
+    % \vspace*{\stretch{0.3}}
+    % \insertshortsubtitle
+    % \vspace*{\stretch{1}} \\
+    % \normalfont
+    % \insertshortinstitute
+    % \vspace*{\stretch{0.3}}
+    % \insertshortdate
+    % \vspace*{\stretch{1}}
+  \end{frame}
+  \immediate\write\@auxout {\string \newlabel{lect:@@\thelecture}{{\insertframenumber}}}%
+  \typeout{[LECTURE]=[\thelecture][\insertlecture][\thepage][\theframenumber]}%
+  \usebackgroundtemplate{}
+}
+
+\def\endlecture{%
+  \setcounter{lectureframenumber}{\insertframenumber}%
+  \expandafter\addjustlectureframenumber\csname r@lect:@@\thelecture\endcsname%
+  \immediate\write\@auxout {\string \newlabel{endlect:@@\thelecture}{{\thelectureframenumber}}}%
+}
+
+% ------------------------------------------------------------------------
+
+\newcommand{\lecturechapter}[1]{%
+  \gdef\lecturesection{#1}
+}
+
+\lecturechapter{0}{}
+% ------------------------------------------------------------------------
+% Make section titles
+
+% we start with section 0 (instead of default 1)
+\setcounter{section}{0}
+
+\AtBeginSection[]{%
+  \begin{frame}
+    \begin{center}
+      \vspace*{\stretch{1}}
+
+      {\color{dhbwink}\fontsize{16}{20}\bfseries\selectfont\insertsection}\\[0.25cm]
+      {\color{dhbwaccent}\rule{3cm}{1.4pt}}
+
+      \vspace*{\stretch{2}}
+
+    \end{center}
+  \end{frame}
+}
+
+% hyperref settings
+\hypersetup{%
+  colorlinks = {false},
+  pdfauthor = {\insertshortauthor},
+  pdfsubject = {\insertshorttitle},
+}
+
+
+%\usefonttheme{lmu-lecture}
+% ------------------------------------------------------------------------
+% Use bold font for Titles etc.
+\usefonttheme{structurebold}
+
+% ------------------------------------------------------------------------
+% footline
+\setbeamerfont{footline}{size=\tiny,parent=normal text}
+
+% ------------------------------------------------------------------------
+% Fonts
+\RequirePackage[T1]{fontenc}
+\RequirePackage{lato}
+\renewcommand{\familydefault}{\sfdefault}
+
+\setbeamercolor*{normal text}{fg=dhbwink,bg=dhbwpaper}
+\setbeamercolor*{structure}{fg=dhbwaccent,bg=dhbwpaper}
+\setbeamercolor*{alerted text}{parent=structure}
+\setbeamercolor*{titlelike}{fg=dhbwink,bg=dhbwpaper}
+\setbeamercolor*{frametitle}{fg=dhbwink,bg=dhbwpaper}
+
+\setbeamercolor*{author in head/foot}{fg=dhbwslate,bg=dhbwpaper}
+\setbeamercolor*{title in head/foot}{fg=dhbwslate,bg=dhbwpaper}
+\setbeamercolor*{section in head/foot}{fg=dhbwslate,bg=dhbwpaper}
+\setbeamercolor*{framenumber in head/foot}{fg=dhbwslate,bg=dhbwpaper}
+
+\setbeamercolor*{block title}{fg=dhbwaccent,bg=dhbwhint}
+\setbeamercolor*{block body}{fg=dhbwink,bg=dhbwhint}
+\setbeamercolor*{itemize item}{fg=dhbwaccent}
+\setbeamercolor*{itemize subitem}{fg=dhbwslate}
+
+% ------------------------------------------------------------------------
+% Lists
+\setbeamertemplate{items}[circle]
+\setbeamerfont{itemize/enumerate subbody}{size=\normalsize}
+\setbeamerfont{itemize/enumerate subsubbody}{size=\normalsize}
+  
+% ------------------------------------------------------------------------
+% Frame title: lecture
+
+\defbeamertemplate*{frametitle}{lecture}[1][left]
+{
+  \ifbeamercolorempty[bg]{frametitle}{}{\nointerlineskip}%
+  \@tempdima=\textwidth%
+  \advance\@tempdima by\beamer@leftmargin%
+  \advance\@tempdima by\beamer@rightmargin%
+  \begin{beamercolorbox}[sep=0.2cm,#1,wd=\the\@tempdima]{frametitle}
+    \if@tempswa\else\csname beamer@fte#1\endcsname\fi%
+    {\usebeamerfont{frametitle}\rule[-0.5ex]{0pt}{2.3ex}\insertframetitle\par}%
+    \if@tempswa\else\vskip-.2cm\fi% set inside beamercolorbox... evil here...
+  \end{beamercolorbox}%
+  \vskip0.08cm%
+}
+% NOTE: preamble.tex overrides this template wholesale (uppercase title,
+% no colored box) -- the beamercolorbox version above is unused as long
+% as that override stays in place. Kept for reference / in case the
+% override is ever dropped.
+
+\def\beamer@fteright{\vskip0.35cm\advance\leftskip by 1.7cm\advance\rightskip by1.7cm}
+
+\setbeamertemplate{frametitle continuation}[from second][{\small/~\insertcontinuationcount}]
+
+
+%\useoutertheme{lmu-lecture}
+% ------------------------------------------------------------------------
+% Geometry
+% aspectratio=169 widens paperwidth from 12.8cm to 16cm but keeps figures/tables
+% sized against \textwidth -- if margins stayed at 0.8cm, \textwidth (and every
+% width=N\textwidth figure) would grow ~29% while frame height only shrinks ~6%,
+% pushing pictures past the bottom of the frame. Widen margins to hold \textwidth
+% at its old 4:3 value (11.2cm) so existing content keeps its original size; the
+% extra paper width becomes margin instead of inflating every figure.
+\setbeamersize{text margin left=2.4cm,text margin right=2.4cm}
+
+% ------------------------------------------------------------------------
+% foot line
+
+\pgfdeclarehorizontalshading{footlineshade}{4mm}{%
+  color(0pt)=(black);%
+  color(1.0\paperwidth)=(structure!50!black)}
+
+% redefine \ref (it has been redefined somewhere by the beamerclass)
+\def\lectureref#1{\expandafter\@setref\csname r@#1\endcsname\@firstoftwo{#1}}
+
+% Keep legacy lecture bookkeeping available for \endlecture labels.
+\newcounter{lectureframenumber}
+\def\addjustlectureframenumber#1{}
+
+\defbeamertemplate*{footline}{lecture theme}
+{
+  \usebeamerfont{footline} %author in head/foot}
+  \leavevmode%
+  \hbox{%
+    \setbox\beamer@linebox=\hbox to\paperwidth{%
+      \hskip 1em%
+      {\usebeamercolor[fg]{author in head/foot}%
+      \insertshortauthor~~\insertshortdate}\hfill%
+      {\usebeamercolor[fg]{title in head/foot}%
+      \inserttitle~~--~~}%
+      \ifnum\c@lecture>0%
+        {\usebeamercolor[fg]{section in head/foot}%
+          \arabic{lecture}~~--~~}%
+      \fi%
+      {\usebeamercolor[fg]{framenumber in head/foot}%
+        \insertframenumber~/~\inserttotalframenumber%
+      }%
+      \hskip 1em}%
+    \ht\beamer@linebox=2.5mm%
+    \dp\beamer@linebox=0pt%
+    \setbox\beamer@linebox=\vbox{\box\beamer@linebox\vskip1.125ex}%
+    {\color{dhbwslate}\rule[4.5mm]{\paperwidth}{0.5pt}}%
+    %%
+    \hskip-\paperwidth%
+    \hbox{\box\beamer@linebox\hfill}}
+}
+
+% ------------------------------------------------------------------------
+% Navigation symbols
+\setbeamertemplate{navigation symbols}{}
+
+% ------------------------------------------------------------------------
+% No head lines
+\defbeamertemplate*{headline}{lecture theme}{}
+
+
+
+% ------------------------------------------------------------------------
+\endinput
+% ------------------------------------------------------------------------

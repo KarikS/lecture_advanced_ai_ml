@@ -1,0 +1,17 @@
+Suggested order of slides (planned — none authored yet):
+
+- slides-09-software      [copy+adapt: i2dl/slides/opt1/slides-opt1-hardware-and-software.tex,
+                            \section{Software for Deep Learning} portion]
+- slides-09-tools         [NEW — gap. MLOps tooling: keep interactive/demo-driven rather than
+                            slide-heavy. MiniLM embeddings (Hugging Face) -> TensorBoard
+                            projector -> MLflow tracking -> mirrored in W&B. Specific
+                            setup notes (pip installs, endpoints, academic W&B license) are in
+                            outline_mapping.md gap-strategy #5 — pick exact tools closer to
+                            teaching this segment.]
+- slides-09-hardware      [copy+adapt: same file as software, \section{Hardware for Deep
+                            Learning} portion; possibly overlaps dl4nlp/chapter11-training-llms
+                            compute-cost material]
+- slides-09-eu-sovereignty [NEW — gap, DHBW-specific. Fast-moving policy topic: verify current
+                            status via research before drafting, don't draft from memory. Karik
+                            provides a rough guideline first. See outline_mapping.md
+                            gap-strategy #6.]

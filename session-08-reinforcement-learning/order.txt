@@ -1,0 +1,15 @@
+Suggested order of slides (planned — none authored yet):
+
+- slides-07-rl-basics    [NEW — gap. No MDP/policy-gradient/value-function primer exists
+                           anywhere in either source course. Base on
+                           https://davidstarsilver.wordpress.com/teaching/ — Grundlagen,
+                           Q-Learning, Policy Gradients, DQN, Actor-Critic. Single session,
+                           so keep brief and skip some points. See outline_mapping.md
+                           gap-strategy #2.]
+- slides-07-rlhf         [copy+adapt: dl4nlp/chapter10-rlhf/slides-10-rlhf.tex,
+                           chapter10-rlhf/9rlhf.tex, chapter10-rlhf/9itune.tex,
+                           chapter10-rlhf/roadmap.tex, chapter10-rlhf/roadmap2.tex,
+                           chapter10-rlhf/cheatsheet.tex]
+- slides-07-computation  [PARTIAL — overlaps dl4nlp/chapter11-training-llms/
+                           slides-111-compute-memory.tex; nothing RLHF-compute-specific exists,
+                           decide scope when authoring]

@@ -1,0 +1,10 @@
+Suggested order of slides (planned — none authored yet):
+
+- slides-04-basic-concepts   [copy+adapt: i2dl/slides/cnn1/slides-cnn-introduction.tex,
+                               cnn1/slides-cnn-components.tex]
+- slides-04-1d2d3d-conv      [copy+adapt: i2dl/slides/cnn2/slides-convolution-types.tex,
+                               cnn1/slides-cnn-conv2d.tex]
+- slides-04-dilation         [copy+adapt: i2dl/slides/cnn2/slides-dilated-transposed-convolutions.tex]
+- slides-04-transposing      [copy+adapt: same file as dilation — split or keep combined, decide
+                               when authoring]
+- slides-04-pooling          [copy+adapt: i2dl/slides/cnn1/slides-cnn-pooling.tex]

@@ -1,0 +1,59 @@
+This session compiles to a single deck: slides-dl-intro-ii.tex
+
+Merged from 4 original i2dl decks (now in _sources/, kept for reference and
+excluded from tex.mk's build glob) plus one section assembled from verified
+inline mentions rather than a standalone deck:
+
+1. opt2/slides-activations.tex               [Activations, copied whole; keeps
+                                               its own internal \section{Hidden
+                                               activations} / \section{Output
+                                               activations}]
+2. (assembled, not a whole-file copy)         [Losses, see below]
+3. regu/slides-regu-basic-regularization.tex  [Basic Regularization]
+4. regu/slides-regu-early-stopping.tex        [Early Stopping]
+5. regu/slides-regu-ensemble-dropout-augmentation.tex
+                                               [Ensemble Methods / Dropout /
+                                               Dataset Augmentation, copied
+                                               whole; keeps its own internal
+                                               \section per sub-topic]
+
+Losses: outline_mapping.md flags this as 🟡, no dedicated i2dl deck exists.
+Per outline_mapping.md's "Gaps needing new material" fill-strategy #7, this
+section was assembled (not newly authored) from the verified anchors: the ERM
+framing in i2dl/slides/opt1/slides-opt1-basic-training.tex:44-51, the L2/
+cross-entropy discussion in mlps/slides-mlps-single-neuron.tex (Session 1),
+the softmax loss in mlps/slides-mlps-multiclass-classification.tex (Session
+1), and the MLE framing in opt2/slides-activations.tex. One addition beyond
+those i2dl anchors: an opening "What Is a Loss Function?" frame and the L1
+loss formula, both taken from i2ml
+(https://slds-lmu.github.io/i2ml/chapters/01_ml_basics/01-06-riskminimization/,
+verified via its actual slide PDF, not just the page summary) since i2dl
+doesn't define loss functions generically or mention L1 at all. Cited in a
+References frame at the end of the Losses section. Also extracted the L1/L2
+loss plots (figure/i2ml-l1-loss.png, figure/i2ml-l2-loss.png) from that same
+PDF via pdfimages and added them to the Regression frame, matching the
+visual density of every other section in this deck.
+
+Each sub-topic keeps its own \section{...} (PDF bookmark navigation only, no
+visible progress bar): Hidden activations, Output activations, Loss
+Functions, Basic Regularization, Early Stopping, Ensemble Methods, Dropout,
+Dataset Augmentation (8 sections). One consolidated title/learning-goals frame
+at the top (\titlefigure = figure/leakyrelu_deriv.png), goals rewritten as one
+semantically-reduced ~6-bullet list.
+
+Figures merged from opt2/figure/, regu/figure/, and regu/figure_man/ into one
+shared figure/ here; no filename collisions.
+
+Fixed a build issue not present in Session 1: each original file's own
+References mini-bibliography reused \bibitem keys ({1}, {2}, {3}, {4}) locally,
+which collided once all 4 References blocks landed in one compiled document
+(LaTeX "multiply defined" warnings). Keys were prefixed per section (act1-4,
+loss1, reg1-4, dropaug1-5); citation text/content untouched, purely a
+LaTeX cross-reference key rename. Worth applying proactively in future
+sessions with multiple References blocks.
+
+Not copied: templates/ (editable .pptx originals), left in the source tree.
+
+Branding (\lecture{I2DL} footer, LMU background) deliberately left unchanged,
+deferred to one later rebranding pass across all sessions, not done
+piecemeal.
