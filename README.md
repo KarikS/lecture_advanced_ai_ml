@@ -1,14 +1,14 @@
 # Advanced Artificial Intelligence and Machine Learning
 
 This course is oriented towards students, professionals and anyone interested that aims to
-deepen their understanding of what mechanisms underlie modern deep learning architectures,
+deepen their understanding of what **mechanisms underlie modern deep learning architectures**,
 especially Transformers. As very specific architectures are overtaken quickly, we try to introduce
 principles shared by many such models wherever possible (e.g. dedicating a lot to optimization).
 
 Compared to other courses in this area, which usually focus on classical architectures (CNNs, RNNs, AEs)
 *or* Transformers or are guided by specific domains like Computer Vision or Natural Language Processing,
-we specifically try to make the balancing act of a domain-agnostic introduction of classical architectures
-while giving an in-depth view on Transformers. This has largely three reasons:
+we specifically try to make the **balancing act of a domain-agnostic introduction of classical architectures
+while giving an in-depth view on Transformers**. This has largely three reasons:
 
 1. Classical architectures were overtaken by Transformers in many areas, especially when data volume is no problem.
 2. Principles of why classical architectures work can be much more easily understood by learners. In direct comparisons with Transformers we can thus see where these principles deviate or generalize and thus better understand Transformers.
