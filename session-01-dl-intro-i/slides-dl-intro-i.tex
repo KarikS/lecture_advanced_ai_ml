@@ -25,87 +25,41 @@
 \section{Brief History}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\begin{vbframe}{A Brief History: What Was Possible}
+\begin{itemize}
+\item \pkg{1943:} McCulloch \& Pitts propose the \enquote{Threshold Logic Unit (TLU)}, the first artificial neuron: binary inputs, a fixed threshold $\theta$, non-adjustable weights.
+\vspace{2mm}
+\item \pkg{1957:} Rosenblatt's Perceptron generalizes this with real-valued inputs and, crucially, \textbf{learnable} weights.
+\vspace{2mm}
+\item \pkg{1960:} Widrow \& Hoff's ADALINE learns by adjusting weights based on the weighted sum of the inputs.
+\vspace{2mm}
+\item \pkg{1965:} Ivakhnenko's Group Method of Data Handling (GMDH) gives the first learning algorithm for supervised, deep, multilayer feedforward networks.
+\vspace{2mm}
+\item \pkg{1985:} Rumelhart, Hinton \& Williams popularize \textbf{backpropagation} for multilayer perceptrons: efficient gradient computation through composite functions (first derived by Linnainmaa already in 1970 -- more on this in a later session).
+\end{itemize}
+\begin{figure}
+\centering
+\includegraphics[width=5.5cm]{figure/perceptron_new.png}
+\end{figure}
+\end{vbframe}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{vbframe}{A Brief History: Why the Winters}
+\begin{itemize}
+\item \pkg{1969 --- First AI Winter:} Minsky \& Papert prove that a single perceptron cannot solve the XOR problem: it is not linearly separable (we return to this in detail later). Funding dries up, research stalls.
+\vspace{4mm}
+\item \pkg{1985 --- Second AI Winter:} Despite backpropagation, expectations outpace results. Kernel machines and graphical models match or beat early neural nets on many tasks, and modeling long sequences remains a fundamental difficulty. \enquote{AI} becomes associated with pseudoscience; investment collapses again.
+\end{itemize}
+\begin{figure}
+\centering
+\includegraphics[width=6cm]{figure/orvsxor.png}
+\caption{\small The XOR problem: not linearly separable.}
+\end{figure}
+\end{vbframe}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \begin{vbframe}{A brief history of neural networks}
 \begin{itemize}
-\item \pkg{1943:} The first artificial neuron, the "Threshold Logic Unit (TLU)", was proposed by Warren McCulloch \& Walter Pitts.
-\begin{figure}
-\includegraphics[width=7cm]{figure/mp_neuron.png}
-\end{figure}
-\begin{itemize}
-\item The model is limited to binary inputs.
-\vspace{2mm}
-\item %The MP-neuron 
-It fires/outputs  $+1$ if the input exceeds a certain threshold $\theta$.
-\vspace{2mm}
-\item The weight are not adjustable, so learning could only be achieved by changing the threshold $\theta$.
-\end{itemize}
-\end{itemize}
-\framebreak
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
-
-\begin{itemize}
-\item \pkg{1957:} The perceptron was invented by Frank Rosenblatt. 
-\begin{figure}
-\includegraphics[width=7cm]{figure/perceptron_new.png}
-\end{figure}
-\begin{itemize}
-\vspace{2mm}
-\item The inputs are not restricted to be binary.
-\vspace{2mm}
-\item %In perceptron, 
-The weights are adjustable and can be learned by learning algorithms.
-\vspace{2mm}
-\item %5Similar to the% MP-neuron
-As for the TLU, the threshold is adjustable and decision boundaries are linear.
-\end{itemize}
-\end{itemize}
-\framebreak
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\begin{itemize}
-\item \pkg{1960:} Adaptive Linear Neuron (ADALINE) was invented by Bernard Widrow \& Ted Hoff; weights are now adjustable according to the weighted sum of the inputs.
-\vspace{.1cm}
-\begin{figure}
-\includegraphics[width=6cm]{figure/adaline.png}
-\end{figure}
-%\vspace{1cm}
-\item \pkg{1965:} Group method of data handling (also known as polynomial neural networks) by Alexey Ivakhnenko. The first learning algorithm for supervised deep feedforward multilayer perceptrons.
-\framebreak
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\item \pkg{1969:} The first \enquote{AI Winter} kicked in.
-\begin{itemize}
-\item Marvin Minsky \& Seymour Papert proved that a perceptron cannot solve the XOR-Problem (linear separability).
-\item Less funding $\Rightarrow$ Standstill in AI/DL research.
-\end{itemize}
-\end{itemize}
-\begin{figure}
-\includegraphics[width=7cm]{figure/orvsxor.png}
-\end{figure}
-\begin{itemize}
-\item \pkg{1985:} Multilayer perceptron with backpropagation by David Rumelhart, Geoffrey Hinton, and Ronald Williams.
-\begin{itemize}
-\item Efficiently compute derivatives of composite functions.
-\item Backpropagation was developed already in 1970 by Linnainmaa.
-\end{itemize}
-\framebreak
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\item \pkg{1985:} The second \enquote{AI Winter} kicked in.
-
-\begin{itemize}
-\footnotesize\item Overly optimistic expectations concerning potential of AI/DL.
-\footnotesize\item The phrase \enquote{AI} even reached a pseudoscience status.
-\footnotesize\item Kernel machines and graphical models both achieved good results on many important tasks.
-\footnotesize\item Some fundamental mathematical difficulties in modeling long sequences were identified.
-\end{itemize}
-\begin{figure}
-\includegraphics[width=7cm]{figure/ai_winter.jpg}
-\caption{\small Symbolic image of an \enquote{AI Winter} (Fagella, 2019)}
-\end{figure}
-\framebreak
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 \item \pkg{2006:} Age of deep neural networks began.
 
 \begin{itemize}
@@ -688,124 +642,46 @@ $$ \sigma(v) = \frac{1}{1+\exp (-v)} $$
 %%\section{Single Hidden Layer Networks for Regression and Binary Classification}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{vbframe}{Single Hidden Layer Networks: Notations}
-
+\begin{vbframe}{Vectorized Notation: Hidden Layer}
 \begin{itemize}
-\item The input $\xv$ is a column vector with dimensions $p \times 1$. 
-\item $\Wmat$ is a weight matrix with dimensions $p \times m$, where $m$ is the amount of hidden neurons:
-$$\Wmat =
-     \begin{pmatrix}
-      w_{1,1} & w_{1,2} & \cdots & w_{1,m} \\
-      w_{2,1} & w_{2,2} & \cdots & w_{2,m} \\
-      \vdots  & \vdots  & \ddots & \vdots  \\
-      w_{p,1} & w_{p,2} & \cdots & w_{p,m}
-     \end{pmatrix}$$
-     \end{itemize}
-     \framebreak
-     \textbf{Hidden layer}:
-     \begin{itemize}
-\item For example, to obtain $z_1$, we pick the first column of $W$:
-    $$\Wmat_1 =
-     \begin{pmatrix}
-      w_{1,1} \\
-      w_{2,1} \\
-      \vdots  \\
-      w_{p,1}
-     \end{pmatrix}$$
-and compute 
-$$z_1 = \sigma(\Wmat_1^T \xv + b_1)\enspace,$$
- where $b_1$ is the bias of the first hidden neuron and $\sigma: \mathbb{R} \to \mathbb{R}$ is an activation function. 
+\item Input $\xv \in \R^{p \times 1}$, weight matrix $\Wmat \in \R^{p \times m}$ (one column per hidden neuron), bias $\biasb \in \R^{m \times 1}$.
+\vspace{3mm}
+\item All $m$ hidden neurons $z_1, \dots, z_m$ are computed at once:
+$$ \hidz_{in} = \Wmat^T \xv + \biasb, \qquad \hidz = \sigma(\hidz_{in}) = \sigma(\Wmat^T \xv + \biasb),$$
+where $\sigma$ is applied element-wise.
+\vspace{3mm}
+\item \textbf{Note}: The bias is often folded into $\Wmat$ by augmenting $\xv$ with a constant $1$; we won't draw it explicitly from here on.
 \end{itemize}
 \end{vbframe}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%s%%%%
-
-\begin{vbframe}{Single Hidden Layer Networks: Notation}
-% \textbf{Hidden layer}:
-  \begin{itemize}
-    \vspace{4mm}
-    \item The network has $m$ hidden neurons $z_1, \dots, z_m$ with
-    $$ z_j = \sigma(\mathbf{W}_j^T \xv + b_j)$$
-    \vspace{-0.5cm}
-    \begin{itemize}
-    \item $z_{j,in}  = \mathbf{W}_j^T \xv + b_j$
-    \vspace{2mm}
-    \item $z_{j,out} = \sigma(z_{j,in}) = \sigma(\mathbf{W}_j^T \xv + b_j)$
-    \end{itemize}
-    \vspace{4mm}
-    for $j \in \{1,\ldots,m\}$.
-    \vspace{4mm}
-    %\framebreak 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\item Vectorized notation:
+\begin{vbframe}{Vectorized Notation: Output Layer}
 \begin{itemize}
-\item $ \hidz_{in} = (z_{1,in}, \dots, z_{m,in})^T = \Wmat^T \xv + \biasb$ \\ (Note: $\Wmat^T \xv$ = $(\xv^T \Wmat)^T$)
-\item $ \hidz = \hidz_{out} = \sigma(\hidz_{in}) = \sigma(\Wmat^T \xv + \biasb)$, where the (hidden layer) activation function $\sigma$ is applied element-wise to $\hidz_{in}$.  
+  \vspace{4mm}
+  \item For regression or binary classification: one output unit $f$ where
+    \begin{itemize}
+      \item $f_{in} = \wtu^T \hidz + c$ , i.e. a linear combination of derived features plus the bias term $c$ of the output neuron, and
+      \vspace{2mm}
+      \item $\fx= f_{out} = \tau(f_{in}) = \tau(\wtu^T \hidz + c)$ , where $\tau$ is the output activation function.
+    \end{itemize}
+  \item For regression $\tau$ is the identity function; for binary classification, $\tau$ is a sigmoid function.
+  \item \textbf{Note}: $\sigma$ introduces the non-linearities that let the network learn complex functions; $\tau$ merely rescales the final score to match the target's range.
 \end{itemize}
-\framebreak
-\item \textbf{Bias term}:         
+\end{vbframe}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{vbframe}{Vectorized Notation: Batched Inputs}
 \begin{itemize}
-\item We sometimes omit the bias term by adding a constant feature to the input $\tilde{\xv} = (1, x_1, ..., x_p)$ and by adding the bias term to the weight matrix 
-$$\tilde{\Wmat} = (\biasb, \Wmat_1, ..., \Wmat_p).$$ 
-\item \textbf{Note}: For simplification purposes, we will not explicitly represent the bias term graphically in the following. However, the above \enquote{trick} makes it straightforward to represent it graphically. 
+\item Multiple inputs $\xi$, $i \in \nset$, are stacked as rows of a \textbf{design matrix} $\Xmat \in \R^{n \times p}$.
+\vspace{2mm}
+\item Hidden activations for the whole batch, computed at once:
+$$\bm{Z} = \sigma(\Xmat\Wmat + \bm{B}) \in \R^{n \times m},$$
+where $\bm{B}$ duplicates $\biasb$ as the rows of an ($n \times m$) matrix.
+\vspace{2mm}
+\item Final output for the whole batch:
+$$\tau(\bm{Z}\wtu + \bm{C}) \in \R^{n \times 1},$$
+where $\bm{C}$ duplicates the scalar bias $c$ as the rows of an ($n \times 1$) matrix.
 \end{itemize}
-\end{itemize}
-\framebreak
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-  \textbf{Output layer}:
-  \begin{itemize}
-    \vspace{4mm}
-    \item For regression or binary classification: one output unit $f$ where
-      \begin{itemize}
-        \item $f_{in} = \wtu^T \hidz + c$ , i.e. a linear combination of derived features plus the bias term $c$ of the output neuron, and
-        \vspace{2mm}
-        \item $\fx= f_{out} = \tau(f_{in}) = \tau(\wtu^T \hidz + c)$ , where $\tau$ is the output activation function.
-      \end{itemize}
-    \item For regression $\tau$ is the identity function.
-    \item For binary classification, $\tau$ is a sigmoid function.
-    \item \textbf{Note}: The purpose of the hidden-layer activation function $\sigma$ is to introduce non-linearities so that the network is able to learn complex functions whereas the purpose of $\tau$ is merely to get the final score to the same range as the target.
-  \end{itemize}
-
-\framebreak 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-  \textbf{%General notation: 
-  Multiple inputs:}
-  \begin{itemize}
-    \item It is possible to feed multiple inputs to a neural network simultaneously.
-    \vspace{2mm}
-    \item The inputs $\xi$, for $i \in \nset$, are arranged as rows in the \textbf{design matrix} $\Xmat$.
-    \begin{itemize}
-      \item $\Xmat$ is a ($n \times p$)-matrix.
-    \end{itemize}
-    \vspace{2mm}
-    \item The weighted sum in the hidden layer is now computed as $\Xmat\Wmat + \bm{B}$, where,
-      \begin{itemize}
-        \item $\Wmat$, as usual, is a ($p \times m$) matrix, and,
-        \vspace{2mm}
-        \item $\bm{B}$ is a ($n \times m$) matrix containing the bias vector $\biasb$ (duplicated) as the rows of the matrix.
-      \end{itemize}
-    \vspace{2mm}
-    \item The \textit{matrix} of hidden activations $\bm{Z} = \sigma(\Xmat\Wmat + \bm{B})$
-    \begin{itemize}
-      \item $\bm{Z}$ is a ($n \times m$) matrix.
-    \end{itemize}
-  \end{itemize}
-
-\framebreak
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-  \begin{itemize}
-    \vspace{15mm}
-    \item The final output of the network, which contains a prediction for each input, is $\tau(\bm{Z}\wtu + \bm{C})$, where
-      \begin{itemize}
-        \vspace{2mm}
-        \item $\wtu$ is the vector of weights of the output neuron, and,
-        \vspace{2mm}
-        \item $\bm{C}$ is a ($n \times 1$) matrix whose elements are the (scalar) bias $c$ of the output neuron.
-      \end{itemize}
-  \end{itemize}
 \end{vbframe}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1278,198 +1154,33 @@ The term "\textbf{deep learning}" encompasses all of these developments and refe
 
 %\section{Universal Approximation}
 
-\begin{vbframe}{Universal approximation property}
-
-  \textbf{Theorem.}
-  Let $\sigma : \R \to \R$ be a continuous, non-constant, bounded, and
-  monotonically increasing function. Let $C \subset \R^p$ be compact,
-  and let $\continuous(C)$ denote the space of continuous functions $C \to \R$.
-  Then, given a function $g \in \continuous(C)$ and an accuracy $\varepsilon > 0$,
-  there exists a hidden layer size $m \in \N$ and a set of coefficients
-  $W_j \in \R^p$, $u_j, b_j \in \R$
-  (for $j \in \{1, \dots, m\}$), such that
-  $$
-    f : C \to \R \,;\quad f(\mathbf{x}) = \sum_{j=1}^m u_j \cdot \sigma \Big( W_j^T \mathbf{x} + b_j \Big)
-  $$
-  is an $\varepsilon$-approximation of $g$, that is,
-  $$
-    \|f - g\|_{\infty} := \max_{x \in C} |f(\mathbf{x}) - g(\mathbf{x})| < \varepsilon
-    \enspace.
-  $$
-
-  The theorem extends trivially to multiple outputs.
-
-  \framebreak
-
-  \textbf{Corollary.}
-  Neural networks with a single sigmoidal hidden layer and linear
-  output layer are universal approximators.
-
+\begin{vbframe}{Universal Approximation: What It Says}
+\begin{itemize}
+\item \textbf{Theorem (informal).} A neural network with a single hidden layer and enough hidden neurons can approximate any continuous function on a bounded input domain to arbitrary precision.
+\vspace{4mm}
+\item This holds for (almost) any non-linear activation function $\sigma$, and extends trivially to multiple outputs.
+\vspace{4mm}
+\item Two important caveats:
   \begin{itemize}
-    \item This means that for a given target function $g$ there exists a
-    sequence of networks $\big( f_k \big)_{k \in \N}$ that converges
-    (pointwise) to $g$.%he target function.
+    \item The theorem only guarantees that suitable weights \textit{exist} --- not that training will find them.
     \vspace{2mm}
-    \item Usually, as the networks come closer and closer to $g$, they
-    will need more and more hidden neurons.
-    \vspace{2mm}
-    \item A network with fixed layer sizes can only model a subspace of all
-    continuous functions. % Its dimensionality is limited by the number
-    %of weights.
-    \vspace{2mm}
-    \item The continuous functions form an infinite dimensional vector space.
-    Therefore arbitrarily large hidden layer sizes are needed.
+    \item \enquote{Enough hidden neurons} can mean an impractically large number: a network of fixed size can only represent a subspace of all continuous functions.
   \end{itemize}
-
-  \framebreak
-
-  \begin{itemize}
-  \item Why is universal approximation a desirable property?
-  \vspace{2mm}
-  \item Recall the definition of a Bayes optimal hypothesis $f^* : X \to Y$.
-    It is the best possible hypothesis (model) for the given problem:
-    it has minimal loss averaged over the data generating distribution.
-  \vspace{2mm}
-  \item So ideally we would like the neural network (or any other
-    learner) to approximate the Bayes optimal hypothesis.
-  \vspace{2mm}
-  \item Usually we do not manage to learn $f^*$.
-  \vspace{2mm}
-  \item This is because we do not have enough (infinite) data. We have
-    no control over this, so we have to live with this limitation.
-  \vspace{2mm}
-  \item But we do have control over which model class we use.
-  \end{itemize}
-
-  \framebreak
-
-  \begin{itemize}
-    \vspace{10mm}
-    \item Universal approximation $\Rightarrow$ approximation error tends
-    to zero as hidden layer size tends to infinity.
-    \vspace{5mm}
-    \item Positive approximation error implies that no matter  how %good the data, 
-    big the data set, we cannot find the optimal model.
-    \vspace{5mm}
-    \item This bears the risk of systematic under-fitting, which can be avoided with a universal model class.
-  \end{itemize}
-
-  \framebreak
-
-  \begin{itemize}
-    \vspace{5mm}
-    \item As we know, there are also good reasons for restricting the model class.
-    \vspace{5mm}
-    \item This is because a flexible model class with universal approximation
-    ability often results in over-fitting, which is no better than
-    under-fitting.
-    \vspace{5mm}
-    \item Thus, \enquote{universal approximation $\Rightarrow$ low approximation error}, but at the risk of a substantial learning error.
-    \vspace{5mm}
-    \item In general, models of intermediate flexibility give the best predictions.
-    For neural networks this amounts to a reasonably sized hidden layer.
-  \end{itemize}
+\end{itemize}
 \end{vbframe}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{frame} {Example : Regression/Classification}
-  \begin{itemize}
-    \vspace{15mm}
-    \item Let's look at a few examples of the types of functions and decisions boundaries learnt by neural networks (with a \textbf{single} hidden layer) of various sizes.
-        \vspace{5mm}
-        \item "size" here refers to the number of neurons in the hidden layer.
-    \vspace{5mm}
-    %\item The number of "iterations" in the following slides is the number of steps of (stochastic) gradient descent performed.
-    \item The number of "iterations" in the following slides corresponds to the number of steps of the applied iterative optimization algorithm (stochastic gradient descent).
-  \end{itemize}
-\end{frame}
-
-% \begin{vbframe}{Regression: 100 training iterations}
-% <<echo=FALSE, warning=FALSE, message=FALSE, results="hide">>=
-% 
-% library("mlr")
-% set.seed(1234L)
-% n = 50L
-% x = sort(10 * runif(n))
-% y = sin(x) + 0.2 * rnorm(x)
-% df = data.frame(x = x, y = y)
-% tsk = makeRegrTask("sine function example", data = df, target = "y")
-% plotLearnerPrediction("regr.nnet", tsk, size = 1L, maxit = 100)
-% 
-% plotLearnerPrediction("regr.nnet", tsk, size = 2L, maxit = 100)
-% 
-% plotLearnerPrediction("regr.nnet", tsk, size = 3L, maxit = 100)
-% 
-% plotLearnerPrediction("regr.nnet", tsk, size = 4L, maxit = 100)
-% 
-% plotLearnerPrediction("regr.nnet", tsk, size = 5L, maxit = 100)
-% 
-% plotLearnerPrediction("regr.nnet", tsk, size = 6L, maxit = 100)
-% 
-% plotLearnerPrediction("regr.nnet", tsk, size = 100L, maxit = 100)
-% 
-% @
-% \end{vbframe}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{vbframe}{Regression Ex.: 1000 training iterations}
-\begin{knitrout}\scriptsize
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
-
-{\centering \includegraphics[width=0.92\textwidth]{figure/unnamed-chunk-5-1} 
-
-}
-
-
-
-
-{\centering \includegraphics[width=0.92\textwidth]{figure/unnamed-chunk-5-2} 
-
-}
-
-
-
-
-{\centering \includegraphics[width=0.92\textwidth]{figure/unnamed-chunk-5-3} 
-
-}
-
-
-
-
-{\centering \includegraphics[width=0.92\textwidth]{figure/unnamed-chunk-5-4} 
-
-}
-
-
-
-
-{\centering \includegraphics[width=0.92\textwidth]{figure/unnamed-chunk-5-5} 
-
-}
-
-
-
-
-{\centering \includegraphics[width=0.92\textwidth]{figure/unnamed-chunk-5-6} 
-
-}
-
-
-
-
-{\centering \includegraphics[width=0.92\textwidth]{figure/unnamed-chunk-5-7} 
-
-}
-
-
-
-\end{knitrout}
+\begin{vbframe}{Universal Approximation: The Catch}
+\begin{itemize}
+\item Universal approximation means approximation error can be driven to (near) zero --- so why not always use huge networks?
+\vspace{4mm}
+\item Because a highly flexible model class is also prone to \textbf{overfitting}: fitting the training data closely does not guarantee good generalization.
+\vspace{4mm}
+\item In practice, models of \textbf{intermediate flexibility} tend to generalize best; for neural networks, that means a reasonably (not maximally) sized hidden layer.
+\vspace{4mm}
+\item Let's see this in practice: decision boundaries learned by single-hidden-layer networks of different sizes, at different points during training.
+\end{itemize}
 \end{vbframe}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{frame}{Classification: 500 training iterations}
 
