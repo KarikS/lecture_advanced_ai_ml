@@ -194,6 +194,22 @@ training error rate on the CIFAR-10 dataset six times faster than an equivalent 
   \end{itemize}
 \end{frame}
 
+\begin{vbframe}{Excursus: Maximum Likelihood Estimation}
+  \begin{itemize}
+    \item Given i.i.d. training data $(\xv^{(i)}, \yi)_{i \in \nset}$ and a model defining $p(y \mid \xv, \thetav)$, the \textbf{likelihood} is how probable the observed labels are under the model:
+    $$L(\thetav) = \prod_{i=1}^n p(\yi \mid \xv^{(i)}, \thetav)$$
+    \item \textbf{Maximum likelihood estimation (MLE)} picks the parameters that make the observed data most probable: $\hat{\thetav} = \argmax_{\thetav} L(\thetav)$.
+  \end{itemize}
+\framebreak
+
+  \begin{itemize}
+    \item In practice we use the \textbf{log-likelihood}: $\log$ turns the product into a numerically stable sum, and since $\log$ is monotonic, the maximizer is unchanged:
+    $$\log L(\thetav) = \sum_{i=1}^n \log p(\yi \mid \xv^{(i)}, \thetav)$$
+    \item Since we usually \textit{minimize} losses, we equivalently minimize the \textbf{negative} log-likelihood: $\hat{\thetav} = \argmin_{\thetav} \left(-\sum_{i=1}^n \log p(\yi \mid \xv^{(i)}, \thetav)\right)$.
+    \item This is the bridge used throughout: pick an output activation that defines a distribution, and the matching loss falls out as its negative log-likelihood.
+  \end{itemize}
+\end{vbframe}
+
 
 \begin{frame} {Output Activations}
   \small
@@ -404,8 +420,7 @@ Norm penalties can be interpreted as imposing a constraint on the weights. One c
  & \argmin_{\thetav}  \risket \\
   &\text{subject to \;\;\;}  J(\thetav) \leq k
  \end{align*}
-  for some value $k$ that depends on $\lambda$ the nature of 
- $\risket$ (Goodfellow et al., 2016)
+  for some value $k$ that depends on $\lambda$ and $\risket$ (Goodfellow et al., 2016)
 \end{frame}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -499,74 +514,6 @@ Carter, D. S. and S. (n.d.). \textit{Tensorflow - Neural Network Playground. A N
       \scalebox{0.5}{\includegraphics{figure/earlystop.png}}
       \caption{After a certain number of iterations, the algorithm begins to overfit.}
   \end{figure}
-\framebreak
-  How early stopping works:
-  \begin{enumerate}
-    \item Split training data $\Dtrain$ into $\mathcal{D}_{\text{subtrain}}$ and $\mathcal{D}_{\text{val}}$ (e.g. with a ratio of 2:1).
-    \item Train on $\mathcal{D}_{\text{subtrain}}$ and evaluate model using the validation set $\mathcal{D}_{\text{val}}$.
-    \item Stop training when validation error stops decreasing (after a range of \enquote{patience} steps).
-    \item Use parameters of the previous step for the actual model.
-  \end{enumerate}
-  More sophisticated forms also apply cross-validation.
-\end{vbframe}
-
-\begin{vbframe}{Early Stopping and $L2$}
-  \begin{table}
-    \begin{tabular}{p{4cm}|p{6cm}}
-    Strengths & Weaknesses \\
-    \hline
-    \hline
-    Effective and simple & Periodical evaluation of validation error\\
-    \hline
-    Applicable to almost any model without adjustment \note{of objective function, parameter space, training procedure} & Temporary copy of $\thetav$ (we have to save the whole model each time validation error improves) \\
-    \hline
-    Combinable with other regularization methods & Less data for training $\rightarrow$ include $\mathcal{D}_{\text{val}}$ afterwards\\ \hline\hline
-    \end{tabular}
-  \end{table}
-  \begin{itemize}
-    \item For simple case of LM with squared loss and GD optim initialized at $\thetav=0$: Early stopping has exact correspondence with $L2$ regularization/WD: %Relation between
-    optimal early-stopping iter $T_{\text{stop}}$ inversely proportional to  $\lambda$ scaled by step-size $\alpha$
-    
- \end{itemize}
-\begin{equation*}
-T_{\text{stop}} \approx \frac{1}{\alpha \lambda} 
-\Leftrightarrow \lambda \approx \frac{1}{T_{\text{stop}} \alpha}
-\end{equation*}
-  \begin{itemize}
-    \item Small $\lambda$ ( regu. $\downarrow$) $\Rightarrow$ large $T_{\text{stop}}$ (complexity $\uparrow$) and vice versa
-  \end{itemize}
-\framebreak
-  % \begin{itemize}
-  %   \item[]
-  % \end{itemize}
-  % \begin{figure}
-  %   \centering
-  %     \includegraphics[width=11cm]{figure/early_stopping}
-  %     \caption{Optimization path of early stopping (left) and weight decay (right) (Goodfellow et al. (2016))}
-  % \end{figure}
-  % \framebreak
-  \begin{figure}
-    \centering
-      \scalebox{0.75}{\includegraphics{figure/earlystop_int_hat.png}}
-      \tiny{\\ \href{https://www.deeplearningbook.org/contents/regularization.html}{Goodfellow et al., 2016, p. 249 ff.}\\}
-  \end{figure}
-  
-\footnotesize 
-\textbf{Figure:} Effect of early stopping. \textit{Left:} The solid lines indicate contours of the square loss objective. Dashed line indicates trajectory taken by GD initialized at origin. Instead of reaching minimizer $\thetah$, ES results in trajectory stopping earlier at $\hat{\thetav}_{\text{ridge}}$. \textit{Right:} Effect of $L2$ regularization. Dashed circles indicate contours of $L2$ constraint which push minimizer of regularized cost closer to origin than minimizer of unregularized cost.
-\end{vbframe}
-
-\begin{vbframe}{SGD Trajectory and $L2$}
-Solution paths for $L2$ regularized linear model closely matches SGD trajectory of unregularized LM initialized at $\thetav=0$
-\lz
-  \begin{figure}
-    \centering
-      %\scalebox{0.75}
-      {\includegraphics{figure/ridge-vs-sgd-path.png}}
-      \scriptsize{\\ \href{https://proceedings.mlr.press/v119/ali20a/ali20a.pdf}{Ali et al., 2020}\\}
-  \end{figure}
-
-\textbf{Caveat}: Initialization at the origin is crucial for this equivalence to hold, which is almost never used in practice in ML/DL applications
-
 \end{vbframe}
 
 
@@ -602,13 +549,13 @@ Solution paths for $L2$ regularized linear model closely matches SGD trajectory 
 
 \begin{vbframe}{Dropout}
   \begin{itemize}
-    \item %Dropout is a regularization technique for 
+    \item %Dropout is a regularization technique for
     Idea: reduce overfitting in neural networks by preventing complex co-adaptations of neurons.
+    \item Dropout can be seen as a form of "model averaging".
     \item Method: during training, random subsets of the neurons are removed from the network (they are "dropped out").This is done by artificially setting the activations of those neurons to zero.
     \item Whether a given unit/neuron is dropped out or not is completely independent of the other units.
     \item If the network has $N$ (input/hidden) units, applying dropout to these units can result in $2^N$ possible 'subnetworks'.
     \item Because these subnetworks are derived from the same 'parent' network, many of the weights are shared.
-    \item Dropout can be seen as a form of "model averaging".
   \end{itemize}
 \framebreak
   \begin{figure}

@@ -25,35 +25,34 @@
 \section{Brief History}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{vbframe}{A Brief History: What Was Possible}
+\begin{vbframe}{Winter 1: Linear Models Hit Their Ceiling}
 \begin{itemize}
-\item \pkg{1943:} McCulloch \& Pitts propose the \enquote{Threshold Logic Unit (TLU)}, the first artificial neuron: binary inputs, a fixed threshold $\theta$, non-adjustable weights.
-\vspace{2mm}
-\item \pkg{1957:} Rosenblatt's Perceptron generalizes this with real-valued inputs and, crucially, \textbf{learnable} weights.
-\vspace{2mm}
-\item \pkg{1960:} Widrow \& Hoff's ADALINE learns by adjusting weights based on the weighted sum of the inputs.
-\vspace{2mm}
-\item \pkg{1965:} Ivakhnenko's Group Method of Data Handling (GMDH) gives the first learning algorithm for supervised, deep, multilayer feedforward networks.
-\vspace{2mm}
-\item \pkg{1985:} Rumelhart, Hinton \& Williams popularize \textbf{backpropagation} for multilayer perceptrons: efficient gradient computation through composite functions (first derived by Linnainmaa already in 1970 -- more on this in a later session).
-\end{itemize}
-\begin{figure}
-\centering
-\includegraphics[width=5.5cm]{figure/perceptron_new.png}
-\end{figure}
-\end{vbframe}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\begin{vbframe}{A Brief History: Why the Winters}
-\begin{itemize}
-\item \pkg{1969 --- First AI Winter:} Minsky \& Papert prove that a single perceptron cannot solve the XOR problem: it is not linearly separable (we return to this in detail later). Funding dries up, research stalls.
-\vspace{4mm}
-\item \pkg{1985 --- Second AI Winter:} Despite backpropagation, expectations outpace results. Kernel machines and graphical models match or beat early neural nets on many tasks, and modeling long sequences remains a fundamental difficulty. \enquote{AI} becomes associated with pseudoscience; investment collapses again.
+\item \textbf{What was possible (1940s--1950s):} artificial neurons that combine weighted inputs and fire past a threshold; models whose weights could be \textbf{learned from data} rather than hand-set; these could learn \textbf{linear} decision boundaries.
+\vspace{5mm}
+\item \textbf{What wasn't possible:} no model in this class could learn a function that isn't linearly separable --- the canonical failure case is the XOR problem (we return to this in detail later). This was proven mathematically, not just observed empirically.
+\vspace{5mm}
+\item \textbf{Result (1969):} funding collapses, research stalls --- the first \enquote{AI Winter}.
 \end{itemize}
 \begin{figure}
 \centering
 \includegraphics[width=6cm]{figure/orvsxor.png}
 \caption{\small The XOR problem: not linearly separable.}
+\end{figure}
+\end{vbframe}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{vbframe}{Winter 2: Depth Without Traction}
+\begin{itemize}
+\item \textbf{What was possible (1960s--1980s):} weight-update rules based on the gradient of the error; learning algorithms for \textbf{deep, multilayer} networks; efficient gradient computation through many layers at once (backpropagation) --- in principle, non-linear decision boundaries were now learnable.
+\vspace{5mm}
+\item \textbf{What wasn't possible:} this didn't translate into practical superiority. Kernel machines and graphical models matched or beat these networks on many real tasks, and modeling long sequences remained a fundamental difficulty.
+\vspace{5mm}
+\item \textbf{Result (mid-1980s):} expectations vastly outpaced results, \enquote{AI} became associated with pseudoscience, and investment collapsed again --- the second \enquote{AI Winter}.
+\end{itemize}
+\begin{figure}
+\centering
+\includegraphics[width=6.5cm]{figure/ai_winter.jpg}
+\caption{\small Symbolic image of an \enquote{AI Winter} (Fagella, 2019)}
 \end{figure}
 \end{vbframe}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -682,6 +681,13 @@ where $\bm{B}$ duplicates $\biasb$ as the rows of an ($n \times m$) matrix.
 $$\tau(\bm{Z}\wtu + \bm{C}) \in \R^{n \times 1},$$
 where $\bm{C}$ duplicates the scalar bias $c$ as the rows of an ($n \times 1$) matrix.
 \end{itemize}
+\framebreak
+
+\begin{figure}
+\centering
+\includegraphics[width=5cm]{figure/rowcol.png}
+\caption{\small Rows of $\Xmat$ are individual examples; columns of $\Wmat$ are individual (hidden) neurons.}
+\end{figure}
 \end{vbframe}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

@@ -19,21 +19,9 @@
 
 \lecturechapter{Backpropagation}
 \lecture{Advanced AI \& ML}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \section{Chain Rule and Computational Graphs}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%\begin{frame}
-%\frametitle{Lecture outline}
-%\tableofcontents
-%\end{frame}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% \begin{frame}{Local Minima/Convexity}
-% \end{frame}
-
-% \section{Chain Rule and Computational Graphs}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{vbframe}{Chain rule of calculus}
   % \begin{itemize}
   %   \item The chain rule can be used to compute derivatives of the composition of two or more functions.
@@ -64,7 +52,7 @@
   \begin{minipage}{0.5\textwidth}
     \begin{figure}
       \centering
-        \includegraphics[width=6cm]{figure/compgraph1.png}
+        \includegraphics[width=4.6cm]{figure/compgraph1.png}
         \tiny{\\source : Goodfellow et al. (2016)}
         \caption{The computational graph for the expression $H = \sigma(XW + B)$ with activation function $\sigma(\cdot)$.}
     \end{figure}
@@ -617,35 +605,29 @@ Next, let us compute:
 \end{frame}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{frame} {Backward Computation and Caching}
+\begin{vbframe}{Backward Computation and Caching}
 \begin{itemize}
 \item Examining the two expressions:
-$$\frac{\partial \Lxy}{\partial W_{11}} = 
+$$\frac{\partial \Lxy}{\partial W_{11}} =
 \textcolor{violet}{\frac{\partial \Lxy}{\partial f_{out}}} \cdot  \textcolor{violet}{\frac{\partial f_{out}}{\partial f_{in}}} \cdot  \textcolor{violet}{\frac{\partial f_{in}}{\partial z_{1,out}}} \cdot  \textcolor{violet}{\frac{\partial z_{1,out}}{\partial z_{1,in}}} \cdot  \textcolor{black}{\frac{\partial z_{1,in}}{\partial W_{11}}}$$
 
-$$\frac{\partial \Lxy}{\partial W_{21}} =     
+$$\frac{\partial \Lxy}{\partial W_{21}} =
 \textcolor{violet}{\frac{\partial \Lxy}{\partial f_{out}}} \cdot  \textcolor{violet}{\frac{\partial f_{out}}{\partial f_{in}}} \cdot  \textcolor{violet}{\frac{\partial f_{in}}{\partial z_{1,out}}} \cdot  \textcolor{violet}{\frac{\partial z_{1,out}}{\partial z_{1,in}}} \cdot  \textcolor{black}{\frac{\partial z_{1,in}}{\partial W_{21}}}$$
 
 \item Significant overlap / redundancy in the two expressions.
 \item \textbf{Again}: Let's call this subexpression $\delta_1$ and cache it.
-    % Simply cache these subexpressions instead of recomputing them each time.
-% \end{itemize}
-% \end{frame}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\end{itemize}
+\framebreak
 
-% \begin{frame} {Backward Computation and Caching}
-% \begin{itemize}
-{\small $$\textcolor{violet}{\delta_1}  = \textcolor{violet}{\frac{\partial \Lxy}{\partial z_{1,in}}} = 
-\textcolor{violet}{\frac{\partial \Lxy}{\partial f_{out}}} \cdot  \textcolor{violet}{\frac{\partial f_{out}}{\partial f_{in}}} \cdot  \textcolor{violet}{\frac{\partial f_{in}}{\partial z_{1,out}}} \cdot  \textcolor{violet}{\frac{\partial z_{1,out}}{\partial z_{1,in}}}$$} 
-% \item  two expressions of the previous slide now become,
+\begin{itemize}
+\item Caching this subexpression as $\delta_1$:
+{\small $$\textcolor{violet}{\delta_1}  = \textcolor{violet}{\frac{\partial \Lxy}{\partial z_{1,in}}} =
+\textcolor{violet}{\frac{\partial \Lxy}{\partial f_{out}}} \cdot  \textcolor{violet}{\frac{\partial f_{out}}{\partial f_{in}}} \cdot  \textcolor{violet}{\frac{\partial f_{in}}{\partial z_{1,out}}} \cdot  \textcolor{violet}{\frac{\partial z_{1,out}}{\partial z_{1,in}}}$$}
+\item the two expressions from the previous slide now become:
 {\small $$\frac{\partial \Lxy}{\partial W_{11}} = \textcolor{violet}{\delta_1} \cdot \frac{\partial z_{1,in}}{\partial W_{11}} \mbox{ \hspace{0.5cm} \small{and} \hspace{0.5cm}} \frac{\partial \Lxy}{\partial W_{21}} = \textcolor{violet}{\delta_1} \cdot \frac{\partial z_{1,in}}{\partial W_{21}} $$}
 \item $\delta_1$ can also be seen as an \textbf{error signal} that represents how much the loss $L$ changes when the input $z_{1,in}$ changes.
-
-% where $\delta_1$ is simply "plugged in".
-% \item As you can imagine, caching subexpressions in this way and plugging in where needed can result in \textbf{massive} gains in efficiency for deep and "wide" neural networks. 
-% \item In fact, this simple algorithm, which was first applied to neural networks way back in 1985, is \textbf{still} the biggest breakthrough in deep learning.
 \end{itemize}
-\end{frame}
+\end{vbframe}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % \begin{frame} {Backward Computation and Caching}
