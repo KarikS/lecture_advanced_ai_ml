@@ -29,6 +29,30 @@ with regularization.
 > Early stopping and the TensorBoard demo at the end of Exercise 2 are take-home /
 > instructor-demo material, not required in-session.
 
+## Setup
+
+These labs are designed to run on [Google Colab](https://colab.research.google.com/) -
+no local Python install needed. Open this notebook via Colab's GitHub loader
+(`colab.research.google.com/github/KarikS/lecture_advanced_ai_ml/blob/main/<path-to-this-notebook>`)
+or File > Open notebook > GitHub tab, repo `KarikS/lecture_advanced_ai_ml`, then run
+the cell below once per session. It clones this repository so the notebook can reach
+`data/imdb.npz` and the other files it needs. Running the notebook locally instead
+(e.g. via the `exercises/python/` venv described in that folder's README) works
+unchanged - the cell below is a no-op there.
+<!-- #endregion -->
+
+```python pycharm={"name": "#%%\n"}
+import sys
+
+IN_COLAB = 'google.colab' in sys.modules
+
+if IN_COLAB:
+    import os
+    if not os.path.exists('lecture_advanced_ai_ml'):
+        !git clone https://github.com/KarikS/lecture_advanced_ai_ml.git
+```
+
+<!-- #region pycharm={"name": "#%% md\n"} -->
 ## Imports
 <!-- #endregion -->
 
@@ -58,11 +82,9 @@ In this exercise, we will learn the basic usage of PyTorch, a popular deep learn
 library. We already utilized PyTorch in the exercises before but only to construct
 matrices and perform operations on them.
 
-The networks that we will use are small enough that they can run on your personal
-computer, but, if you need a GPU, you can try Jupyter on Google Colab
-(click [here](https://colab.research.google.com/notebooks/intro.ipynb)).
-At the beginning of your session, get a GPU by clicking on "Runtime", then "Change
-runtime type", then choose "GPU" as hardware accelerator.
+The network we'll use here is tiny and runs fine on Colab's default CPU runtime - no
+need to switch on a GPU for this particular lab. (Later labs will actually need one;
+when they do, get it via "Runtime" -> "Change runtime type" -> GPU.)
 
 ### Loading and preparing the dataset
 
@@ -79,7 +101,9 @@ TensorFlow/Keras. It is the exact same data, in the exact same encoding.
 <!-- #endregion -->
 
 ```python pycharm={"name": "#%%\n"}
-DATA_DIR = Path('../data')
+DATA_DIR = (
+    Path('lecture_advanced_ai_ml/exercises/python/data') if IN_COLAB else Path('../data')
+)
 
 def load_imdb(data_dir: Path) -> Tuple[Tuple[list, list], Tuple[list, list]]:
     """Load the raw IMDB review/label arrays from the local .npz file."""

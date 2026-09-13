@@ -133,9 +133,12 @@ dmypy.json
 
 # Other stuff
 .data
-questions
 solutions
 *.ipynb
+# Generated question notebooks are published so students can open them
+# straight from GitHub in Colab; solutions/ above stays out of the public repo.
+!questions/**/*.ipynb
+questions/*.md
 
 /.quarto/
 **/*.quarto_ipynb
