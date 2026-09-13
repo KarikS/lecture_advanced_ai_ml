@@ -11,10 +11,28 @@ this course's own optimizers session instead.
 
 ## USER: How to get started
 
-Every lab session is contained in one notebook.
-You might need to install some requirement packages to be able to run everything.
-For a full new setup it is recommended to create a dedicated environment for this
-project. Make sure to execute all the following commands while inside `exercises/python/`.
+Every lab session is contained in one notebook. The recommended way to run them is
+Google Colab - no local Python install needed:
+
+1. Open the lab's question notebook via Colab's GitHub loader, e.g. for Lab 1:
+   `https://colab.research.google.com/github/KarikS/lecture_advanced_ai_ml/blob/main/exercises/python/questions/py-lab-01-question.ipynb`
+   (or in Colab: File > Open notebook > GitHub tab > `KarikS/lecture_advanced_ai_ml`)
+2. Run the first "Setup" cell - it clones this repository so the notebook can reach
+   `data/` and the rest of the course code. This step is a no-op if you're instead
+   running the notebook locally (see below).
+3. File > Save a copy in Drive early, so your progress survives a runtime disconnect.
+4. Run the rest of the notebook top to bottom.
+
+Each session gets its own notebook and link once it's built (`py-lab-02-question.ipynb`,
+`py-lab-03-question.ipynb`, ...). GPU is optional for most
+labs (the notebook will tell you when one is actually needed); if you want one anyway,
+use Runtime > Change runtime type > GPU.
+
+### Running locally instead
+
+The same notebook also runs unchanged on your own machine - the Colab setup cell is a
+no-op outside Colab. Make sure to execute all the following commands while inside
+`exercises/python/`.
 
 ```shell
 cd exercises/python/
