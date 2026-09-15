@@ -9,6 +9,14 @@ and with the IMDB loader rewritten to avoid a Keras/TensorFlow dependency (see
 gradient descent with momentum) were dropped entirely - that material belongs with
 this course's own optimizers session instead.
 
+Lab 2 (`templates/py-lab-02-template.md`) is an optional follow-up to Lab 1: Exercise 1
+is adapted from `py-lab-02-template.md` ("Lab 1") and Exercise 2 from
+`py-lab-04-template.md` ("Lab 3") of the `lecture_i2dl` Python labs. Both source labs
+also include pen-and-paper derivation exercises (a separability proof for Exercise 1,
+the general backpropagation derivation for Exercise 2) - those are dropped here in
+favor of a fully hands-on, code-only version: you're given the results, your job is to
+turn them into working code.
+
 ## USER: How to get started
 
 Every lab session is contained in one notebook. The recommended way to run them is
