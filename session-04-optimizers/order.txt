@@ -9,6 +9,14 @@ half is the "how we fix it in practice" arc: optimizer algorithms, batch
 norm, and hyperparameter tuning as a practical skill, plus a short NAS
 section.
 
+0. SGD Recap (added 2026-09-14, at the user's request): a 2-slide bridge from
+   Session 3's backprop-derived SGD update into this session's optimizer
+   tricks. Adapted from i2dl/slides/opt1/slides-opt1-basic-training.tex
+   (the "Stochastic gradient descent" frames) --- distinct source from the
+   rest of this session, so it keeps its own References frame (key prefix
+   sgd1) and its own bibitem for the SGD.png figure (Shalev-Shwartz \&
+   Ben-David, 2022). Figure copied from opt1/figure_man/SGD.png.
+
 1. slides-advanced-optim.tex  [Momentum / Learning Rates / Algorithms with
                                 Adaptive Learning Rates / Batch Normalization,
                                 keeps its own internal \section per

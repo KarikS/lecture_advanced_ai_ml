@@ -20,6 +20,46 @@
 \lecturechapter{Optimizers}
 \lecture{Advanced AI \& ML}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{SGD Recap}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{vbframe}{SGD Recap}
+Full-batch gradient descent for ERM:
+$$
+  \thetav^{[t + 1]} = \thetav^{[t]} - \alpha \cdot \frac{1}{n} \cdot \sumin \nabla_\theta L\left(\yi, f(\xi ~|~ \thetav^{[t]})\right)
+$$
+  \begin{itemize}
+    \item Using the \textbf{entire} training set for every update (\textbf{batch}/\textbf{deterministic} training) is computationally costly, or impossible if the data doesn't fit in memory.
+    \item \textbf{Idea:} sum over a small, randomly sampled \textbf{minibatch} instead --- if sampled uniformly, this is, in expectation, the true batch gradient: a \textbf{noisy} version of batch GD.
+  \end{itemize}
+  \begin{figure}
+    \centering
+    \scalebox{0.7}{\includegraphics{figure/SGD.png}}
+    \caption{SGD on $1.25(x_1+6)^2 + (x_2-8)^2$. Left: GD; right: SGD. The black line is a smoothed $\thetav$ trajectory (Shalev-Shwartz \& Ben-David, 2022).}
+  \end{figure}
+\end{vbframe}
+
+\begin{vbframe}{SGD in Practice}
+  \begin{itemize}
+    \item A full SGD pass over the data is one \textbf{epoch}; typical minibatch sizes are 50--1000.
+    \item SGD is the most-used optimizer in deep learning --- but usually needs extra tricks to be efficient. That's what the rest of this session is about: momentum, adaptive learning rates, and batch normalization.
+    \item Small-batch SGD is unbiased but has \textbf{high variance}, so its learning rate $\alpha$ is typically smaller than in full-batch mode.
+    \item With a slowly decreasing learning rate, SGD converges to a local minimum --- and often generalizes \textbf{better} than full-batch GD, acting as an indirect regularizer.
+  \end{itemize}
+\end{vbframe}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%          REFERENCES          %%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{vbframe}
+\frametitle{References}
+\footnotesize{
+\begin{thebibliography}{99}
+\bibitem[(Shalev-Shwartz \& Ben-David, 2022)]{sgd1} Shalev-Shwartz, S., \& Ben-David, S. (2022). \textit{Understanding machine learning: From theory to algorithms}. Cambridge University Press.
+\end{thebibliography}
+}
+\end{vbframe}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Momentum}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{vbframe}{Momentum}
@@ -752,31 +792,29 @@ E.g. a momentum with $\varphi = 0.9$ corresponds to multiplying the maximum spee
   \end{itemize}
 \end{frame}
 
-\begin{vbframe}{Batch Normalization}
+\begin{frame}{Batch Normalization}
 \begin{itemize}
     \item For our final benchmark in this chapter we compute two models to predict the mnist data.
     \item One will extend our basic architecture such that we add batch normalization to all hidden layers.
     \item We use SGD as optimizer with  a momentum of 0.9, a learning rate of 0.03 and weight decay of 0.001.
   \end{itemize}
+\end{frame}
 
-\framebreak
-
-
+\begin{frame}{Batch Normalization}
   \begin{figure}
   \centering
-    \includegraphics[width=12cm]{figure/bnTrain.png}
+    \includegraphics[width=9cm]{figure/bnTrain.png}
   \end{figure}
-  Batch Normalization accelerated learning. 
-  
-  
-\framebreak
-  
+  Batch Normalization accelerated learning.
+\end{frame}
+
+\begin{frame}{Batch Normalization}
   \begin{figure}
   \centering
-    \includegraphics[width=12cm]{figure/bnTest.png}
+    \includegraphics[width=9cm]{figure/bnTest.png}
   \end{figure}
-  Batch Normalization resulted in a lower test error. 
-\end{vbframe}
+  Batch Normalization resulted in a lower test error.
+\end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % \begin{vbframe}{Second order optimization}
@@ -974,6 +1012,49 @@ convergence) is exactly this idea.
 \end{figure}
 \end{vbframe}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{vbframe}{Hyperband}
+\textbf{Several Successive-Halving brackets at once}
+\begin{center}
+\begin{tikzpicture}[scale=0.95, every node/.style={font=\tiny}]
+  \definecolor{barcol}{RGB}{31,119,180}
+  \def\xa{0}\def\xb{2.0}\def\xc{4.0}\def\xd{6.0}
+
+
+  \node[left, font=\tiny] at (-0.3,3) {bracket 3};
+  \fill[barcol] (\xa,3) circle (0.34);  \node at (\xa,3) {82};
+  \fill[barcol] (\xb,3) circle (0.22);  \node[white] at (\xb,3) {20};
+  \fill[barcol] (\xc,3) circle (0.13);  \node[white] at (\xc,3) {5};
+  \fill[barcol] (\xd,3) circle (0.08);  \node[white] at (\xd,3) {1};
+  \draw[-latex] (\xa,3) -- (\xb,3); \draw[-latex] (\xb,3) -- (\xc,3); \draw[-latex] (\xc,3) -- (\xd,3);
+
+
+  \node[left, font=\tiny] at (-0.3,2) {bracket 2};
+  \fill[barcol] (\xb,2) circle (0.24);  \node[white] at (\xb,2) {27};
+  \fill[barcol] (\xc,2) circle (0.15);  \node[white] at (\xc,2) {6};
+  \fill[barcol] (\xd,2) circle (0.08);  \node[white] at (\xd,2) {1};
+  \draw[-latex] (\xb,2) -- (\xc,2); \draw[-latex] (\xc,2) -- (\xd,2);
+
+
+  \node[left, font=\tiny] at (-0.3,1) {bracket 1};
+  \fill[barcol] (\xc,1) circle (0.17);  \node[white] at (\xc,1) {10};
+  \fill[barcol] (\xd,1) circle (0.11);  \node[white] at (\xd,1) {2};
+  \draw[-latex] (\xc,1) -- (\xd,1);
+
+
+  \node[left, font=\tiny] at (-0.3,0) {bracket 0};
+  \fill[barcol] (\xd,0) circle (0.14);  \node[white] at (\xd,0) {5};
+
+
+  \draw[-latex] (-0.7,-0.6) -- (6.6,-0.6) node[right] {};
+  \foreach \x/\lab in {\xa/1, \xb/4, \xc/16, \xd/64}
+    \draw (\x,-0.5) -- (\x,-0.7) node[below] {$\lambda_{\text{fid}}=\lab$};
+\end{tikzpicture}
+\end{center}
+{\footnotesize \textbf{Figure:} Hyperband for $\eta=4$: each row is one Successive-Halving \enquote{bracket}, started with a different (starting budget, number of configurations) trade-off --- bracket 3 starts cheap with many configurations, bracket 0 spends the full budget on few. Circle labels are surviving configuration counts at each stage; circle size is illustrative, not to scale. Numbers verified from SLDS LMU, I2ML, \enquote{Hyperparameter Tuning: Advanced Tuning Techniques} (see References).}
+\end{vbframe}
+
 \begin{vbframe}{The Untouched-Test-Set Principle}
 \begin{itemize}
 \item Once tuning has found a configuration $\lamv^*$, how well does it
@@ -1106,7 +1187,7 @@ SummerSchool 2023, AutoML.org.
 
 \begin{vbframe}{License \& Attribution}
 \begin{itemize}
-\item Momentum, Learning Rates, Adaptive Optimizers, and Batch Normalization
+\item SGD Recap, Momentum, Learning Rates, Adaptive Optimizers, and Batch Normalization
 adapted from \textbf{Introduction to Deep Learning (I2DL)}, Prof.\ Dr.\
 Bernd Bischl, SLDS, LMU Munich. \url{https://github.com/slds-lmu/lecture_i2dl}
 --- licensed \textbf{CC BY 4.0}: \url{https://creativecommons.org/licenses/by/4.0/}

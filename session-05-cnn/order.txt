@@ -1,10 +1,38 @@
-Suggested order of slides (planned — none authored yet):
+This session compiles to a single deck: slides-cnn.tex
 
-- slides-04-basic-concepts   [copy+adapt: i2dl/slides/cnn1/slides-cnn-introduction.tex,
-                               cnn1/slides-cnn-components.tex]
-- slides-04-1d2d3d-conv      [copy+adapt: i2dl/slides/cnn2/slides-convolution-types.tex,
-                               cnn1/slides-cnn-conv2d.tex]
-- slides-04-dilation         [copy+adapt: i2dl/slides/cnn2/slides-dilated-transposed-convolutions.tex]
-- slides-04-transposing      [copy+adapt: same file as dilation — split or keep combined, decide
-                               when authoring]
-- slides-04-pooling          [copy+adapt: i2dl/slides/cnn1/slides-cnn-pooling.tex]
+Built 2026-09-14. Sections, in order, with their source in i2dl (slds-lmu/lecture_i2dl,
+CC BY 4.0):
+
+1. Basic Concepts            [cnn1/slides-cnn-introduction.tex, trimmed --- applications
+                               gallery cut from 8 examples to 2]
+2. The Convolution Operation [cnn1/slides-cnn-conv2d.tex]
+3. 1D / 2D / 3D Convolutions [cnn2/slides-convolution-types.tex]
+4. CNN Components: Channels, [cnn1/slides-cnn-components.tex, minus its pooling frames,
+   Padding, Stride            which duplicate slides-cnn-pooling.tex almost verbatim]
+5. Properties of Convolution [cnn1/slides-cnn-properties-of-convolution.tex, heavily
+                               trimmed --- from 3 named properties across ~9 frames to one
+                               frame on sparse interactions/parameter sharing plus one on
+                               translation equivariance. Not in the original outline; added
+                               2026-09-14 at user's request]
+6. Dilated and Transposed    [cnn2/slides-dilated-transposed-convolutions.tex]
+   Convolutions
+7. Pooling                   [cnn1/slides-cnn-pooling.tex]
+8. Modern Architectures      [cnn3/slides-modern-cnn-{1,2}.tex, trimmed hard --- from
+                               9 architecture subsections (LeNet, AlexNet, VGG, NiN,
+                               GoogLeNet, ResNet, DenseNet, U-Net) across ~20 frames down
+                               to 3: one naming-in-passing overview, two on ResNet/skip
+                               connections specifically (the one idea from this material
+                               with lasting relevance beyond CNNs --- it reappears in
+                               Transformer blocks, Session 7). Not in the original outline;
+                               added 2026-09-14 at user's request, same trim precedent as
+                               NAS in session-04-optimizers (10 frames -> 4)]
+
+Not included: slides-cnn-application.tex (overlaps Basic Concepts' applications gallery),
+slides-cnn-math.tex (76 raw pages, the heaviest single deck in the whole CNN topic --- the
+outline_mapping.md gap analysis never flagged this as missing, read as a deliberate cut),
+slides-cnn-architecture.tex, slides-separable-convolutions-flattening.tex.
+
+Built 138 pages (make, latexmk), no errors, no missing figures. Larger than sessions 1-4
+(74-119 pages) but well under the ~163-page threshold that triggered the session 3/4 split
+--- kept as one deck per user's decision, with Modern Architectures deliberately trimmed
+hard to stay in range rather than splitting into a second session.

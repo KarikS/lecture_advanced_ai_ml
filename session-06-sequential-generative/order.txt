@@ -1,17 +1,118 @@
-Suggested order of slides (planned — none authored yet):
+This session compiles to a single deck: slides-sequential-generative.tex
 
-- slides-05-rnn              [copy+adapt: i2dl/slides/rnn/slides-introduction.tex,
-                               rnn/slides-backprop.tex, rnn/slides-modernrnn.tex,
-                               rnn/slides-applications.tex; also dl4nlp/chapter02-deeplearningbasics/
-                               slides-21-rnn.tex]
-- slides-05-vae              [copy+adapt: i2dl/slides/ae/* — autoencoders,
-                               autoencoders-regularized, autoencoders-specific, vae,
-                               manifold-learning, unsupervised-learning]
-- slides-05-transformer-link [pointer only — full coverage lives in session-06-transformer;
-                               attention already touched in i2dl/slides/rnn/slides-attention.tex]
-- slides-05-gans             [copy+adapt: i2dl/slides/gan1/slides-GAN-intro.tex,
-                               gan1/slides-GAN-challenges.tex, gan1/slides-GAN-variants.tex]
-- slides-05-diffusion        [NEW — gap. i2dl/slides/diff/ exists but is an empty stub. Keep
-                               brief: a hint, not a full chapter — generic explanatory images
-                               and high-level information only. See outline_mapping.md
-                               gap-strategy #1.]
+Built 2026-09-14. Kept as one deck despite its size (~260 raw source pages before
+merging) per the user's explicit decision during brainstorming: "It can be long,
+that's fine" — no split into two sessions, no hard trimming purely for page-count
+reasons (unlike session-05-cnn's Modern Architectures, which was trimmed hard).
+Quality-motivated trims (redundancy, derivation depth) were still applied where
+the user asked for them; see below.
+
+Sections, in order, with sourcing:
+
+1. RNN (six \section blocks: Motivation and Mechanics; Worked Example and Use
+   Cases; Computational Graph and Bidirectional RNNs; Backpropagation Through
+   Time; LSTM and GRU; RNN Applications)
+   [i2dl/slides/rnn/{slides-introduction,slides-backprop,slides-modernrnn,
+   slides-applications}.tex, all four used as the primary backbone, per the
+   user's decision to keep i2dl as primary and use DL4NLP only for genuinely
+   new content]
+
+   - Multi-Layer (Stacked) RNNs is the one frame pulled from DL4NLP
+     (lecture_dl4nlp/slides/chapter02-deeplearningbasics/slides-21-rnn.tex) ---
+     this topic does not exist anywhere in i2dl's RNN material. Everything else
+     DL4NLP covers (vanilla RNN basics, vanishing/exploding gradients, LSTM,
+     bidirectional RNNs, seq2seq) already has an i2dl treatment and was left
+     out to avoid duplicating the same ground twice, per the user's explicit
+     instruction. The stacked-RNN diagram was redrawn independently in
+     simplified TikZ rather than reusing DL4NLP's own custom tikzstyle macros
+     (which are defined locally in that file and weren't worth importing for
+     one frame).
+   - rnn/slides-attention.tex was deliberately NOT copied in --- reserved for
+     session-07-transformer, per order.txt's original plan. The "From RNNs to
+     Transformers" section (below) bridges to it without duplicating it.
+
+2. Unsupervised Learning [i2dl/slides/ae/slides-unsupervised-learning.tex] ---
+   placed as an opening context section before the autoencoder content it
+   originally followed loosely; frames the whole first half of the session
+   (autoencoders as one branch of unsupervised deep learning, generative models
+   as the other).
+
+3. Autoencoders: Basic Principle [i2dl/slides/ae/slides-autoencoders.tex]
+4. Regularized Autoencoders [i2dl/slides/ae/slides-autoencoders-regularized.tex]
+   + Convolutional Autoencoder and Real-World Applications
+   [i2dl/slides/ae/slides-autoencoders-specific.tex, merged into the same
+   \section since -specific.tex is short and has no natural section break of
+   its own]
+5. Manifold Learning [i2dl/slides/ae/slides-manifold-learning.tex]
+6. Variational Autoencoders (VAE) [i2dl/slides/ae/slides-vae.tex] --- kept the
+   intuition, statistical motivation, training-loss, latent-space-visualization,
+   and generative-model-summary frames close to verbatim. Per the user's
+   explicit decision ("concept only, cut the derivation"), the ELBO is stated
+   as a given formula with the two terms explained intuitively (reconstruction
+   vs.\ staying close to the prior) rather than derived step by step, and the
+   reparameterization trick is explained as "why" and "what" (sampling blocks
+   backprop; move the randomness to a fixed epsilon) rather than the original's
+   five-frame algebraic derivation. This cut the original's ~12 derivation-heavy
+   frames (Appendix: Loss Function ELBO; two VAE-Parameter-Fitting frames; two
+   five-step Variational-Lower-Bound reveals; two VAE-Model-Definition frames;
+   two reparameterization-trick derivation frames) down to the two frames now
+   present (ELBO stated in the VAE Training frame; reparameterization trick
+   explained in one frame) --- analogous in spirit to how cnn-math.tex was left
+   out of session-05-cnn entirely.
+
+7. From RNNs to Transformers [original text, not adapted from any source] ---
+   a short bridge (two vbframes) explaining why attention/Transformers are
+   coming next (Session 7) and why the generative-model families in this
+   session are architecture-agnostic. No References frame (nothing to cite).
+
+8. Generative Adversarial Networks (GANs) (three \section blocks: GAN Training;
+   Challenges for GAN Optimization; GAN Variants)
+   [i2dl/slides/gan1/{slides-GAN-intro,slides-GAN-challenges,
+   slides-GAN-variants}.tex, kept close to complete --- gan1/ is the real
+   content; gan2/ is an empty stub per outline_mapping.md, not touched]
+
+9. Diffusion Models [NEW --- genuine content gap, i2dl/slides/diff/ contains
+   only a Makefile, no slide content exists anywhere to adapt]. Kept to two
+   frames per outline_mapping.md's gap-strategy #1 ("a hint, not a full
+   chapter"): the forward/reverse process idea, a self-drawn TikZ schematic
+   (not adapted from any source --- drawn generically rather than reproducing
+   any specific paper's figure, to sidestep any licensing question), and a
+   short "why it works" frame. The frame contains a
+   [CITATION NEEDED: verify and add the exact DDPM origin paper reference]
+   marker instead of a from-memory citation for the paper that popularized
+   this approach (~2020) --- per the integrity rule against fabricating a
+   citation without verifying it in-session; this needs the user's own
+   verification before the deck is used for real teaching.
+
+Not included: nothing was cut from the original outline's RNN/AE/GAN scope
+except the derivation-heavy VAE frames (7 above) and the i2dl/DL4NLP RNN
+overlap (1 above), both explicit user decisions. rnn/slides-attention.tex
+was withheld for session 7, also per the original plan.
+
+Figures: 110 images copied into a shared figure/ (flattened from
+rnn/figure/, rnn/plots/, ae/plots/, gan1/plots/ --- checked for basename
+collisions across all four source directories via `comm`; the only
+collisions found were between ae/plots and gan1/plots, entirely VAE-named
+files not used from gan1/, so no actual conflict in the copied set).
+templates/ not copied from any source directory.
+
+Licenses verified: no per-directory license override found in rnn/, ae/,
+gan1/, or diff/ (same check as session-05-cnn's cnn3/ check). DL4NLP's own
+LICENSE file confirmed CC BY 4.0 directly (not assumed from the README's
+second-hand claim).
+
+One real bug hit and fixed during the build: `figure/embed1.png` (Word
+Embeddings frame, sourced from rnn/plots/, not rnn/figure/ like the rest of
+the RNN figures) was missed in the first figure-copying pass and caused a
+fatal "file not found" error on first build. Root cause: I copied RNN
+figures only from rnn/figure/, not checking that one image lived in
+rnn/plots/ instead. Fixed by copying it from the correct directory; a
+systematic check (grep every \includegraphics path against what's actually
+in figure/) confirmed no other figures were missed before the final build.
+
+Final build: 232 pages, no errors, no missing figures (confirmed via log
+grep for "not found"/"Undefined"/"! LaTeX Error", and by rendering sample
+pages across the deck, including the new Diffusion Models TikZ diagram, with
+pdftoppm). Larger than every other session in this course by a wide margin
+(sessions 1-5 run 74-138 pages) --- an intentional outcome of the user's
+"it can be long" decision, not an oversight.

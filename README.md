@@ -17,8 +17,8 @@ while giving an in-depth view on Transformers**. This has largely three reasons:
 This balancing act comes at the cost of cutting corners in some more theoretically oriented topics and a wide introduction of 
 current state-of-the-art architectures.
 
-Remark: The course is still being built. Sessions 1-4 have full slide decks;
-Sessions 5-10 will follow in September and October 2026. Content, structure, and
+Remark: The course is still being built. Sessions 1-6 have full slide decks;
+Sessions 7-10 will follow in September and October 2026. Content, structure, and
 session order may still change.
 
 ## Setup
