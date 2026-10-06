@@ -20,7 +20,7 @@ jupyter:
 > convolution gradient; as with Lab 2, that derivation is dropped here in favor of a
 > code-only version - you're given the result, your job is to implement it.
 
-This lab is about convolutions and convolutional neural networks (Session 4). The
+This lab is about convolutions and convolutional neural networks (Session 5). The
 first exercise trains a CNN with PyTorch, the second implements 2D convolution by hand
 on a real image, and the third derives - by implementing, not deriving on paper - how
 gradients flow backward through a convolution, the same mechanism Lab 2 built for plain
@@ -190,6 +190,7 @@ model = nn.Sequential(
         out_channels=64,
         kernel_size=(3, 3),
     ),
+    nn.ReLU(),
     nn.Flatten(),
     nn.Linear(in_features=576, out_features=64),
     nn.ReLU(),
@@ -253,6 +254,9 @@ In our case we only apply the `ToTensor` transformation, so the overhead should 
 low.
 - Our dataset is currently on the CPU by default. Thus, we still need to push the
 `x` and `y` tensors from the dataloader to the correct device.
+- `CrossEntropyLoss` returns the *mean* loss over the batch. To report a per-sample
+average over the whole epoch, we weight each batch loss by its batch size before
+summing (the last batch can be smaller than `batch_size`).
 - We don't have any softmax function in our workflow. That's right! The cross entropy
 loss of PyTorch works directly on the raw scores, so we can save unnecessary computations.
 The predicted labels of the model can be obtained by applying `argmax` to the `y_hat`
@@ -323,9 +327,9 @@ for ep in range(1, epochs + 1):
         # Print progress every 10 batches
         if batch_idx % 10 == 0:
             print('BATCH:\t({:5} / {:5})\tLOSS:\t{:.3f}'
-                  .format(batch_idx, max_batches, float(batch_loss) / batch_size), end='\r')
+                  .format(batch_idx, max_batches, float(batch_loss)), end='\r')
 
-        total_loss += float(batch_loss)
+        total_loss += float(batch_loss) * x.shape[0]
         num_correct += int(torch.sum(torch.argmax(y_hat, dim=1) == y))
 
     print('EPOCH:\t{:5}\tLOSS:\t{:.3f}\tACCURACY:\t{:.3f}'
@@ -364,7 +368,7 @@ for batch_idx, (x, y) in enumerate(test_loader):
         batch_loss = loss(y_hat, y)
         #!TAG HWEND
 
-    total_loss += float(batch_loss)
+    total_loss += float(batch_loss) * x.shape[0]
     num_correct += int(torch.sum(torch.argmax(y_hat, dim=1) == y))
 
 print('EVALUATION LOSS:\t{:.3f}\tEVALUATION ACCURACY:\t{:.3f}'
@@ -480,6 +484,9 @@ y_{ij}=\sum_{k=1}^{r(\textbf{K})}\sum_{l=1}^{c(\textbf{K})}x_{i+k-1,j+l-1}\cdot 
 for $1\leq i \leq r(\textbf{Y})$ and $1\leq j \leq c(\textbf{Y})$.
 
 You now have to implement a function that computes $y_{ij}$ given the image, the kernel, $i$ and $j$.
+Note that Python indices are 0-based while the formula is 1-based: in code, $i$, $j$,
+$k$ and $l$ all start at 0, and the element becomes `img[i + k, j + l] * kernel[k, l]`.
+Your implementation should work for any kernel size, not just 3x3.
 <!-- #endregion -->
 
 ```python pycharm={"name": "#%%\n"}
@@ -492,21 +499,22 @@ def compute_convolution_at_position(i: int, j: int, img: Tensor, kernel: Tensor)
     num_rows_kernel, num_cols_kernel = kernel.shape
     for k in range(num_rows_kernel):
         for l in range(num_cols_kernel):
-            result_ij += img[i + k - 1, j + l - 1] * kernel[k, l]
+            result_ij += img[i + k, j + l] * kernel[k, l]
     return result_ij
     #!TAG HWEND
 
 
 def apply_convolution(img: Tensor, kernel: Tensor) -> Tensor:
     height, width = img.shape
-    img_out = torch.zeros(height - 2, width - 2)
+    num_rows_kernel, num_cols_kernel = kernel.shape
+    img_out = torch.zeros(height - num_rows_kernel + 1, width - num_cols_kernel + 1)
 
     #!TAG HWBEGIN
-    #!MSG TODO: Compute the convoluted value for every y_ij in the image.
-    #!MSG Note: Watch the index bounds of the image!
-    for i in range(1, height - 1):
-        for j in range(1, width - 1):
-            img_out[i - 1, j - 1] = compute_convolution_at_position(i, j, img, kernel)
+    #!MSG TODO: Compute the convoluted value for every y_ij of the output.
+    #!MSG Note: Watch the index bounds - the output is smaller than the image!
+    for i in range(img_out.shape[0]):
+        for j in range(img_out.shape[1]):
+            img_out[i, j] = compute_convolution_at_position(i, j, img, kernel)
     #!TAG HWEND
 
     return img_out
@@ -665,14 +673,20 @@ plt.show()
 
 <!-- #region pycharm={"name": "#%% md\n"} -->
 We can verify this gradient is correct for a single pixel with finite differences -
-nudge one pixel by a tiny $\epsilon$, see how much the loss changes, and compare that
-empirical estimate against what your function computed analytically:
+nudge one pixel by a small $\epsilon$, see how much the loss changes, and compare that
+empirical estimate against what your function computed analytically.
+
+Why not make $\epsilon$ as tiny as possible? Our tensors are 32-bit floats, which only
+carry about 7 significant digits, so a very small nudge drowns in rounding error. Here
+we can afford a fairly large $\epsilon$: our loss is quadratic in every pixel, and for
+a quadratic the central difference $(f(x+\epsilon)-f(x-\epsilon))/2\epsilon$ is
+*exactly* the derivative, for any $\epsilon$.
 <!-- #endregion -->
 
 ```python pycharm={"name": "#%%\n"}
 #!TAG SKIPQUESTEXEC
 
-eps = 1e-6
+eps = 1e-2
 i = torch.randint(img.shape[0], (1,))
 j = torch.randint(img.shape[1], (1,))
 
