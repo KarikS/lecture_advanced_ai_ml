@@ -1,8 +1,115 @@
-Suggested order of slides (planned — none authored yet):
+This session compiles to a single deck: slides-transformer.tex (98 pages, built 2026-10-05).
 
-- slides-06-intro-params  [copy+adapt, optional context: dl4nlp/chapter03-transformer/
-                            slides-31-intro-trafo.tex, slides-34-trafo-params.tex]
-- slides-06-encoder       [copy+adapt: dl4nlp/chapter03-transformer/slides-32-encoder.tex]
-- slides-06-decoder       [copy+adapt: dl4nlp/chapter03-transformer/slides-33-decoder.tex]
-- slides-06-long-sequences [copy+adapt: dl4nlp/chapter03-transformer/slides-35-trafo-xl.tex]
-- slides-06-efficient     [copy+adapt: dl4nlp/chapter03-transformer/slides-36-efficient.tex]
+SOURCING PRINCIPLE
+
+One main source, used in its own frame order wherever possible:
+  DL4NLP (SLDS, LMU Munich, CC BY 4.0)
+    - chapter03-transformer/slides-31..36  -- backbone
+    - chapter02-deeplearningbasics/slides-22-attention (Root 2, basic recipe)
+      and slides-24-tokenization
+Supplements only where DL4NLP has nothing:
+  [F] Fleuret, Deep Learning (UNIGE), S13.1-13.3, CC BY-NC-SA 4.0 -- paraphrased, no figures copied
+  [O] original text written for this course
+I2DL is no longer used in this session.
+
+SECTIONS (main source | additions)
+
+ 1. Why Attention? Two Historical Roots
+      DL4NLP ch02/slides-22: Encoder-Decoder with RNNs, Limitations of RNNs
+        (retitled "The Fixed-Size Bottleneck"), Bahdanau figure, alignment
+        matrix + BLEU-vs-length figures
+      + [O] Why Attention?; Position-Fixed vs. Content-Based Weighting;
+            explanatory bullets on the Bahdanau frame
+      + [F] Root 1: Neural Turing Machines (3 frames)
+ 2. The Transformer
+      DL4NLP ch03/slides-31: Machine Translation, WMT 2014, BLEU, Transformer for MT
+      DL4NLP ch03/slides-32: architecture overview figure
+ 3. Tokenization
+      DL4NLP ch02/slides-24, condensed to the conceptual core: what/why,
+      tokenization in action, word/subword/character types. BPE and WordPiece
+      removed at the user's request (algorithm details not covered here).
+ 4. Attention, Formalized
+      DL4NLP ch02/slides-22: basic recipe (1-3); "Attention in neural networks"
+        folded into recipe (3) as two bullets
+      DL4NLP ch03/slides-32: attention in the Transformer, cross-attention (1-4),
+        self-attention, word order, position embeddings, parallelized attention,
+        one-liner, cross-attention add-on, multi-head attention
+      + [F] permutation invariance/equivariance (1 frame)
+      Word-order proof (7 frames) collapsed to 2: the general property is now
+      stated by the [F] frame, so the element-wise proof was dropped.
+ 5. The Transformer Block
+      DL4NLP ch03/slides-32: multi-layer attention
+      DL4NLP ch03/slides-33: residual connections, layer normalization
+        (moved out of the Decoder; they apply to both blocks)
+      + [F] pre-norm vs. post-norm (1 frame)
+ 6. The Decoder
+      DL4NLP ch03/slides-33: AR LM, masked self-attention, inference,
+      encoder-decoder attention
+ 7. Transformer Parameter Count
+      DL4NLP ch03/slides-34, trimmed from 12 to 5 frames: MHA (1-3) merged,
+      layer-norm frames reduced to one line, exact/approx/calculate merged;
+      "Model Size" (slides-32) folded into the overview frame
+ 8. Efficient Transformers
+      DL4NLP ch03/slides-36, plus "Limitation of the Transformer" (slides-35)
+      as opener in place of the overlapping O(n^2) frame
+      + [O] text of "Sparse Attention: Fixed Patterns" (merged with the BigBird
+            example figure: explains panels a-d, links window to the causal
+            mask, names Longformer as window + global)
+ 9. Long Sequences: Transformer-XL
+      DL4NLP ch03/slides-35 (minus its opener, moved to section 8)
+10. The Three Transformer Families
+      + [O] taxonomy table and "Where This Is Going" (bridge to sessions 8, 10)
+
+Moved elsewhere: ViT, CLIP, Flamingo, GPT-4 frames from slides-31 -> session 8,
+where the 2026-10-05 merge dropped them; session 10 (Transformers Outside NLP)
+covers ViT and CLIP from its own source.
+Excluded: ELMo (slides-23; session 8 has a one-frame ELMo excursus); DL4NLP ch02's own
+cross-attention/parallelized frames (duplicate slides-32); weather-station analogy
+(keys are geolocations, i.e. position-based weighting -- contradicts the
+"content-based" framing of section 1).
+
+figure/ holds only figures the deck uses. Removed as unused after the
+restructure: weather-map, seq2seq_3, seq2seq_4, attention_example, attention3,
+attention-transformer, layernorm. Added: bahdanau4.png (from DL4NLP ch02).
+
+HISTORY
+
+2026-09-27  First build (DL4NLP ch03 + I2DL attention), then extended with
+            Fleuret material, DL4NLP ch02 attention/tokenization and the
+            families taxonomy ahead of splitting off session 8. 156 pages.
+2026-10-03  Added position-fixed vs. content-based frame; removed NTM block
+            diagram and a redundant "Attention" divider; fixed orphaned figure
+            captions; removed weather-station analogy. 151 pages.
+2026-10-04  Restructured to the single-main-source order above. Removed I2DL
+            ("From Attention to Transformers" formula dump -- third Transformer
+            introduction; I2DL Root 2 and image-captioning frames, replaced by
+            DL4NLP ch02). Tokenization moved before attention; toy demo moved
+            after self-attention is defined; block components moved out of the
+            Decoder; families moved to the end. Fixed a mislabel: the
+            "alignment matrix" previously shown was Bahdanau's architecture
+            diagram. Added the missing basic recipe that ch03's cross-attention
+            frames refer to ("Step 1 of the basic recipe"). 121 pages.
+2026-10-04  Removed near-empty auto-split pages: 17 vbframes whose overflow
+            was a single line or a lone figure became single-page frames
+            (smaller font or scaled figure/TikZ). Text-heavy frames that split
+            into two full pages stay vbframes. Shortened the learning goals,
+            which overflowed the title page. Dropped unused figures.
+            105 pages, no overfull vboxes.
+2026-10-04  Removed the BPE (2 pages) and WordPiece frames and their four
+            references (Gage 1994, Sennrich 2016, Schuster & Nakajima 2012,
+            Wu 2016). Learning goal reworded. 102 pages.
+2026-10-05  Removed the "Self-Attention in Action: A Toy Task" section (divider
+            + 2 Fleuret-based frames). The toy task now lives only in Lab 4;
+            the deck no longer points to it. 99 pages.
+2026-10-05  Merged "Efficient Transformers -- Example" (BigBird figure shown
+            without explanation) and "Restricting Which Keys Are Visible" (which
+            explained patterns after the figure, without naming BigBird or
+            random attention) into one frame. 98 pages.
+2026-10-18  "Where This Is Going" updated for the merged session 8 (GPT, BERT,
+            T5) and the renumbering (Transformers Outside NLP is now session
+            9). 98 pages.
+2026-10-18  "Where This Is Going": vision is now session 10 (new session 9,
+            Transformers Modernized, inserted). 98 pages.
+
+Open: within the ~80-110 page target. Transformer-XL (8 pages) remains a
+candidate to move to session 8 if more room is needed.

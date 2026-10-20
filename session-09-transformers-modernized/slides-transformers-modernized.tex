@@ -1,0 +1,1370 @@
+\input{../style/preamble}
+\input{../latex-math/basic-math}
+\input{../latex-math/basic-ml}
+\input{../latex-math/ml-nn}
+
+% The course's typewriter font (laett) has no bold shape; map bold typewriter to regular.
+\AtBeginDocument{{\ttfamily\selectfont}\DeclareFontShape{T1}{laett}{bx}{n}{<->ssub*laett/m/n}{}\DeclareFontShape{T1}{laett}{m}{bx}{<->ssub*laett/m/n}{}}
+\newcommand{\citebutton}[2]{\beamergotobutton{\href{#2}{#1}}}
+
+\newcommand{\titlefigure}{figure/title-modern-variant.png}
+\newcommand{\learninggoals}{
+  \item What changed in the Transformer block since 2017 and why: pre-norm, RMSNorm, no biases, gated activations
+  \item Rotary position embeddings (RoPE)
+  \item The consensus hyperparameters of modern language models
+  \item Stability tricks and attention variants (MQA/GQA, sliding windows), and why memory matters
+  \item Mixture of experts: routing, training, DeepSeek-MoE
+}
+
+\title{Advanced Artificial Intelligence and Machine Learning}
+\date{}
+
+\begin{document}
+
+\lecturechapter{Transformers Modernized}
+\lecture{Advanced AI \& ML}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Since 2017: What Changed Inside the Transformer?}
+% Source: CS336 Spring 2025, lecture 3 (architecture), slides 3-8
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% [O] original bridge frame (draft for the user to rewrite); listed in order.txt
+\begin{frame}{Since 2017: What Changed Inside the Transformer?}
+\begin{itemize}
+  \item Session 7 introduced the original 2017 block: post-norm with LayerNorm, sinusoidal position embeddings, a ReLU feed-forward network. GPT, BERT and T5 (session 8) already changed some of these details, e.g.\ learned or relative position embeddings.
+  \item Today's large models (e.g.\ the LLaMA family, DeepSeek) keep the overall design, but change several components \emph{inside} the block.
+  \item This session goes through these changes and the evidence behind them: normalization, activations, position embeddings, hyperparameters, stability, attention heads.
+  \item Then a change at the level of the whole layer: \textbf{mixture of experts}.
+  \item Source: Stanford CS336, Lectures 3 and 4 (Spring 2025).
+\end{itemize}
+\end{frame}
+
+% FRAMES-BEGIN l3 3 8
+% CS336 slide 3
+\begin{frame}{Outline and goals}
+\begin{itemize}
+  \item Quick recap of the `standard' transformer
+  \begin{itemize}
+    \item What do most of the large LMs have in common?
+  \end{itemize}
+  \item What are common variations to the architecture / training process?
+  \begin{itemize}
+    \item Today's theme: the best way to learn is hands-on experience
+    \item the second best way is to try to learn from others' experience
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+% CS336 slide 4
+\begin{frame}{Starting point: the `original' transformer}
+% full-body crop (figures would be too small next to the bullets)
+\begin{center}
+  \includegraphics[page=4,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l3.pdf}
+\end{center}
+\end{frame}
+
+% CS336 slide 5
+\begin{frame}{A Simple, Modern Variant}
+% full-body crop (figures would be too small next to the bullets)
+\begin{center}
+  \includegraphics[page=5,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l3.pdf}
+\end{center}
+\end{frame}
+
+% CS336 slide 6
+\begin{frame}{How should we think about architectures?}
+\begin{center}
+  \includegraphics[page=6,trim=32 11 46 61,clip,width=318pt]{figure/cs336-l3.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 7
+\begin{frame}[shrink=8]{Let's look at the data (on dense architectures)}
+% full-body crop (figures would be too small next to the bullets)
+\begin{center}
+  \includegraphics[page=7,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l3.pdf}
+\end{center}
+\end{frame}
+
+% CS336 slide 8
+\begin{frame}{What are we going to cover?}
+\begin{itemize}
+  \item Common architecture variations
+  \begin{itemize}
+    \item Activations, FFN
+    \item Attention variants
+    \item Position embeddings
+  \end{itemize}
+  \item Hyperparameters that (do or don't) matter
+  \begin{itemize}
+    \item What is ff\_dim? Do multi\_head dims always sum to model\_dim?
+    \item How many vocab elements?
+  \end{itemize}
+  \item Stability tricks
+\end{itemize}
+\end{frame}
+
+% FRAMES-END
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Architecture Variations: Normalization}
+% Source: CS336 Spring 2025, lecture 3 (architecture), slides 9-14
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% FRAMES-BEGIN l3 9 14
+% CS336 slide 9
+\begin{frame}{Architecture variations..}
+\begin{itemize}
+  \item Let's think about the core architecture piece
+  \begin{itemize}
+    \item Trends toward `LLaMA- like' architectures
+  \end{itemize}
+\end{itemize}
+\begin{center}
+  \includegraphics[page=9,trim=20 10 49 98,clip,width=265pt]{figure/cs336-l3.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 10
+\begin{frame}{Pre-vs-post norm}
+% full-body crop (figures would be too small next to the bullets)
+\begin{center}
+  \includegraphics[page=10,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l3.pdf}
+\end{center}
+\end{frame}
+
+% CS336 slide 11
+\begin{frame}{Pre-vs-post-norm, the data}
+% full-body crop (figures would be too small next to the bullets)
+\begin{center}
+  \includegraphics[page=11,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l3.pdf}
+\end{center}
+\end{frame}
+
+% CS336 slide 12
+\begin{frame}{Pre-vs-post norm, explanations?}
+% full-body crop (figures would be too small next to the bullets)
+\begin{center}
+  \includegraphics[page=12,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l3.pdf}
+\end{center}
+\end{frame}
+
+% CS336 slide 13
+\begin{frame}{New things -- `double' norm.}
+\begin{itemize}
+  \item If putting LayerNorms in residual streams is bad.. Why not post-norm outside the stream?
+  \item Recent models: Grok, Gemma 2. Olmo 2 only does non-residual post norm
+\end{itemize}
+\begin{center}
+  \includegraphics[page=13,trim=246 56 246 118,clip,width=119pt]{figure/cs336-l3.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 14
+\begin{frame}{LayerNorm vs RMSNorm}
+% full-body crop (figures would be too small next to the bullets)
+\begin{center}
+  \includegraphics[page=14,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l3.pdf}
+\end{center}
+\end{frame}
+
+% FRAMES-END
+
+% [O] original bridge frame (draft for the user to rewrite); listed in order.txt
+\begin{frame}{Compute vs.\ Memory}
+\begin{itemize}
+  \item A GPU can do arithmetic much faster than it can move data between its memory and its compute units.
+  \item The number of arithmetic operations per byte moved is an operation's \textbf{arithmetic intensity}. With low arithmetic intensity, an operation is limited by \textbf{memory traffic}, not by the number of floating-point operations (FLOPs).
+  \item Matrix multiplications do many operations per byte loaded; normalizations and element-wise operations do few.
+  \item So an operation can account for a tiny share of the FLOPs and still a noticeable share of the runtime --- the next slides use exactly this argument.
+  \item Hardware details follow in session 12.
+\end{itemize}
+\end{frame}
+
+% FRAMES-BEGIN l3 15 19
+% CS336 slide 15
+\begin{frame}{Why RMSNorm?}
+\begin{itemize}
+  \item Modern explanation -- it's faster (and just as good).
+  \begin{itemize}
+    \item Fewer operations (no mean calculation)
+    \item Fewer parameters (no bias term to store)
+  \end{itemize}
+  \item Does this explanation make sense?
+  \begin{itemize}
+    \item Matrix multiplies are the vast majority of FLOPs (and memory)
+  \end{itemize}
+\end{itemize}
+\begin{center}
+  \includegraphics[page=15,trim=464 214 23 112,clip,width=95pt]{figure/cs336-l3.pdf}\par
+  \includegraphics[page=15,trim=247 61 250 244,clip,width=91pt]{figure/cs336-l3.pdf}\par
+\end{center}
+{\scriptsize [Ivanov et al 2023]\par}
+\end{frame}
+
+% CS336 slide 16
+\begin{frame}[shrink=7]{Why RMSNorm (2)}
+\begin{itemize}
+  \item Important lesson: FLOPS are not runtime!
+  \begin{itemize}
+    \item RMSNorm can still matter due to the importance of data movement
+  \end{itemize}
+\end{itemize}
+\begin{center}
+  \includegraphics[page=16,trim=470 79 143 107,clip,width=42pt]{figure/cs336-l3.pdf}\par
+  \includegraphics[page=16,trim=100 185 336 130,clip,width=111pt]{figure/cs336-l3.pdf}\par
+\end{center}
+{\scriptsize Left top (''43G'') is FLOPS Right top (``153'') is the FLOP-to-memory ratio; [Ivanov et al 2023]\par}
+\end{frame}
+
+% CS336 slide 17
+\begin{frame}{RMSNorm - validation}
+\begin{itemize}
+  \item RMSNorm runtime (and surprisingly, perf) gains have been seen in papers
+\end{itemize}
+\begin{center}
+  \includegraphics[page=17,trim=59 70 27 170,clip,width=330pt]{figure/cs336-l3.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 18
+\begin{frame}{More generally: dropping bias terms}
+\begin{center}
+  \includegraphics[page=18,trim=62 34 35 67,clip,width=330pt]{figure/cs336-l3.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 19
+\begin{frame}{LayerNorm: recap}
+\begin{itemize}
+  \item Basically everyone does pre-norm.
+  \item Intuition -- keep the good parts of residual connections
+  \item Observations -- nicer gradient propagation, fewer spike
+  \item Some people add a second norm outside the residual stream (NOT post-norm)
+  \item Most people do RMSnorm
+  \item In practice, works as well as LayerNorm
+  \item But, has fewer parameters to move around, which saves on wallclock time
+  \item People more generally drop bias terms since the compute/param tradeoffs are not great.
+\end{itemize}
+\end{frame}
+
+% FRAMES-END
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Architecture Variations: Activations and Layers}
+% Source: CS336 Spring 2025, lecture 3 (architecture), slides 20-29
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% FRAMES-BEGIN l3 20 29
+% CS336 slide 20
+\begin{frame}{Activations}
+\begin{itemize}
+  \item A whole zoo of activations ..
+  \item ReLU, GeLU, Swish, ELU, GLU, GeGLU, ReGLU, SeLU, SwiGLU, LiGLU
+  \begin{itemize}
+    \item What are these things? What do people use? Does it matter?
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+% CS336 slide 21
+\begin{frame}{A few of the common activations}
+% full-body crop (figures would be too small next to the bullets)
+\begin{center}
+  \includegraphics[page=21,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l3.pdf}
+\end{center}
+\end{frame}
+
+% CS336 slide 22
+\begin{frame}{Gated activations (*GLU)}
+\begin{itemize}
+  \item GLUs modify the `first part' of a FF layer
+  \item Instead of a linear + ReLU, augment the above with an (entrywise) linear term
+  \item This gives the gated variant (ReGLU) -- note that we have an extra parameter (V)
+\end{itemize}
+\begin{center}
+  \includegraphics[page=22,trim=169 229 184 119,clip,width=220pt]{figure/cs336-l3.pdf}\par
+  \includegraphics[page=22,trim=176 115 176 233,clip,width=220pt]{figure/cs336-l3.pdf}\par
+  \includegraphics[page=22,trim=176 13 178 334,clip,width=220pt]{figure/cs336-l3.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 23
+\begin{frame}{Gated variants of standard FF layers}
+% full-body crop (figures would be too small next to the bullets)
+\begin{center}
+  \includegraphics[page=23,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l3.pdf}
+\end{center}
+\end{frame}
+
+% CS336 slide 24
+\begin{frame}{Do gated linear units work?}
+\begin{center}
+  \includegraphics[page=24,trim=72 47 135 71,clip,width=295pt]{figure/cs336-l3.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 25
+\begin{frame}{Do gated linear units work (2)?}
+\begin{itemize}
+  \item Yes, with other works corroborating Shazeer 2020
+  \begin{itemize}
+    \item Narang et al 2020
+  \end{itemize}
+\end{itemize}
+\begin{center}
+  \includegraphics[page=25,trim=80 95 51 105,clip,width=330pt]{figure/cs336-l3.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 26
+\begin{frame}{Gating, activations}
+\begin{itemize}
+  \item Many variations (ReLU, GeLU, *GLU) across models.
+  \item *GLU isn't necessary for a good model (see GPT3), but it's probably helpful Otuer, recent outlier models.. Nemotron 340B (Squared ReLU), Falcon 2 11b (ReLU)
+  \item But evidence points towards somewhat consistent gains from Swi/GeGLU
+\end{itemize}
+\end{frame}
+
+% CS336 slide 27
+\begin{frame}{Serial vs Parallel layers}
+\begin{itemize}
+  \item Normal transformer blocks are serial -- they compute attention, then the MLP
+  \begin{itemize}
+    \item Could we parallelize the transformer block?
+  \end{itemize}
+\end{itemize}
+\begin{center}
+  \includegraphics[page=27,trim=284 83 284 103,clip,width=85pt]{figure/cs336-l3.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 28
+\begin{frame}{Parallel layers}
+\begin{itemize}
+  \item A few models (GPTJ, PaLM, GPT-NeoX) do parallel layers. Originally in GPT-J
+  \item If implemented right, LayerNorm can be shared, and matrix multiplies can be fused
+  \item Recent Models: Cohere Command A, Falcon 2 11B, Command R+
+\end{itemize}
+\begin{center}
+  \includegraphics[page=28,trim=91 96 55 115,clip,width=310pt]{figure/cs336-l3.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 29
+\begin{frame}{Summary: architectures}
+% full-body crop (figures would be too small next to the bullets)
+\begin{center}
+  \includegraphics[page=29,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l3.pdf}
+\end{center}
+\end{frame}
+
+% FRAMES-END
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Position Embeddings: RoPE}
+% Source: CS336 Spring 2025, lecture 3 (architecture), slides 30-35
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% FRAMES-BEGIN l3 30 35
+% CS336 slide 30
+\begin{frame}{Many variations in position embeddings}
+% full-body crop (figures would be too small next to the bullets)
+\begin{center}
+  \includegraphics[page=30,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l3.pdf}
+\end{center}
+\end{frame}
+
+% CS336 slide 31
+\begin{frame}{RoPE: rotary position embeddings}
+\begin{center}
+  \includegraphics[page=31,trim=62 34 35 67,clip,width=330pt]{figure/cs336-l3.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 32
+\begin{frame}{RoPE: rotary position embeddings}
+% full-body crop (figures would be too small next to the bullets)
+\begin{center}
+  \includegraphics[page=32,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l3.pdf}
+\end{center}
+\end{frame}
+
+% CS336 slide 33
+\begin{frame}{RoPE: rotary position embeddings}
+\begin{itemize}
+  \item There are many rotations, which one do you pick?
+  \begin{itemize}
+    \item Just pair up the coordinates and rotate them in 2d (motivation: complex numbers)
+  \end{itemize}
+\end{itemize}
+\begin{center}
+  \includegraphics[page=33,trim=131 53 148 99,clip,width=211pt]{figure/cs336-l3.pdf}\par
+\end{center}
+{\scriptsize [Su et al 2021]\par}
+\end{frame}
+
+% CS336 slide 34
+\begin{frame}{The actual RoPE math}
+\begin{itemize}
+  \item Multiply with sines and cosines
+  \item Difference with sine embeddings -- not additive, no cross terms
+\end{itemize}
+\begin{center}
+  \includegraphics[page=34,trim=80 111 72 122,clip,width=330pt]{figure/cs336-l3.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 35
+\begin{frame}{Implementation and code for RoPE}
+\begin{itemize}
+  \item \ldots{} Same stuff as the usual multi-head self attention below
+  \item Note: embedding at each attention operation to enforce position invariance
+\end{itemize}
+\begin{center}
+  \includegraphics[page=35,trim=46 102 82 91,clip,width=330pt]{figure/cs336-l3.pdf}\par
+\end{center}
+\end{frame}
+
+% FRAMES-END
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Hyperparameters}
+% Source: CS336 Spring 2025, lecture 3 (architecture), slides 36-52
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% FRAMES-BEGIN l3 36 52
+% CS336 slide 36
+\begin{frame}{Hyperparameters}
+\begin{itemize}
+  \item Transformer hyperparameter questions you might have had
+  \item How much bigger should the feedforward size be compared to hidden size?
+  \item How many heads, and should num\_heads always divide hidden size?
+  \item What should my vocab size be?
+  \item And other model setting questions
+  \begin{itemize}
+    \item Do people even regularize these huge LMs?
+    \item How do people scale these models - very deep or very wide?
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+% CS336 slide 37
+\begin{frame}{Surprising (?) consensus hyperparameter 1}
+\begin{center}
+  \includegraphics[page=37,trim=62 17 34 67,clip,width=321pt]{figure/cs336-l3.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 38
+\begin{frame}{Exception \#1 -- GLU variants}
+\begin{itemize}
+  \item Models are roughly in this range, though PaLM, LLaMA2 and Mistral are slightly larger
+\end{itemize}
+\begin{center}
+  \includegraphics[page=38,trim=62 33 35 67,clip,width=280pt]{figure/cs336-l3.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 39
+\begin{frame}{Exception \#2 -- T5}
+\begin{itemize}
+  \item Other, recent exceptions -- Gemma 2 (8x), SmolLM/Gemma 3 (4x, GLU)
+\end{itemize}
+\begin{center}
+  \includegraphics[page=39,trim=62 33 35 67,clip,width=280pt]{figure/cs336-l3.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 40
+\begin{frame}{Why this range of multipliers?}
+\begin{itemize}
+  \item Empirically, there's a basin between 1-10 where this hyperparameter is near-optimal
+\end{itemize}
+\begin{center}
+  \includegraphics[page=40,trim=184 62 212 104,clip,width=185pt]{figure/cs336-l3.pdf}\par
+\end{center}
+{\scriptsize [Kaplan+ 2020]\par}
+\end{frame}
+
+% CS336 slide 41
+\begin{frame}{What can we learn from the model-dim hyperparam?}
+\begin{center}
+  \includegraphics[page=41,trim=13 26 39 98,clip,width=330pt]{figure/cs336-l3.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 42
+\begin{frame}{Surprising (?) consensus hyperparameter 2}
+\begin{itemize}
+  \item Head-dim*num-heads to model-dim ratio.
+  \item This doesn't have to be true: we can have head-dimensions > model-dim / num-heads.
+  \begin{itemize}
+    \item But most models do follow this guideline
+  \end{itemize}
+\end{itemize}
+\begin{center}
+  \includegraphics[page=42,trim=78 142 78 116,clip,width=330pt]{figure/cs336-l3.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 43
+\begin{frame}{How many heads, whats the model dim?}
+\begin{itemize}
+  \item Some examples of this hyperparameter
+  \item Most models have ratios around 1 -- notable exceptions by some google models.
+\end{itemize}
+\begin{center}
+  \includegraphics[page=43,trim=116 80 62 116,clip,width=313pt]{figure/cs336-l3.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 44
+\begin{frame}{Evidence for 1-1 ratio?}
+\begin{itemize}
+  \item There have been papers written against the 1-1 ratio [Bhojanapalli et al 2020]
+  \item But we don't seem to be seeing significant `low rank bottlenecks' in practice..
+\end{itemize}
+\begin{center}
+  \includegraphics[page=44,trim=210 95 210 115,clip,width=180pt]{figure/cs336-l3.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 45
+\begin{frame}{Aspect ratios}
+\begin{itemize}
+  \item Should my model be deep or wide? How deep and how wide?
+  \item Most models are surprisingly consistent on this one too!
+\end{itemize}
+\begin{center}
+  \includegraphics[page=45,trim=16 17 213 146,clip,width=246pt]{figure/cs336-l3.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 46
+\begin{frame}{Considerations about aspect ratio}
+\begin{itemize}
+  \item Extremely deep models are harder to parallelize and have higher latency
+\end{itemize}
+\begin{center}
+  \includegraphics[page=46,trim=75 10 26 116,clip,width=304pt]{figure/cs336-l3.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 47
+\begin{frame}{Evidence on aspect ratio scaling}
+% full-body crop (figures would be too small next to the bullets)
+\begin{center}
+  \includegraphics[page=47,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l3.pdf}
+\end{center}
+\end{frame}
+
+% CS336 slide 48
+\begin{frame}{What are typical vocabulary sizes?}
+% full-body crop (figures would be too small next to the bullets)
+\begin{center}
+  \includegraphics[page=48,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l3.pdf}
+\end{center}
+\end{frame}
+
+% CS336 slide 49
+\begin{frame}{Dropout and other regularization}
+\begin{itemize}
+  \item Do we need regularization during pretraining?
+  \item Arguments against:
+  \begin{itemize}
+    \item There is a lot of data (trillions of tokens), more than parameters.
+    \item SGD only does a single pass on a corpus (hard to memorize)
+  \end{itemize}
+  \item This is all quite reasonable.. but what do people do in practice?
+\end{itemize}
+\end{frame}
+
+% CS336 slide 50
+\begin{frame}{Dropout and weight decay in practice}
+\begin{itemize}
+  \item Many older models used dropout during pretraining
+  \begin{itemize}
+    \item Newer models (except Qwen) rely only on weight decay
+  \end{itemize}
+\end{itemize}
+\begin{center}
+  \includegraphics[page=50,trim=181 50 257 80,clip,width=124pt]{figure/cs336-l3.pdf}\par
+\end{center}
+{\scriptsize * Most of the times papers just don't discuss dropout. On open models, this closely matches not doing dropout. This may not be true of closed models.\par}
+\end{frame}
+
+% CS336 slide 51
+\begin{frame}{Why weight decay LLMs?}
+% full-body crop (figures would be too small next to the bullets)
+\begin{center}
+  \includegraphics[page=51,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l3.pdf}
+\end{center}
+\end{frame}
+
+% CS336 slide 52
+\begin{frame}{Summary: hyperparameters}
+% full-body crop (figures would be too small next to the bullets)
+\begin{center}
+  \includegraphics[page=52,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l3.pdf}
+\end{center}
+\end{frame}
+
+% FRAMES-END
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Stability Tricks}
+% Source: CS336 Spring 2025, lecture 3 (architecture), slides 53-57
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% FRAMES-BEGIN l3 53 57
+% CS336 slide 53
+\begin{frame}{Stability tricks}
+\begin{itemize}
+  \item Recently, lots of attention on stable training
+  \begin{itemize}
+    \item Don't train models that look like the blue curve!
+  \end{itemize}
+\end{itemize}
+\begin{center}
+  \includegraphics[page=53,trim=163 70 163 102,clip,width=205pt]{figure/cs336-l3.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 54
+\begin{frame}{Where do the issues arise? Beware of softmaxes!}
+% full-body crop (figures would be too small next to the bullets)
+\begin{center}
+  \includegraphics[page=54,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l3.pdf}
+\end{center}
+\end{frame}
+
+% CS336 slide 55
+\begin{frame}{Output softmax stability -- the `z-loss'}
+\begin{itemize}
+  \item This is useful for stability! PaLM pioneered this `z loss' trick.
+  \item Other examples: Baichuan 2 (2023), DCLM (2024), OLMo 2 (2025)
+\end{itemize}
+\begin{center}
+  \includegraphics[page=55,trim=72 192 378 73,clip,width=114pt]{figure/cs336-l3.pdf}\par
+  \includegraphics[page=55,trim=366 195 50 99,clip,width=129pt]{figure/cs336-l3.pdf}\par
+  \includegraphics[page=55,trim=168 89 132 281,clip,width=178pt]{figure/cs336-l3.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 56
+\begin{frame}{Attention softmax stability -- the `QK norm'}
+\begin{itemize}
+  \item Other examples: DCLM, OLMo2, Gemma 2 Originally from vision and multimodal models [Dehgani 2023, Idefcs, Chameleon]
+\end{itemize}
+\begin{center}
+  \includegraphics[page=56,trim=72 85 60 81,clip,width=330pt]{figure/cs336-l3.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 57
+\begin{frame}{Logit soft-capping.}
+\begin{itemize}
+  \item Soft-capping the logits to some maximum value via Tanh
+  \item Prevents logits from blowing up, but also might have perf issues?
+\end{itemize}
+\begin{center}
+  \includegraphics[page=57,trim=249 141 212 106,clip,width=151pt]{figure/cs336-l3.pdf}\par
+  \includegraphics[page=57,trim=202 38 166 319,clip,width=206pt]{figure/cs336-l3.pdf}\par
+\end{center}
+\end{frame}
+
+% FRAMES-END
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Attention Heads: MQA, GQA, Sliding Windows}
+% Source: CS336 Spring 2025, lecture 3 (architecture), slides 58-58
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% FRAMES-BEGIN l3 58 58
+% CS336 slide 58
+\begin{frame}{Attention heads}
+\begin{itemize}
+  \item Most models don't touch the attention heads much at all with a few minor exceptions..
+  \item GQA / MQA : Saving inference costs by reducing the number of heads
+  \item Sparse or sliding window attention (GPT4/Mistral): restricting the attention pattern
+  \begin{itemize}
+    \item to reduce compute cost
+  \end{itemize}
+  \item Exotic SSM stuff (Jamba, Falcon 3, etc): not covered (sorry!)
+\end{itemize}
+\end{frame}
+
+% FRAMES-END
+
+% [O] original bridge frame (draft for the user to rewrite); listed in order.txt
+\begin{frame}{The KV Cache}
+\begin{itemize}
+  \item Autoregressive generation (session 8, decoding) produces one token at a time; each new token attends to all previous tokens.
+  \item The keys and values of the previous tokens do not change, so they are stored instead of recomputed: the \textbf{KV cache}.
+  \item Its size grows with sequence length $\times$ number of layers $\times$ number of heads $\times$ head dimension (per sequence in the batch).
+  \item At inference time, reading this cache from memory --- not the arithmetic --- is often the bottleneck. The following attention variants reduce it.
+\end{itemize}
+\end{frame}
+
+% FRAMES-BEGIN l3 59 68
+% CS336 slide 59
+\begin{frame}{GQA/MQA -- Reducing attention head cost}
+\begin{itemize}
+  \item Let's think about the compute involved for attention
+\end{itemize}
+\begin{center}
+  \includegraphics[page=59,trim=130 127 201 108,clip,width=192pt]{figure/cs336-l3.pdf}\par
+  \includegraphics[page=59,trim=63 0 35 298,clip,width=307pt]{figure/cs336-l3.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 60
+\begin{frame}[shrink=8]{GQA/MQA -- Reducing attention head cost}
+\begin{itemize}
+  \item What about the incremental case when we generate text?
+  \item Key difference: can't parallelize the generation process -- needs to be step by step
+  \item In this case -- we need to incrementaly re-compute/update attention via the `KV cache'
+\end{itemize}
+\begin{center}
+  \includegraphics[page=60,trim=191 22 195 194,clip,width=185pt]{figure/cs336-l3.pdf}\par
+\end{center}
+{\scriptsize [Animation from https://medium.com/@joaolages/kv-caching-explained-276520203249]\par}
+\end{frame}
+
+% CS336 slide 61
+\begin{frame}{GQA/MQA -- Reducing attention head cost}
+\begin{itemize}
+  \item What's the incremental arithmetic intensity?
+  \item Is there some way around this? The n/d term is difficult to reduce.
+\end{itemize}
+\begin{center}
+  \includegraphics[page=61,trim=62 82 36 140,clip,width=330pt]{figure/cs336-l3.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 62
+\begin{frame}{MQA -- just have fewer key dimensions.}
+\begin{itemize}
+  \item Key idea -- have multiple queries, but just one dimension for keys and values
+\end{itemize}
+\begin{center}
+  \includegraphics[page=62,trim=62 1 12 112,clip,width=303pt]{figure/cs336-l3.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 63
+\begin{frame}{Recent extension -- GQA}
+\begin{itemize}
+  \item Don't go all the way to one dimension of KV -- have fewer dims
+  \item Simple knob to control expressiveness (key-query ratio) and inference efficiency
+\end{itemize}
+\begin{center}
+  \includegraphics[page=63,trim=117 119 130 125,clip,width=284pt]{figure/cs336-l3.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 64
+\begin{frame}{Does MQA hurt? Sometimes..}
+% full-body crop (figures would be too small next to the bullets)
+\begin{center}
+  \includegraphics[page=64,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l3.pdf}
+\end{center}
+\end{frame}
+
+% CS336 slide 65
+\begin{frame}{Sparse / sliding window attention}
+\begin{itemize}
+  \item Attending to the entire context can be expensive (quadratic).
+  \item Build sparse / structured attention that trades off expressiveness vs runtime (GPT3)
+\end{itemize}
+\begin{center}
+  \includegraphics[page=65,trim=119 39 162 146,clip,width=241pt]{figure/cs336-l3.pdf}\par
+\end{center}
+{\scriptsize [Child et al 2019]\par}
+\end{frame}
+
+% CS336 slide 66
+\begin{frame}{Sliding window attention}
+\begin{itemize}
+  \item Another variation on this idea -- sliding window attention
+  \item Just use the main part of the strided pattern -- let depth extend effective context (Mistral)
+\end{itemize}
+\begin{center}
+  \includegraphics[page=66,trim=90 93 118 106,clip,width=301pt]{figure/cs336-l3.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 67
+\begin{frame}{Current standard trick -- interleave `full' and `LR' attention}
+\begin{itemize}
+  \item From Cohere Command A -- Every 4th layer is a full attention
+  \item Long-range info via NoPE, short-range info via RoPE + SWA.
+  \item Other models -- LLaMA 4, Gemma does SWA+Full RoPE.
+\end{itemize}
+\begin{center}
+  \includegraphics[page=67,trim=178 104 178 104,clip,width=193pt]{figure/cs336-l3.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 68
+\begin{frame}{Recap, conclusion, etc.}
+\begin{itemize}
+  \item Many aspects (arch, hparams) of transformers are in common across the big LMs
+  \begin{itemize}
+    \item Major differences? Position embeddings, activations, tokenization
+  \end{itemize}
+\end{itemize}
+\begin{center}
+  \includegraphics[page=68,trim=35 92 21 106,clip,width=330pt]{figure/cs336-l3.pdf}\par
+\end{center}
+\end{frame}
+
+% FRAMES-END
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Mixture of Experts}
+% Source: CS336 Spring 2025, lecture 4 (MoEs), slides 2-12
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% FRAMES-BEGIN l4 2 12
+% CS336 slide 2
+\begin{frame}{Mixture of experts}
+\begin{center}
+  \includegraphics[page=2,trim=30 24 12 68,clip,width=330pt]{figure/cs336-l4.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 3
+\begin{frame}{What's a MoE?}
+\begin{itemize}
+  \item Replace big feedforward with (many) big feedforward networks and a selector layer
+  \begin{itemize}
+    \item You can increase the \# experts without affecting FLOPs
+  \end{itemize}
+\end{itemize}
+\begin{center}
+  \includegraphics[page=3,trim=50 108 34 100,clip,width=330pt]{figure/cs336-l4.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 4
+\begin{frame}{Why are MoEs getting popular?}
+\begin{itemize}
+  \item Same FLOP, more param does better
+\end{itemize}
+\begin{center}
+  \includegraphics[page=4,trim=79 29 42 112,clip,width=310pt]{figure/cs336-l4.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 5
+\begin{frame}{Why are MoEs getting popular?}
+\begin{center}
+  \includegraphics[page=5,trim=62 15 6 84,clip,width=330pt]{figure/cs336-l4.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 6
+\begin{frame}{Why are MoEs getting popular?}
+\begin{itemize}
+  \item Highly competitive vs dense equivalents
+\end{itemize}
+\begin{center}
+  \includegraphics[page=6,trim=183 55 183 88,clip,width=185pt]{figure/cs336-l4.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 7
+\begin{frame}{Why are MoEs getting popular?}
+\begin{center}
+  \includegraphics[page=7,trim=72 14 200 72,clip,width=231pt]{figure/cs336-l4.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 8
+\begin{frame}{Some MoE results -- from the west}
+\begin{itemize}
+  \item MoEs are most of the highest-performance open models, and are quite quick
+\end{itemize}
+\begin{center}
+  \includegraphics[page=8,trim=116 82 116 82,clip,width=277pt]{figure/cs336-l4.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 9
+\begin{frame}{Earlier MoE results from Chinese groups -- Qwen}
+\begin{itemize}
+  \item Chinese LLM companies are also doing quite a bit of MoE work on the smaller end
+\end{itemize}
+\begin{center}
+  \includegraphics[page=9,trim=71 106 315 136,clip,width=140pt]{figure/cs336-l4.pdf}\par
+  \includegraphics[page=9,trim=408 106 54 136,clip,width=109pt]{figure/cs336-l4.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 10
+\begin{frame}{Earlier MoE results from Chinese groups - DeepSeek}
+\begin{itemize}
+  \item There's also some good recent ablation work on MoEs showing they're generally good
+\end{itemize}
+\begin{center}
+  \includegraphics[page=10,trim=193 20 193 107,clip,width=165pt]{figure/cs336-l4.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 11
+\begin{frame}{Recent MoE results -- DeepSeek v3}
+\begin{center}
+  \includegraphics[page=11,trim=119 30 82 67,clip,width=277pt]{figure/cs336-l4.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 12
+\begin{frame}{Why haven't MoEs been more popular?}
+\begin{itemize}
+  \item Infrastructure is complex / advantages on multi node
+  \item Training objectives are somewhat heuristic (and sometimes unstable)
+\end{itemize}
+\begin{center}
+  \includegraphics[page=12,trim=112 166 34 103,clip,width=249pt]{figure/cs336-l4.pdf}\par
+  \includegraphics[page=12,trim=193 -0 220 262,clip,width=133pt]{figure/cs336-l4.pdf}\par
+\end{center}
+{\scriptsize [Zoph et al 2022]\par}
+\end{frame}
+
+% FRAMES-END
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{MoE Routing}
+% Source: CS336 Spring 2025, lecture 4 (MoEs), slides 13-23
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% FRAMES-BEGIN l4 13 23
+% CS336 slide 13
+\begin{frame}{What MoEs generally look like}
+% full-body crop (figures would be too small next to the bullets)
+\begin{center}
+  \includegraphics[page=13,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l4.pdf}
+\end{center}
+\end{frame}
+
+% CS336 slide 14
+\begin{frame}{MoE -- what varies?}
+\begin{itemize}
+  \item Routing function
+  \item Expert sizes
+  \item Training objectives
+\end{itemize}
+\end{frame}
+
+% CS336 slide 15
+\begin{frame}{Routing function - overview}
+\begin{itemize}
+  \item Many of the routing algorithms boil down to `choose top k'
+\end{itemize}
+\begin{center}
+  \includegraphics[page=15,trim=122 19 28 118,clip,width=291pt]{figure/cs336-l4.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 16
+\begin{frame}{Routing type}
+\begin{itemize}
+  \item Almost all the MoEs do a standard `token choice topk' routing. Some recent ablations
+\end{itemize}
+\begin{center}
+  \includegraphics[page=16,trim=51 119 51 119,clip,width=330pt]{figure/cs336-l4.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 17
+\begin{frame}{Common routing variants in detail}
+% full-body crop (figures would be too small next to the bullets)
+\begin{center}
+  \includegraphics[page=17,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l4.pdf}
+\end{center}
+\end{frame}
+
+% CS336 slide 18
+\begin{frame}{Other routing methods}
+\begin{center}
+  \includegraphics[page=18,trim=12 176 26 71,clip,width=330pt]{figure/cs336-l4.pdf}\par
+  \includegraphics[page=18,trim=18 8 6 240,clip,width=330pt]{figure/cs336-l4.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 19
+\begin{frame}{Top-K routing in detail.}
+\begin{itemize}
+  \item Most papers do the old and classic top-k routing. How does this work?
+  \begin{itemize}
+    \item This is the DeepSeek (V1-2) router (Grok, Qwen do this too)
+    \item Mixtral, DBRX, DeepSeek v3 softmaxes after the TopK
+  \end{itemize}
+  \item Gates selected by a logistic regressor
+\end{itemize}
+\begin{center}
+  \includegraphics[page=19,trim=21 46 275 112,clip,width=153pt]{figure/cs336-l4.pdf}\par
+\end{center}
+{\scriptsize [Dai et al 2024]\par}
+\end{frame}
+
+% CS336 slide 20
+\begin{frame}{Recent variations from DeepSeek and other Chinese LMs}
+\begin{itemize}
+  \item Smaller, larger number of experts + a few shared experts that are always on.
+  \begin{itemize}
+    \item (Used in DeepSeek / Qwen, originally from DeepSpeed MoE)
+  \end{itemize}
+\end{itemize}
+\begin{center}
+  \includegraphics[page=20,trim=117 86 81 64,clip,width=247pt]{figure/cs336-l4.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 21
+\begin{frame}{Various ablations from the DeepSeek paper}
+\begin{itemize}
+  \item More experts, shared experts all seem to generally help
+\end{itemize}
+\begin{center}
+  \includegraphics[page=21,trim=128 66 128 69,clip,width=236pt]{figure/cs336-l4.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 22
+\begin{frame}{Ablations from OlMoE}
+\begin{itemize}
+  \item Gains from fine-grained experts, none from shared experts.
+\end{itemize}
+\begin{center}
+  \includegraphics[page=22,trim=70 4 80 100,clip,width=260pt]{figure/cs336-l4.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 23
+\begin{frame}{Expert routing setups for recent MoEs}
+\begin{center}
+  \includegraphics[page=23,trim=63 20 71 63,clip,width=300pt]{figure/cs336-l4.pdf}\par
+\end{center}
+\end{frame}
+
+% FRAMES-END
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Training MoEs}
+% Source: CS336 Spring 2025, lecture 4 (MoEs), slides 24-37
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% FRAMES-BEGIN l4 24 37
+% CS336 slide 24
+\begin{frame}{How do we train MoEs?}
+\begin{itemize}
+  \item Major challenge: we need sparsity for training-time efficiency\ldots{}
+  \begin{itemize}
+    \item But sparse gating decisions are not differentiable!
+  \end{itemize}
+  \item Solutions?
+  \item 1. Reinforcment learning to optimize gating policies 2. Stochastic perturbations 3. Heuristic `balancing' losses.
+  \begin{itemize}
+    \item Guess which one people use in practice?
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+% CS336 slide 25
+\begin{frame}{RL for MoEs}
+\begin{itemize}
+  \item RL via REINFORCE does work, but not so much better that it's a clear win
+  \begin{itemize}
+    \item RL is the `right solution' but gradient variances and complexity
+    \item means it's not widely used
+  \end{itemize}
+\end{itemize}
+\begin{center}
+  \includegraphics[page=25,trim=55 122 35 137,clip,width=330pt]{figure/cs336-l4.pdf}\par
+\end{center}
+{\scriptsize (REINFORCE baseline approach, Clark et al 2020)\par}
+\end{frame}
+
+% CS336 slide 26
+\begin{frame}{Stochastic approximations}
+\begin{itemize}
+  \item From Shazeer et al 2017 -- routing decisions are stochastic with gaussian perturbations.
+  \item 1. This naturally leads to experts that are a bit more robust. 2. The softmax means that the model learns how to rank K experts
+\end{itemize}
+\begin{center}
+  \includegraphics[page=26,trim=106 137 106 90,clip,width=305pt]{figure/cs336-l4.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 27
+\begin{frame}{Stochastic approximations}
+\begin{itemize}
+  \item Stochastic jitter in Fedus et al 2022. This does a uniform multiplicative perturbation for the
+  \item same goal of getting less brittle experts. This was later removed in Zoph et al 2022
+\end{itemize}
+\begin{center}
+  \includegraphics[page=27,trim=98 187 61 86,clip,width=315pt]{figure/cs336-l4.pdf}\par
+  \includegraphics[page=27,trim=212 21 212 301,clip,width=167pt]{figure/cs336-l4.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 28
+\begin{frame}{Heuristic balancing losses}
+\begin{itemize}
+  \item Another key issue -- systems efficiency requires that we use experts evenly..
+\end{itemize}
+\begin{center}
+  \includegraphics[page=28,trim=21 8 13 102,clip,width=319pt]{figure/cs336-l4.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 29
+\begin{frame}{Example from deepseek (v1-2)}
+\begin{itemize}
+  \item Per-expert balancing -- same as the switch transformer
+  \item Per-device balancing -- the objective above, but aggregated by device.
+\end{itemize}
+\begin{center}
+  \includegraphics[page=29,trim=114 182 186 109,clip,width=230pt]{figure/cs336-l4.pdf}\par
+  \includegraphics[page=29,trim=111 17 183 281,clip,width=233pt]{figure/cs336-l4.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 30
+\begin{frame}{DeepSeek v3 variation -- per-expert biases}
+\begin{itemize}
+  \item Set up a per-expert bias (making it more likely to get tokens) and use online learning
+  \item They call this `auxiliary loss free balancing'
+\end{itemize}
+\begin{center}
+  \includegraphics[page=30,trim=172 237 172 104,clip,width=171pt]{figure/cs336-l4.pdf}\par
+  \includegraphics[page=30,trim=72 6 142 198,clip,width=231pt]{figure/cs336-l4.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 31
+\begin{frame}{What happens when removing load balancing losses?}
+\begin{center}
+  \includegraphics[page=31,trim=158 14 158 74,clip,width=210pt]{figure/cs336-l4.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 32
+\begin{frame}{Training MoEs -- the systems side}
+% full-body crop (figures would be too small next to the bullets)
+\begin{center}
+  \includegraphics[page=32,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l4.pdf}
+\end{center}
+\end{frame}
+
+% CS336 slide 33
+\begin{frame}{Training MoEs -- the systems side}
+\begin{itemize}
+  \item MoE routing allows for parallelism, but also some complexities
+  \item Modern libraries like MegaBlocks (used in many open MoEs) use smarter sparse MMs
+\end{itemize}
+\begin{center}
+  \includegraphics[page=33,trim=56 112 51 125,clip,width=330pt]{figure/cs336-l4.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 34
+\begin{frame}{Fun side issue -- stochasticity of MoE models}
+\begin{itemize}
+  \item There was speculation that GPT-4's stochasticity was due to MoE..
+  \item Why would a MoE have additional randomness?
+  \begin{itemize}
+    \item Token dropping from routing happens at a batch level -- this means that
+    \item other people's queries can drop your token!
+  \end{itemize}
+\end{itemize}
+\begin{center}
+  \includegraphics[page=34,trim=101 79 101 155,clip,width=270pt]{figure/cs336-l4.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 35
+\begin{frame}{Issues with MoEs - stability}
+\begin{itemize}
+  \item Solution: Use Float 32 just for the expert router (sometimes with an aux z-loss)
+\end{itemize}
+\begin{center}
+  \includegraphics[page=35,trim=54 213 507 76,clip,width=70pt]{figure/cs336-l4.pdf}\par
+  \includegraphics[page=35,trim=220 194 20 84,clip,width=210pt]{figure/cs336-l4.pdf}\par
+  \includegraphics[page=35,trim=72 64 143 271,clip,width=221pt]{figure/cs336-l4.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 36
+\begin{frame}{Z-loss stability for the router}
+\begin{itemize}
+  \item What happens when we remove the z-loss?
+\end{itemize}
+\begin{center}
+  \includegraphics[page=36,trim=88 100 88 100,clip,width=327pt]{figure/cs336-l4.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 37
+\begin{frame}{Issues with MoEs -- fine-tuning}
+% full-body crop (figures would be too small next to the bullets)
+\begin{center}
+  \includegraphics[page=37,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l4.pdf}
+\end{center}
+\end{frame}
+
+% FRAMES-END
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Upcycling and DeepSeek MoE}
+% Source: CS336 Spring 2025, lecture 4 (MoEs), slides 38-47
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% FRAMES-BEGIN l4 38 47
+% CS336 slide 38
+\begin{frame}{Other training methods - upcycling}
+\begin{itemize}
+  \item Can we use a pre-trained LM to initialize a MoE?
+\end{itemize}
+\begin{center}
+  \includegraphics[page=38,trim=459 110 30 101,clip,width=84pt]{figure/cs336-l4.pdf}\par
+  \includegraphics[page=38,trim=33 117 271 104,clip,width=150pt]{figure/cs336-l4.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 39
+\begin{frame}{Upcycling example - MiniCPM}
+\begin{itemize}
+  \item Uses the MiniCPM model (topk=2, 8 experts, \textasciitilde{} 4B active params).
+  \item Simple MoE, shows gains from the base model with \textasciitilde{} 520B tokens for training
+\end{itemize}
+\begin{center}
+  \includegraphics[page=39,trim=148 132 115 126,clip,width=274pt]{figure/cs336-l4.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 40
+\begin{frame}{Upcycling example -- Qwen MoE}
+\begin{itemize}
+  \item Qwen MoE -- Initialized from the Qwen 1.8B model top-k=4, 60 experts w/ 4 shared.
+  \item Similar architecture / setup to DeepSeekMoE, but one of the first (confirmed) upcycling successes
+\end{itemize}
+\begin{center}
+  \includegraphics[page=40,trim=117 114 109 135,clip,width=297pt]{figure/cs336-l4.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 41
+\begin{frame}{DeepSeek MoE v1-v2-v3}
+\begin{itemize}
+  \item To wrap up, we'll walk through the DeepSeek MoE architecture.
+\end{itemize}
+\begin{center}
+  \includegraphics[page=41,trim=78 149 217 90,clip,width=175pt]{figure/cs336-l4.pdf}\par
+  \includegraphics[page=41,trim=90 40 466 272,clip,width=67pt]{figure/cs336-l4.pdf}\par
+  \includegraphics[page=41,trim=386 34 194 296,clip,width=58pt]{figure/cs336-l4.pdf}\par
+\end{center}
+{\scriptsize Standard Aux-loss balancing (Expert + Device)\par}
+\end{frame}
+
+% CS336 slide 42
+\begin{frame}{DeepSeek MoE v2}
+\begin{center}
+  \includegraphics[page=42,trim=70 174 212 69,clip,width=193pt]{figure/cs336-l4.pdf}\par
+  \includegraphics[page=42,trim=58 54 414 246,clip,width=109pt]{figure/cs336-l4.pdf}\par
+  \includegraphics[page=42,trim=374 4 108 293,clip,width=105pt]{figure/cs336-l4.pdf}\par
+\end{center}
+{\scriptsize Communication balancing loss -- balancing both communication in and out\par}
+\end{frame}
+
+% CS336 slide 43
+\begin{frame}{DeepSeek MoE v3}
+\begin{center}
+  \includegraphics[page=43,trim=70 12 80 69,clip,width=291pt]{figure/cs336-l4.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 44
+\begin{frame}{Bonus: What else do you need to make DeepSeek MoE v3?}
+\begin{itemize}
+  \item MLA : Multihead, latent attention
+  \item Basic idea: express the Q, K, V as functions of a lower-dim, `latent' activation
+\end{itemize}
+\begin{center}
+  \includegraphics[page=44,trim=134 86 134 103,clip,width=254pt]{figure/cs336-l4.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 45
+\begin{frame}{What else do you need to make DeepSeek MoE v3?}
+\begin{itemize}
+  \item Basic idea: express the Q, K, V as functions of a lower-dim, `latent' activation
+\end{itemize}
+\begin{center}
+  \includegraphics[page=45,trim=62 2 35 95,clip,width=277pt]{figure/cs336-l4.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 46
+\begin{frame}{What else do you need to make DeepSeek MoE v3?}
+\begin{itemize}
+  \item MTP: Have small, lightweight models that predict multiple steps ahead
+  \begin{itemize}
+    \item (See paper for ablations)
+  \end{itemize}
+\end{itemize}
+\begin{center}
+  \includegraphics[page=46,trim=39 90 15 98,clip,width=272pt]{figure/cs336-l4.pdf}\par
+  \includegraphics[page=46,trim=224 4 213 322,clip,width=116pt]{figure/cs336-l4.pdf}\par
+\end{center}
+\end{frame}
+
+% CS336 slide 47
+\begin{frame}{MoE summary}
+\begin{itemize}
+  \item MoEs take advantage of sparsity -- not all inputs need the full model
+  \begin{itemize}
+    \item Discrete routing is hard, but top-k heuristics seem to work
+  \end{itemize}
+  \item Lots of empirical evidence now that MoEs work, and are cost-effective
+\end{itemize}
+\end{frame}
+
+% FRAMES-END
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Where This Is Going}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% [O] original bridge frame (draft for the user to rewrite); listed in order.txt
+\begin{frame}{Where This Is Going}
+\begin{itemize}
+  \item The changes in this session act on the Transformer \emph{block}, not on the type of data.
+  \item Vision Transformers use them too, e.g.:
+  \begin{itemize}
+    \item ViT-22B: parallel layers, QK normalization, no biases on the QKV projections and LayerNorms \citebutton{Dehghani et al., 2023}{https://arxiv.org/abs/2302.05442};
+    \item V-MoE: a sparse mixture-of-experts Vision Transformer \citebutton{Riquelme et al., 2021}{https://arxiv.org/abs/2106.05974}.
+  \end{itemize}
+  \item Session 10 takes the Transformer to images, multimodal data and video.
+\end{itemize}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{License \& Attribution}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{License \& Attribution}
+\begin{itemize}
+\item \textbf{Source.} All frames except the four listed below are adapted from \textbf{Stanford CS336 \emph{Language Modeling from Scratch}}, Spring 2025, Lectures 3 (\emph{Architectures, hyperparameters}) and 4 (\emph{Mixture of experts}) by Tatsunori Hashimoto, \url{https://github.com/stanford-cs336/spring2025-lectures} --- \textbf{Copyright 2025 Stanford University}, licensed under the \textbf{MIT License} (full notice in \texttt{\_sources/}). One frame per source slide, in the source's order; text in the source's wording, figures and formulas cropped from the source PDF.
+\item \textbf{Figures} inside the slides are from the papers credited on each frame, reused with that attribution.
+\item \textbf{Original to this course.} \enquote{Since 2017: What Changed Inside the Transformer?}, \enquote{Compute vs.\ Memory}, \enquote{The KV Cache}, \enquote{Where This Is Going}.
+\end{itemize}
+\end{frame}
+
+\endlecture
+\end{document}

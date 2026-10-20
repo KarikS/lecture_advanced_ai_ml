@@ -1,0 +1,150 @@
+This session compiles to a single deck: slides-transformers-outside-nlp.tex (99 pages, built 2026-10-18).
+
+SOURCING PRINCIPLE
+
+One main source plus one marked supplement:
+  Main: Hugging Face Community Computer Vision Course (MIT license; copy in
+  _sources/LICENSE-hf-computer-vision-course), https://github.com/johko/computer-vision-course,
+  commit 5a52b43 (2025-08-03).
+  Supplement [L]: LMU booklet "Multimodal Deep Learning" (SLDS, LMU Munich),
+  https://github.com/slds-lmu/seminar_multimodal_dl, commit d78169a (2023-01-11),
+  web https://slds-lmu.github.io/seminar_multimodal_dl/ -- CC BY-NC-SA 4.0
+  (statement in _sources/LICENSE-lmu-multimodal-dl.txt). Used only for the NLP-to-vision
+  bridge, the multimodal-architecture overview and the multipurpose-models overview,
+  where the HF course has nothing.
+Neither i2dl nor DL4NLP covers vision/multimodal Transformers. Both sources are prose,
+not slides: each frame condenses the text of one source subsection into bullets,
+keeping the source's wording where possible and adding nothing. Copies of every page
+used are in _sources/.
+
+Cutting/adding rule for later passes: whole frames or whole sections.
+
+SECTIONS (one \section per source page or source section)
+
+ 1. What Is Computer Vision                        HF unit1/chapter1/definition (5 frames)
+ 2. Applications of Computer Vision                HF unit1/chapter1/applications (4)
+ 3. Transformers in Computer Vision           [L]  LMU 2.2 "Transformers in Computer Vision"
+                                                   through "Experiments" (9), plus the HF frame
+                                                   "CNNs vs. Vision Transformers: Inductive Bias"
+                                                   moved in before "ViT Method: Inductive Bias"
+                                                   so the term is defined before first use
+ 4. Vision Transformers for Image Classification   HF unit3/vision-transformers-for-image-classification (1)
+ 5. Swin Transformer                               HF unit3/swin-transformer (3)
+ 6. DEtection TRansformer (DETR)                   HF unit3/detr (5)
+ 7. Transformer-Based Image Segmentation           HF unit3/vision-transformers-for-image-segmentation (3)
+ 8. Exploring Multimodal Text and Vision Models    HF unit4/pre-intro (1)
+ 9. A Multimodal World                             HF unit4/a_multimodal_world (5)
+10. Multimodal Architectures                  [L]  LMU ch. 3 overview, 02-00-multimodal (7)
+11. Introduction to Vision Language Models         HF unit4/vlm-intro (6)
+12. CLIP and Relatives                             HF unit4/clip-and-relatives/Introduction (1)
+13. Losses                                         HF unit4/clip-and-relatives/losses (2)
+14. Contrastive Language-Image Pre-training (CLIP) HF unit4/clip-and-relatives/clip (4)
+15. Multimodal Text Generation (BLIP)              HF unit4/clip-and-relatives/blip (2)
+16. Multipurpose Models                       [L]  LMU 4.3, "Multipurpose Models" definition and
+                                                   "Overview of Multipurpose Models" incl.
+                                                   "Comparison" (7)
+17. Introduction to Video                          HF unit7/introduction-to-video (3)
+18. Transformers in Video Processing               HF unit7/transformers-based-models (ViViT, TimeSformer) (9)
+19. License & Attribution
+
+DROPPED (2026-10-18, whole frames or sections)
+
+  HF unit3/vision-transformers-for-image-classification: "Vision Transformer (ViT)"
+    (both bullets restated in more depth by section 3; its figure stays as title figure)
+  HF unit7/transformers-based-models: "Recap: ViT" (repeats section 3)
+  HF unit3/swin-transformer: "Swin Implementation: The Model", "... The Block",
+    "Window Attention and Patch Merging" (code walk-through)
+  HF unit3/detr: "Evolution of DETR: Deformable DETR", "... Conditional DETR",
+    "DETR: PyTorch Implementation", "DETR: The forward Function, Line by Line"
+  HF unit3/knowledge-distillation: whole section
+  HF unit4/clip-and-relatives/owl_vit: whole section
+  Within new pages: definition/applications "Ethical Considerations"; pre-intro and
+  introduction-to-video course-navigation text; a_multimodal_world's Mehrabian
+  "7-38-55 rule" paragraph (the source extends it to "7 % of meaning through text,
+  38 % audio, 55 % vision in AI", an unsupported extrapolation), its search-engine
+  history and ImageBind tip; LMU 4.3 prerequisites (multitask learning, mixture of
+  experts, evolutionary algorithms) and "Pathways and Promising Works" (PathNet,
+  LIMoE, muNet).
+
+Pages of the HF course still not used (candidates to add, whole pages):
+  unit3: cvt, dinat, mobilevit, vision-transformer-for-object-detection, oneformer
+  unit4: tasks-models-part1, transfer_learning, supplementary-material
+  unit7: the CNN/RNN/multimodal video pages
+If the deck needs to grow: DETR evolution (+2), then OWL-ViT (+3).
+
+DEVIATIONS FROM THE SOURCE TEXT (all deliberate, all small)
+
+Existing sections (unchanged since 2026-10-04):
+- Citation buttons: author/year labels added to the paper links the HF course gives;
+  arXiv IDs verified 2026-10-04. Winoground (Thrush et al., 2022, arXiv 2204.03162)
+  is linked although the course shows its figure without a link.
+- Distillation loss formula, TimeSformer "Space" attention, ViT cost units, CLIP code:
+  see _previous/2026-10-04-hf-only/order.txt (distillation section now dropped).
+New in 2026-10-18:
+- LMU section 3: links only for keys the booklet cites and that resolve in its
+  book.bib and on arXiv: Ramachandran et al. 2019 (1906.05909), Dosovitskiy et al.
+  2020 (2010.11929), Xie et al. 2019 (1911.04252). Not linked: @TRANSFORMERS_NLP (not
+  in book.bib) and @wang (book.bib resolves it to an unrelated DCASE2018
+  acoustic-scenes paper -- a citation error in the booklet). The sentence "the
+  pre-trained position embeddings can become sufficient" (garbled in the source) is
+  not used; "ViT Hughe" written "ViT-Huge"; the year "2021" before "Google Brain
+  team" omitted. Accuracy numbers and model sizes copied exactly.
+- LMU sections 10 and 16: text-only, no citation buttons (model names only).
+  Multipurpose comparison table: 5 of the source's 7 columns (unseen tasks and
+  parameter counts omitted for width).
+- Terms the course never introduces removed from LMU/HF frames: "mixture-of-experts
+  layer" (MultiModel encoder, now described by its role: it receives the modality
+  nets' input and feeds the I/O mixer and decoder), "perceiver architectures" (Flamingo), "Byte-Pair
+  Encoding" (OFA), "SentencePiece" -> "text as tokens" (Gato), "(as in DALL-E)" (OFA),
+  "non-maximum suppression" (MaskFormer; "spatial anchors" kept, explained on the
+  DETR frame).
+
+- [O] one original line on "ViT Method: The Encoder" (2026-10-18): "Newer ViTs update
+  this block as discussed in session 9, e.g. SwiGLU and RoPE (EVA-02), QK-norm and
+  parallel layers (ViT-22B)" -- so the LayerNorm / plain-MLP / absolute-position ViT
+  does not read as current after session 9. Verified in the papers: EVA-02 (arXiv
+  2303.11331) §2.1 uses SwiGLU, sub-LN and 2D RoPE; ViT-22B (arXiv 2302.05442) §2 uses
+  parallel layers, QK normalization, no biases on QKV projections/LayerNorms.
+
+FIGURES
+
+New: figure/lmu-vit.png (LMU repo figures/01-chapter1/ViT.png, the ViT paper's
+figure, linked to Dosovitskiy et al. 2020); figure/hf-multimodal-model.jpg (the HF
+course's own diagram, unit4 a_multimodal_world). The unit1 and unit7 intro sections
+are text-only.
+Existing figures were downloaded from the URLs the HF course embeds and are attributed
+as the course attributes them; most are paper figures reused with attribution, the
+same practice as DL4NLP in sessions 7-8. Removed as unused after the cuts:
+detr-decoder-layer.png, kd-question.png, owlvit-example.jpg, owlvit-architecture.jpg,
+vit-architecture.png
+(copies in _previous/2026-10-04-hf-only/figure/).
+
+LAYOUT
+
+16:9 fit: "% fit16:9" \small lines on several text frames. Three new frames were
+split in two (Image2Text / Text2Image; Models for Both Modalities / Examples; Gato /
+Gato: Training and Results) because beamer's itemize template ignores \small there.
+License frame uses [shrink=30]. The multipurpose comparison table is scaled with
+\resizebox to the text width.
+
+HISTORY
+
+2026-09-27  First build (three passes): HF CV course + LMU seminar + original text,
+            TikZ figures only. Kept in _previous/.
+2026-10-04  Rebuilt from the HF CV course alone, in its own order. 67 pages. Kept in
+            _previous/2026-10-04-hf-only/.
+2026-10-18  Renumbered from session 10 to 09 after sessions 08 and 09 were merged.
+2026-10-18  Restructured (plan docs/superpowers/plans/2026-10-18-session-09-broader-
+            intro.md): broad openings for computer vision, multimodality and video
+            (HF units 1, 4, 7); the NLP-to-vision step as a major section from the LMU
+            booklet; LMU overviews of multimodal architectures and multipurpose
+            models; Swin/DETR code, DETR evolution, knowledge distillation and
+            OWL-ViT cut. 100 pages, no errors.
+2026-10-18  Final-review fixes: comparison table scaled to fit; inductive-bias
+            definition moved before first use; Gato, OFA and LMU "models for both
+            modalities" hedges and caveats restored as the source states them;
+            MultiModel encoder described by its role (the MoE clause stays out);
+            video navigation sentence and "Recap: ViT" removed; "Kicking a ball"
+            header -> "Core tasks"; License frame updated. 99 pages.
+2026-10-18  Renumbered from session 09 to 10 (new session 9, Transformers
+            Modernized, inserted). Deck unchanged.

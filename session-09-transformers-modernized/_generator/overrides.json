@@ -1,0 +1,62 @@
+{
+ "l3:5": {
+  "title": "A Simple, Modern Variant"
+ },
+ "l3:29": {
+  "fullbody": true
+ },
+ "l3:52": {
+  "fullbody": true
+ },
+ "l3:7": {
+  "shrink": 8
+ },
+ "l3:16": {
+  "shrink": 7,
+  "replace": [
+   [
+    " (we will discuss this in far more detail later)",
+    ""
+   ]
+  ]
+ },
+ "l3:60": {
+  "shrink": 8
+ },
+ "l3:3": {
+  "replace": [
+   [
+    " (what you implement)",
+    ""
+   ]
+  ]
+ },
+ "l3:36": {
+  "replace": [
+   [
+    " in 224n..",
+    ""
+   ]
+  ]
+ },
+ "l3:42": {
+  "replace": [
+   [
+    " As a reminder, slide from 224n.",
+    ""
+   ]
+  ]
+ },
+ "l3:4": {
+  "fullbody": true
+ },
+ "l3:30": {
+  "fullbody": true
+ },
+ "l3:21": {
+  "fullbody": true
+ },
+ "l3:23": {
+  "fullbody": true
+ }
+}

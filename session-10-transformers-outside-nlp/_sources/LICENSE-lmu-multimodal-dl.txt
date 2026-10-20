@@ -1,0 +1,12 @@
+LMU Multimodal Deep Learning booklet
+Repository: https://github.com/slds-lmu/seminar_multimodal_dl
+Commit: d78169a0f777e4672e1fb824e55a3eaf20621136 (2023-01-11)
+Web: https://slds-lmu.github.io/seminar_multimodal_dl/
+
+License statement, verbatim from index.Rmd at that commit:
+```
+
+![Creative Commons License](figures/by-nc-sa.png)
+
+This book is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License](http://creativecommons.org/licenses/by-nc-sa/4.0/).
+
