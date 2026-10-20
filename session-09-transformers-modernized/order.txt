@@ -1,0 +1,95 @@
+This session compiles to a single deck: slides-transformers-modernized.tex (131 pages, built 2026-10-18).
+
+SOURCING PRINCIPLE
+
+One source, used slide by slide in its own order:
+  Stanford CS336 "Language Modeling from Scratch", Spring 2025, by Tatsunori Hashimoto
+    - Lecture 3 "Architectures, hyperparameters" (68 slides)
+    - Lecture 4 "Mixture of experts" (47 slides)
+  https://github.com/stanford-cs336/spring2025-lectures, commit b98b08a, files
+  nonexecutable/2025 Lecture 3 - architecture.pdf and 2025 Lecture 4 - MoEs.pdf.
+  Copyright 2025 Stanford University, MIT License (notice in
+  _sources/LICENSE-cs336-spring2025-lectures; PDFs in _sources/ and figure/).
+  The 2026 CS336 material (stanford-cs336/lectures) has no license and is not used.
+Supplements: four original bridge frames [O] (below).
+
+One frame per source slide. Frame title = slide title; text = the slide's text as
+bullets in its own wording; figures AND formulas are cropped from the source PDF
+page as vector graphics (\includegraphics[page=N,trim=...,clip]{figure/cs336-l3.pdf}),
+so nothing is retyped. Frames are generated from the PDFs by a script (PyMuPDF
+reads text blocks and figure positions) in _generator/ (see its README);
+re-running it reproduces this deck exactly (checked 2026-10-18).
+
+Little trimming by the user's choice (2026-10-18): only the title slides (L3 1,
+L4 1) and the logistics slide (L3 2) are left out. Cut later from the list below.
+
+SECTIONS
+
+ 1. Since 2017: What Changed Inside the Transformer?  [O] opener + L3 3-8
+ 2. Architecture Variations: Normalization            L3 9-14, [O] "Compute vs. Memory", L3 15-19
+ 3. Architecture Variations: Activations and Layers   L3 20-29
+ 4. Position Embeddings: RoPE                         L3 30-35
+ 5. Hyperparameters                                   L3 36-52
+ 6. Stability Tricks                                  L3 53-57
+ 7. Attention Heads: MQA, GQA, Sliding Windows        L3 58, [O] "The KV Cache", L3 59-68
+ 8. Mixture of Experts                                L4 2-12
+ 9. MoE Routing                                       L4 13-23
+10. Training MoEs                                     L4 24-37
+11. Upcycling and DeepSeek MoE                        L4 38-47
+12. Where This Is Going                               [O]
+13. License & Attribution
+
+[O] FRAMES (original text, drafts for the user to rewrite)
+
+  "Since 2017: What Changed Inside the Transformer?"  entry from sessions 7-8
+  "Compute vs. Memory"   before L3 15 ("Why RMSNorm"), the first FLOPs/memory argument
+  "The KV Cache"         before L3 59; the KV cache is first used on L3 60 (GQA/MQA)
+  "Where This Is Going"  exit to session 10 (vision): ViT-22B uses parallel layers,
+                         QK normalization and no biases on QKV projections/LayerNorms
+                         (verified in the paper's Section 2 headings, arXiv 2302.05442);
+                         V-MoE is a sparse MoE Vision Transformer (abstract, arXiv 2106.05974)
+
+CANDIDATES TO CUT (kept for now)
+
+  L3 10-13  pre- vs post-norm: overlaps session 07 "Pre-Norm vs. Post-Norm"
+            (session 07 states the result; these slides add the evidence)
+  L3 65-66  sparse / sliding-window attention: overlaps session 07
+            "Sparse Attention: Fixed Patterns" (window); L3 67 (interleaving) is new
+  L3 36-52  hyperparameters (the user's own example)
+  L4 8-11   MoE results by model family
+  L4 20-23  routing variants / ablations
+  L4 32-34  systems side of MoE training
+  L4 44-46  "Bonus: What else do you need to make DeepSeek MoE v3?" (MLA, MTP)
+
+DEVIATIONS FROM THE SOURCE
+
+- L3 5 title "What you implemented – simple, modern variant" -> "A Simple, Modern
+  Variant" (refers to CS336's own assignment).
+- References to CS336 itself removed from bullets (generator "replace" overrides):
+  L3 3 "(what you implement)", L3 16 "(we will discuss this in far more detail
+  later)", L3 36 "in 224n..", L3 42 "As a reminder, slide from 224n." The title-page
+  figure is L3 5 cropped below its title.
+- Full-body crops: 22 frames show the whole slide body as one crop instead of
+  bullets + crops -- their figures would otherwise be too small to read, or (L3 4,
+  21, 23, 30) the bullet extraction tore a "Notable models" column away from its
+  formulas:
+  L3 4, 5, 7, 10, 11, 12, 14, 21, 23, 29, 30, 32, 47, 48, 51, 52, 54, 64; L4 13, 17, 32, 37.
+  Their text is therefore not editable in the .tex.
+- Paper credits appear as the slides give them (e.g. "[Xiong 2020]"), inside the
+  crops or as small text lines; no links were added to source frames.
+
+LAYOUT
+
+[shrink=N] on L3 7 (8), 16 (7), 60 (8) -- the course's itemize template ignores
+\small. Generator overrides (titles, shrink, full-body) are in _generator/overrides.json,
+not hand-edited in the .tex.
+
+HISTORY
+
+2026-10-18  New session (plan docs/superpowers/plans/2026-10-18-session-09-
+            transformers-modernized.md): modern Transformer components and mixture of
+            experts, between Pretrained Transformers (08) and Transformers Outside NLP
+            (now 10). 131 pages, no errors, no overfull vbox above 1pt.
+2026-10-18  Final-review fixes: opener corrected (session 7 = 2017 block; session-8
+            models already differ), "arithmetic intensity" named, CS336 references
+            removed, four "Notable models" slides as full-body crops. 131 pages.

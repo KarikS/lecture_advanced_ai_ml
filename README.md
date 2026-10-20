@@ -17,8 +17,8 @@ while giving an in-depth view on Transformers**. This has largely three reasons:
 This balancing act comes at the cost of cutting corners in some more theoretically oriented topics and a wide introduction of 
 current state-of-the-art architectures.
 
-Remark: The course is still being built. Sessions 1-6 have full slide decks;
-Sessions 7-10 will follow in September and October 2026. Content, structure, and
+Remark: The course is still being built. Sessions 1-10 have full slide decks;
+Sessions 11-12 will follow. Content, structure, and
 session order may still change.
 
 ## Setup
@@ -33,7 +33,7 @@ session order may still change.
 
 ## Structure
 
-Ten sessions, one per teaching day:
+Twelve sessions, one per teaching day:
 
 1. DL Intro I
 2. DL Intro II
@@ -42,9 +42,11 @@ Ten sessions, one per teaching day:
 5. CNN
 6. Models for Sequential Data & Generative Models
 7. Transformer
-8. Reinforcement Learning
-9. LLMs
-10. Software, Tooling & Hardware
+8. Pretrained Transformers (GPT, BERT, T5)
+9. Transformers Modernized
+10. Transformers Outside NLP
+11. Reinforcement Learning
+12. Software, Tooling & Hardware
 
 ## License
 
@@ -52,7 +54,11 @@ This repository is licensed **CC BY 4.0** (see `LICENSE`), with one
 exception: the Neural Architecture Search section in Session 4
 (`session-04-optimizers`) is adapted from CC BY-SA licensed material
 and is itself shared under **CC BY-SA** terms instead. See that
-deck's "License & Attribution" frame for details.
+deck's "License & Attribution" frame for details. Likewise, three sections of
+Session 10 (`session-10-transformers-outside-nlp`) condense text from the LMU
+booklet *Multimodal Deep Learning*, licensed **CC BY-NC-SA 4.0**; those
+sections are shared under CC BY-NC-SA 4.0 (see that deck's "License &
+Attribution" frame).
 
 ## Acknowledgements
 
@@ -68,13 +74,17 @@ course rather than used verbatim. See each session's `order.txt` and the
 "License & Attribution" frame at the end of every built deck for the exact
 per-section sourcing.
 
+Session 9 (Transformers Modernized) is adapted from Stanford CS336 *Language
+Modeling from Scratch* (Spring 2025, Lectures 3 and 4 by Tatsunori Hashimoto),
+Copyright 2025 Stanford University, published under the **MIT License**.
+
 We'd also like to thank Marius Lindauer and Katharina Eggensperger for their
 ESSAI 2023 summer school lecture on Neural Architecture Search, published
 under **CC BY-SA**, which the NAS section in this course builds on and
 shares under those same terms, and David Silver, whose reinforcement-learning
-teaching materials will anchor the RL-fundamentals half of Session 8 once
+teaching materials will anchor the RL-fundamentals half of Session 11 once
 it's built (license not yet confirmed, to be checked before that content is
-added). The hands-on tooling segment planned for Session 10 will lean on the
+added). The hands-on tooling segment planned for Session 12 will lean on the
 open-source MLflow (**Apache 2.0**), TensorBoard (**Apache 2.0**), and
 Hugging Face `transformers`/`datasets` (**Apache 2.0**) projects, plus
 Weights & Biases (client SDK **MIT**; the hosted platform itself is a

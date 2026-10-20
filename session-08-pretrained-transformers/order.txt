@@ -1,0 +1,183 @@
+This session compiles to a single deck: slides-pretrained-transformers.tex (149 pages, built 2026-10-18).
+
+SOURCING PRINCIPLE
+
+One main source, frames copied verbatim and selected by whole frame groups:
+  DL4NLP (SLDS, LMU Munich, CC BY 4.0)
+    - chapter04-bert/slides-41, 43, 44
+    - chapter06-post-bert-t5/slides-63
+    - chapter07-gpt/slides-71..73
+    - chapter08-decoding/slides-81..83
+    - chapter09-llm/slides-91, 92, 94-deepseek
+    - chapter02-deeplearningbasics/slides-23-elmo (bullets of the ELMo excursus only)
+Supplements only as bridge text:
+  [O] original text written for this course (4 frames, listed below)
+Frames were taken from the two previous decks
+(_previous/session-08-transformer-variants/, _previous/session-09-llms/), which
+already carried the 16:9 and source-bug fixes. Copies of all source files are in _sources/.
+
+Order: GPT first (decoder-only follows directly from session 07's decoder), then
+decoding, then BERT, then T5, then instruction tuning/prompting, chain-of-thought,
+reasoning.
+
+Cutting rule: drop whole source files or whole frame groups; never write a summary
+frame that replaces several source frames.
+
+SECTIONS (main source | additions)
+
+ 1. From Architecture to Pretrained Models
+      + [O] Recap: Three Transformer Families; Today: Pretrain, Then Adapt
+ 2. Language Modeling Objectives
+      ch04/slides-41: again: what is a language model?; ARLM toy example
+        (all 13 build-up steps); ARLM probabilistic interpretation;
+        Examples of ARLMs (1) x2
+ 3. GPT-1
+      ch07/slides-71: GPT-1, architectural details, pre-training, fine-tuning x2,
+        SOTA results
+ 4. GPT-2
+      ch07/slides-72: starting with a controversy, the architecture, LMs as
+        multitask learners, capabilities -- zero-shot x2
+ 5. GPT-3 and In-Context Learning
+      ch07/slides-73: prompting, in-context learning x2, zero-/one-/few-shot
+        learning, effective in-context learning, architecture, X-shot comparison
+ 6. Decoding
+      ch08/slides-81: decoding examples (1)-(2), stopping criteria, strategies
+      ch08/slides-82: greedy search (1)-(2), example, drawbacks (1), beam search,
+        beam search examples (1)-(2)
+      ch08/slides-83: sampling motivation, temperature (1)-(2), top-k x2, top-p x2
+ 7. BERT: Bidirectional Encoders
+      + [O] From GPT to BERT
+      ch04/slides-41 (continued): masked language models, MLM toy example,
+        MLM probabilistic interpretation
+      ch04/slides-43: bert: key facts (1); Excursus: ELMo (see ADAPTATION);
+        bert: key facts (2); core of BERT; remark on "causality"; input
+        embeddings; all embeddings; role of [CLS]/[SEP]; two BERT versions
+      ch04/slides-44: all 14 frames (MLM (1)-(5), NSP (1)-(2), pre-training x2,
+        fine-tuning x2, fine-tuning details, feature extraction x2)
+ 8. T5: Everything Is Text-to-Text
+      ch06/slides-63: revisiting text-to-text tasks, T5, input/output format,
+        task prefix vs. prompting, architectural differences, pre-training
+        objective(s) x3, C4 x2, exhaustive experiments, T5 versions
+ 9. Fine-Tuning, Prompting, Instruction Tuning
+      ch09/slides-91: how to solve a task with LMs (1)-(3) incl. BERT
+        fine-tuning examples 1-2 and few-shot example; issues with single-task
+        fine-tuning; issues with few-shot prompting x2; FLAN/T0/T5; multitask
+        prompted training; multi-task vs. instruction tuning;
+        fine-tuning conclusions
+10. Chain-of-Thought Prompting
+      ch09/slides-92: motivation, paradigm x2, benefits, CoT, examples x2,
+        CoT-FS-P improves arithmetic, improves commonsense
+11. Reasoning Models: DeepSeek-R1
+      ch09/slides-94-deepseek: sources (DeepSeek-R1 papers), data for SFT, RL,
+        reasoning trace format and example, automatic rewards, AIME verifier example, aha moment,
+        accuracy AIME, unfaithfulness x2
+12. Where This Is Going
+      + [O] Where This Is Going (bridge to sessions 9 and 10)
+13. License & Attribution
+
+DROPPED (whole source files)
+
+  ch04/slides-42-metrics        duplicates session 07's BLEU/metrics material
+  ch04/slides-45-transfer...    dropped for length (~130-page target)
+  ch05/slides-51-bertology      dropped for length
+  ch05/slides-52-bert-based     dropped for length (RoBERTa, ALBERT)
+  ch05/slides-53-distilbert     dropped for length
+  ch06/slides-61-postbert       dropped for length (ELECTRA, XLNet)
+  ch06/slides-62-text2text      dropped for length; slides-63 opens by revisiting text-to-text
+  ch07/slides-74-tasks          benchmark-by-benchmark results tour
+  ch07/slides-75-discussion     ethics/cost, partly dated
+  ch08/slides-84-hyper-param    Hugging Face generate() API detail
+  ch08/slides-85-eval_metrics   duplicates session 07's metrics material
+  ch09/slides-93-emergent       dropped for length
+
+DROPPED (frame groups inside kept files)
+
+  ch04/43  "Predecessors of BERT" timeline, "context: ulmfit and gpt",
+           "ELMo vs. GPT vs. BERT" (need ELMo/ULMFiT background); the
+           parameter-count calculation frames (session 07 covers parameter
+           counts). Kept: "Two different BERT versions" and "Different T5
+           versions", which state per-version sizes
+  ch07/71-73  GPT/GPT-2/GPT-3 parameter counts; 72 storytelling, factual
+           knowledge, "In the meantime" (6); 73 "GPT recap" x2, "Schick" x2,
+           "learning in bert & co." (needs BERT); "Training corpus" and
+           "Loss as a function of compute" (trim b)
+  ch08/81  "Reminder: ARLM" (session 07 duplicate), both "Generate Function"
+           frames (HF API)
+  ch08/82  "Drawbacks of Greedy Search (2)"; "Greedy Search versus Beam
+           Search" and "Beam Search vs. Human" (trim a)
+  ch08/83  contrastive search/decoding (3)
+  ch09/91  verbalizer, continued-pretraining, terminology, T0-template and
+           Slido groups
+  ch09/92  untitled motivation frames x2, "Examples" (3)-(6), second
+           arithmetic frame
+  ch09/94  "What elements of reasoning are learned?", "Another example
+           for Aha moment", "The rise of reflective terms", "R1 scaling"; "Inference time scaling" and
+           "Things we have not covered" (trim c)
+
+ADAPTATION (everything that differs from the source text)
+
+- Inherited from the two previous decks (see their order.txt in _previous/):
+  16:9 fixes (figures scaled by 0.85, "% fit16:9" font-size lines); source bugs
+  fixed there (.PNG case mismatches, the missing newway.tex input, unescaped '#'
+  in two Hugging Face URLs, a nested itemize without a parent \item,
+  reinforce.tex inlined); the DL4NLP macro set and the bold-typewriter font
+  substitution.
+- Preamble: the session-09 preamble plus the session-08-only macros (animate,
+  \myblue, \devour, \warning). The preamble defines them unguarded; a second,
+  guarded copy from the merge script is inert.
+- Two ch09/91 frames that DL4NLP wraps in \devour{} (never rendered in the
+  source) are not used: "How do solve a task with language models? (4)" and
+  "flan finetuning" (dropped 2026-10-18 after review; they had briefly been live).
+- Text edits inside source frames (dangling references):
+  - [CLS]/[SEP] frame: "(cf. next chapter)" deleted.
+  - NSP frame: "(cf. word2vec)" deleted (points at negative sampling, which the
+    course does not cover).
+  - Prompting bullet (ch09/91): "(cf. next chapter)" deleted.
+  - NSP pointer in bert: key facts (2): "(cf. next section)" deleted (NSP is in
+    the same section).
+  - "See next lecture" (two ch09/91 frames) and "Details: Next lecture"
+    (ch09/94 Reinforcement learning) deleted: in DL4NLP they point at the RLHF
+    chapter; here the next session is Transformers Outside NLP.
+  - GPT-2 zero-shot figure note: "Table on slide 6" -> "Table on the slide
+    ``The architecture''".
+  - End of top-k/top-p frame: "Question: Can there be a balance of coherence
+    and diversity? => Contrastive search" deleted (contrastive search frames
+    are not used).
+  - T5 exhaustive experiments: "Gradual Unfreezing (cf. ULMFiT)" -> "Gradual
+    Unfreezing".
+- Kept on request (2026-10-06), against the merge plan's "drop ELMo" decision:
+  "(similar to ELMo, but better)" in bert: key facts (1), followed by a
+  one-frame "Excursus: ELMo" whose bullets are verbatim from
+  ch02/slides-23-elmo (frames "embeddings from language models", "ELMo
+  embeddings", "Summary"; formulas omitted). This combines three source frames
+  into one, an exception to the cutting rule.
+- Section "GPT-1 and GPT-2" split into "GPT-1" and "GPT-2" (2026-10-06).
+- \pause before the bullets of the first "Capabilities -- Zero-Shot" frame.
+- Layout: "Accuracy AIME: Above human average" vbframe -> frame (the vbframe
+  left an empty first page); CoT-FS-P motivation [allowframebreaks] ->
+  [shrink=8] (the break left a near-empty second page); License frame \footnotesize;
+  top-p nucleus frame vbframe -> frame and figure scaled to 0.85\linewidth
+  (the figure, then its credit line, spilled onto a second page).
+
+HISTORY
+
+2026-09-27  Session 08 (BERT & T5) and 09 (LLMs) first built as condensed decks
+            with original recap text (kept in _previous/*/_previous/).
+2026-10-04  Both rebuilt verbatim from DL4NLP in source order: 08 = 222 pages
+            (ch04-06), 09 = 248 pages (ch07-09).
+2026-10-05  Merged into this deck (plan docs/superpowers/plans/
+            2026-10-05-merge-sessions-08-09.md): GPT-first order, frames selected
+            from both decks, trims a-d. 133 pages.
+2026-10-06  ARLM toy example restored to all 13 steps; GPT-1/GPT-2 split; pause
+            on zero-shot frame; ELMo excursus added.
+2026-10-18  Merge finished: 4 [O] bridge frames, dangling references removed,
+            two near-empty pages fixed, License frame, old decks moved to
+            _previous/. Final review: "next lecture" pointers removed, the two
+            \devour frames dropped, DeepSeek "Sources" frame restored (the
+            section had no citation of DeepSeek-R1). 149 pages, no errors.
+2026-10-18  "Where This Is Going" rewritten for the new session 9 (Transformers
+            Modernized); RL is now session 11, vision session 10.
+
+Open: 149 pages against the plan's ~130 target (120-140), mainly from the
+restored ARLM build-up (+11) and the ELMo excursus. Next cut, if needed, is the
+plan's trim (e): drop both "BERT finetuning example" frames (-2).
