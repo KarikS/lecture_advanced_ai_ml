@@ -48,15 +48,17 @@ terms. The dataset generator, model code, and training loop are a fresh implemen
 for this course; Fleuret's own code for this task was not published alongside his
 slides.
 
-Lab 6 (`templates/py-lab-06-template.md`, Session 10) trains a small Vision Transformer
-from scratch on a CIFAR-10 subset, alongside a CNN baseline trained under the same
-data/epoch budget, so the CNN-vs-ViT inductive-bias/data-hunger argument from Session
-10's slides is reproduced on real data rather than only argued. Adapted from the UvA
-Deep Learning Tutorials' "Vision Transformers" notebook (`phlippe/uvadlc_notebooks`,
-Tutorial 15), licensed MIT (verified directly from the repo's own `LICENSE.md`) - scaled
-down substantially from the source tutorial's 180-epoch/full-CIFAR-10 run (under an hour
-on an NVIDIA TitanRTX) to a CPU-feasible subset/epoch budget for a 2h session; the exact
-numbers are documented in the template's own header note.
+Lab 6 (`templates/py-lab-06-template.md`, Session 8) pretrains and fine-tunes BERT: `[MASK]`
+predictions by hand, BERT's 15% / 80-10-10 masking scheme, domain adaptation by continued
+MLM training on IMDb movie reviews, and fine-tuning for paraphrase detection on GLUE/MRPC.
+Adapted from the Hugging Face LLM Course (`huggingface/course`, commit `8b893f0`, with its
+notebooks in `huggingface/notebooks`, commit `3468b87`), Chapter 7.3 "Fine-tuning a masked
+language model" and Chapters 3.2 and 3.4, licensed Apache 2.0 (verified from both repos'
+`LICENSE` files); code and prose are modified and shortened. Changed from the source: the
+small BERT-mini checkpoint (`google/bert_uncased_L-4_H-256_A-4`) instead of
+DistilBERT/BERT-base, and smaller data subsets, so that each training run takes 2-3 minutes
+on CPU; masking and evaluation written by hand instead of library helpers; no Hub login or
+upload. This is the only lab that needs `transformers` and `datasets`.
 
 Lab 7 (`templates/py-lab-07-template.md`, Session 9) builds the "simple, modern variant"
 Transformer LM from Session 9 (pre-norm RMSNorm, SwiGLU, RoPE, no biases) component by
@@ -72,6 +74,16 @@ rather than committed here. Deviations from the source, all for a CPU-feasible 2
 BPE tokenizer (the handout's §2; the lab uses raw UTF-8 bytes as tokens), PyTorch's AdamW
 instead of a hand-written one (§4.3), and a much smaller model and training budget; the exact
 numbers are in the template's header note and Exercise 5.
+
+Lab 8 (`templates/py-lab-08-template.md`, Session 10) trains a small Vision Transformer
+from scratch on a CIFAR-10 subset, alongside a CNN baseline trained under the same
+data/epoch budget, so the CNN-vs-ViT inductive-bias/data-hunger argument from Session
+10's slides is reproduced on real data rather than only argued. Adapted from the UvA
+Deep Learning Tutorials' "Vision Transformers" notebook (`phlippe/uvadlc_notebooks`,
+Tutorial 15), licensed MIT (verified directly from the repo's own `LICENSE.md`) - scaled
+down substantially from the source tutorial's 180-epoch/full-CIFAR-10 run (under an hour
+on an NVIDIA TitanRTX) to a CPU-feasible subset/epoch budget for a 2h session; the exact
+numbers are documented in the template's own header note.
 
 ## USER: How to get started
 
