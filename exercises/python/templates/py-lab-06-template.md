@@ -15,24 +15,26 @@ jupyter:
 <!-- #region pycharm={"name": "#%% md\n"} -->
 # Lab 6
 
-> Adapted from the UvA Deep Learning Tutorials' "Vision Transformers" notebook
-> (`phlippe/uvadlc_notebooks`, Tutorial 15, MIT license). The source trains a larger ViT
-> on the full CIFAR-10 training set for 180 epochs on a GPU; this lab uses a smaller ViT,
-> a 4,000-image subset and 15 epochs so that it runs on a CPU within a lab session.
+> Adapted from the Hugging Face LLM Course (`huggingface/course`, commit `8b893f0`, and its
+> notebooks `huggingface/notebooks`, commit `3468b87`), Apache License 2.0: Chapter 7.3
+> "Fine-tuning a masked language model" (Exercises 1-3) and Chapters 3.2 and 3.4
+> "Processing the data" and "A full training loop" (Exercise 4). Code and prose are adapted
+> and shortened. Changed from the source: a much smaller BERT (BERT-mini, 11M parameters,
+> instead of DistilBERT/BERT-base) and smaller data subsets, so that every training run
+> takes about 2-3 minutes on a CPU; the masking and the evaluation are written by hand
+> instead of using library helpers; no Hugging Face Hub login or upload.
 
-Session 10 argued that Vision Transformers lack the inductive biases (locality,
-translation equivariance) that convolutions have built in, and so need more data to
-reach the same performance a CNN gets "for free". This lab makes that argument concrete:
-we train a small ViT and a small CNN on the *exact same* CIFAR-10 subset, for the same
-number of epochs, and compare.
+Session 8 showed how BERT is *pretrained* with masked language modeling (MLM) and then
+*fine-tuned* for a downstream task through its `[CLS]` token. This lab does both with a real
+pretrained BERT: you look at what it predicts for a `[MASK]`, build the MLM training data
+yourself, continue its pretraining on movie reviews (*domain adaptation*), and fine-tune it
+to detect paraphrases.
 
-> **Instructor timing (2h session).** ~10 min: intro (this page) and setup - the CIFAR-10
-> download can be slow on a bad connection, so start this early. ~30 min: Exercise 1 -
-> implement patch embedding and assemble the ViT. ~45 min: Exercise 2 - write the
-> training and evaluation code, train the ViT and a CNN baseline under an identical,
-> small data/epoch budget, and compare (training runs for several minutes - discuss the
-> questions while it runs). ~25 min: Exercise 3 - extract and visualize the `[CLS]`
-> token's attention in every layer. ~10 min buffer.
+> **Instructor timing (2h session).** ~15 min: intro, setup and downloads (model ~45 MB,
+> IMDB ~85 MB, MRPC ~1 MB). ~15 min: Exercise 1 - `[MASK]` predictions by hand. ~30 min:
+> Exercise 2 - chunking and BERT's masking scheme. ~25 min: Exercise 3 - domain adaptation
+> (a ~2.5 minute run). ~30 min: Exercise 4 - paraphrase detection (a ~2 minute run).
+> ~5 min buffer.
 
 ## Setup
 
@@ -42,9 +44,8 @@ no local Python install needed. Open this notebook via Colab's GitHub loader
 or File > Open notebook > GitHub tab, repo `KarikS/lecture_advanced_ai_ml`, then run
 the cell below once per session. Running the notebook locally instead (e.g. via the
 `exercises/python/` venv described in that folder's README) works unchanged - the cell
-below is a no-op there. No GPU is needed - everything below is deliberately scaled to
-train on CPU. Exercise 2's two training runs take about 5 minutes on a 4-core laptop CPU,
-and can take noticeably longer on Colab's free tier.
+below is a no-op there. No GPU is needed - each of the two training runs took 2-3 minutes
+with 4 CPU threads in testing. Colab already has `transformers` and `datasets` installed.
 <!-- #endregion -->
 
 ```python pycharm={"name": "#%%\n"}
@@ -63,433 +64,488 @@ if IN_COLAB:
 <!-- #endregion -->
 
 ```python pycharm={"name": "#%%\n"}
+import math
 import time
 
-import matplotlib.pyplot as plt
+import datasets
 import torch
-from matplotlib_inline.backend_inline import set_matplotlib_formats
-from torch import nn, Tensor
-from torch.utils.data import DataLoader, Subset
-from torchvision.datasets import CIFAR10
-from torchvision.transforms import Compose, Normalize, ToTensor
+from datasets import load_dataset
+from torch import Tensor
+from torch.utils.data import DataLoader
+from transformers import (AutoModelForMaskedLM, AutoModelForSequenceClassification, AutoTokenizer,
+                          DataCollatorForLanguageModeling, DataCollatorWithPadding)
+from transformers.utils import logging as transformers_logging
 
-set_matplotlib_formats('png', 'pdf')
+transformers_logging.set_verbosity_error()  # hide the expected "unused weights" notes
+transformers_logging.disable_progress_bar()
+datasets.disable_progress_bars()
 torch.manual_seed(0)
+torch.set_num_threads(4)
 
-CIFAR_CLASSES = ['plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
-CIFAR_MEAN = (0.4914, 0.4822, 0.4465)
-CIFAR_STD = (0.2470, 0.2435, 0.2616)
+CHECKPOINT = 'google/bert_uncased_L-4_H-256_A-4'
 ```
 
 <!-- #region pycharm={"name": "#%% md\n"} -->
-## Exercise 1: Patch Embedding and the ViT Architecture
+## Exercise 1: What Does a Pretrained BERT Predict?
 
-Recall from Session 10: a ViT splits an image into fixed-size patches, linearly projects
-each patch into a token embedding, prepends a learnable `[CLS]` token, adds a learned
-position embedding to every token, and then runs an ordinary Transformer encoder
-(exactly the encoder from Session 7) over the resulting sequence. The final layer's
-`[CLS]` token representation is used for classification - the same mechanism BERT's
-`[CLS]` token uses (Session 8).
-
-CIFAR-10 images are $32\times32$. With a patch size of 4, that gives
-$(32/4)^2=64$ patches per image, plus the `[CLS]` token: 65 tokens total, each
-`embed_dim`-dimensional - short enough sequences that even a CPU can process a batch
-quickly.
-
-The cleanest way to implement patch embedding is a single strided convolution: a
-`Conv2d` with `kernel_size=stride=patch_size` applied to a $32\times32\times3$ image
-produces one `embed_dim`-dimensional vector per non-overlapping $4\times4$ patch, all in
-one call - exactly the linear patch projection from Session 10, just implemented via a
-convolution instead of an explicit reshape-then-linear (the two are mathematically
-identical here, since the "kernel" never slides over overlapping regions).
+The source uses DistilBERT; we use **BERT-mini**, one of the small BERT models Google released
+alongside the original BERT: the same architecture and pretraining (MLM and next sentence
+prediction on English Wikipedia and BookCorpus), with 4 layers, $d_\text{model} = 256$ and 4
+heads - 11M parameters instead of BERT-base's 110M. The checkpoint includes the pretrained
+MLM head, so we can ask it to fill in a `[MASK]` right away.
 <!-- #endregion -->
 
 ```python pycharm={"name": "#%%\n"}
-class PatchEmbed(nn.Module):
-    def __init__(self, patch_size: int, in_chans: int, embed_dim: int):
-        super().__init__()
-        #!TAG HWBEGIN
-        #!MSG TODO: Define a Conv2d that maps `in_chans` input channels to `embed_dim`
-        #!MSG output channels, with kernel_size and stride both equal to patch_size.
-        self.proj = nn.Conv2d(in_chans, embed_dim, kernel_size=patch_size, stride=patch_size)
-        #!TAG HWEND
+tokenizer = AutoTokenizer.from_pretrained(CHECKPOINT)
+mlm_model = AutoModelForMaskedLM.from_pretrained(CHECKPOINT)
+print(f'{mlm_model.num_parameters() / 1e6:.1f}M parameters')
 
-    def forward(self, x: Tensor) -> Tensor:
-        x = self.proj(x)  # (batch, embed_dim, H / patch_size, W / patch_size)
-        #!TAG HWBEGIN
-        #!MSG TODO: Flatten the two spatial dimensions into one sequence dimension, then
-        #!MSG move the embedding dimension last, giving shape (batch, num_patches, embed_dim).
-        #!MSG Hint: .flatten(2) then .transpose(1, 2).
-        return x.flatten(2).transpose(1, 2)
-        #!TAG HWEND
+inputs = tokenizer('This is a great [MASK].', return_tensors='pt')
+print(inputs['input_ids'])
+print(tokenizer.convert_ids_to_tokens(inputs['input_ids'][0]))
 ```
+
+<!-- #region pycharm={"name": "#%% md\n"} -->
+The tokenizer has added `[CLS]` at the start and `[SEP]` at the end. The model returns one
+vector of logits over the 30,522-token vocabulary for *every* position; to fill in the mask,
+we need the logits at the `[MASK]` position.
+<!-- #endregion -->
 
 ```python pycharm={"name": "#%%\n"}
 #!TAG SKIPQUESTEXEC
-# Sanity check: a batch of 8 CIFAR-sized images should become 8 sequences of 64 patches.
-patch_embed = PatchEmbed(patch_size=4, in_chans=3, embed_dim=32)
-dummy_images = torch.randn(8, 3, 32, 32)
-dummy_patches = patch_embed(dummy_images)
-print(dummy_patches.shape)
-assert dummy_patches.shape == (8, 64, 32)
-```
-
-<!-- #region pycharm={"name": "#%% md\n"} -->
-Now the full ViT: prepend a learnable `[CLS]` token, add a learned position embedding,
-run PyTorch's built-in `nn.TransformerEncoder` (the same building block Session 7
-derived from scratch), and classify from the final `[CLS]` representation.
-<!-- #endregion -->
-
-```python pycharm={"name": "#%%\n"}
-class ViT(nn.Module):
-    def __init__(self, img_size: int = 32, patch_size: int = 4, embed_dim: int = 64,
-                 depth: int = 4, heads: int = 4, mlp_dim: int = 128, num_classes: int = 10):
-        super().__init__()
-        self.patch_embed = PatchEmbed(patch_size, in_chans=3, embed_dim=embed_dim)
-        num_patches = (img_size // patch_size) ** 2
-
-        #!TAG HWBEGIN
-        #!MSG TODO: Create the learnable [CLS] token, shape (1, 1, embed_dim), and the
-        #!MSG learned position embedding, shape (1, num_patches + 1, embed_dim). Both
-        #!MSG should be nn.Parameter so they are optimized during training.
-        self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
-        self.pos_embed = nn.Parameter(torch.zeros(1, num_patches + 1, embed_dim))
-        #!TAG HWEND
-        nn.init.trunc_normal_(self.pos_embed, std=0.02)
-
-        encoder_layer = nn.TransformerEncoderLayer(
-            d_model=embed_dim, nhead=heads, dim_feedforward=mlp_dim,
-            dropout=0.1, batch_first=True, activation='gelu',
-        )
-        self.encoder = nn.TransformerEncoder(encoder_layer, num_layers=depth)
-        self.norm = nn.LayerNorm(embed_dim)
-        self.head = nn.Linear(embed_dim, num_classes)
-
-    def forward(self, x: Tensor) -> Tensor:
-        batch_size = x.size(0)
-        x = self.patch_embed(x)
-
-        #!TAG HWBEGIN
-        #!MSG TODO: Expand cls_token to this batch size and concatenate it in front of
-        #!MSG the patch tokens (along the sequence dimension), then add the position
-        #!MSG embedding.
-        cls = self.cls_token.expand(batch_size, -1, -1)
-        x = torch.cat([cls, x], dim=1)
-        x = x + self.pos_embed
-        #!TAG HWEND
-
-        x = self.encoder(x)
-        #!TAG HWBEGIN
-        #!MSG TODO: Take the first token (the [CLS] token) from the encoder output,
-        #!MSG normalize it, and pass it through the classification head.
-        return self.head(self.norm(x[:, 0]))
-        #!TAG HWEND
-```
-
-```python pycharm={"name": "#%%\n"}
-#!TAG SKIPQUESTEXEC
-vit_sanity = ViT()
-dummy_logits = vit_sanity(dummy_images)
-print(dummy_logits.shape)
-assert dummy_logits.shape == (8, 10)
-```
-
-<!-- #region pycharm={"name": "#%% md\n"} -->
-## Exercise 2: ViT vs. CNN, Same Data, Same Budget
-
-We now load CIFAR-10. Full CIFAR-10 is 50,000 training images - more than we can afford
-several training runs over on CPU within a lab session. We deliberately train on a
-*small* subset (a few thousand images) for a *few* epochs - this is the whole point:
-we want to see how each architecture behaves when data and training time are both
-scarce, not to reach the source tutorial's 180-epoch, full-dataset accuracy.
-<!-- #endregion -->
-
-```python pycharm={"name": "#%%\n"}
-transform = Compose([ToTensor(), Normalize(CIFAR_MEAN, CIFAR_STD)])
-train_full = CIFAR10(root='.data', train=True, download=True, transform=transform)
-test_full = CIFAR10(root='.data', train=False, download=True, transform=transform)
-
-N_TRAIN = 4000
-N_TEST = 1000
-
-# Shuffle before subsetting: some datasets store examples grouped by class. CIFAR-10
-# does not, but it is good practice never to assume a raw ordering is safe to slice.
-generator = torch.Generator().manual_seed(0)
-train_subset_idx = torch.randperm(len(train_full), generator=generator)[:N_TRAIN]
-test_subset_idx = torch.randperm(len(test_full), generator=generator)[:N_TEST]
-
-train_dataset = Subset(train_full, train_subset_idx.tolist())
-test_dataset = Subset(test_full, test_subset_idx.tolist())
-
-train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True, num_workers=2)
-test_loader = DataLoader(test_dataset, batch_size=256, num_workers=2)
-# The same training images again, unshuffled - only used to measure training accuracy.
-train_eval_loader = DataLoader(train_dataset, batch_size=256, num_workers=2)
-```
-
-<!-- #region pycharm={"name": "#%% md\n"} -->
-Here is a small CNN baseline - three convolution/pooling blocks followed by two linear
-layers, the same recipe Lab 3 used for MNIST, just scaled up slightly for CIFAR-10's
-larger, 3-channel images.
-<!-- #endregion -->
-
-```python pycharm={"name": "#%%\n"}
-class SmallCNN(nn.Module):
-    def __init__(self, num_classes: int = 10):
-        super().__init__()
-        self.net = nn.Sequential(
-            nn.Conv2d(3, 32, kernel_size=3, padding=1), nn.ReLU(), nn.MaxPool2d(2),
-            nn.Conv2d(32, 64, kernel_size=3, padding=1), nn.ReLU(), nn.MaxPool2d(2),
-            nn.Conv2d(64, 64, kernel_size=3, padding=1), nn.ReLU(), nn.MaxPool2d(2),
-            nn.Flatten(),
-            nn.Linear(64 * 4 * 4, 128), nn.ReLU(),
-            nn.Linear(128, num_classes),
-        )
-
-    def forward(self, x: Tensor) -> Tensor:
-        return self.net(x)
-```
-
-```python pycharm={"name": "#%%\n"}
-#!TAG SKIPQUESTEXEC
-
-def accuracy(model: nn.Module, loader: DataLoader) -> float:
-    model.eval()
-    n_correct, n_total = 0, 0
+def top_mask_predictions(model, text: str, k: int = 5) -> list[str]:
+    inputs = tokenizer(text, return_tensors='pt')
     with torch.no_grad():
-        for x, y in loader:
-            #!TAG HWBEGIN
-            #!MSG TODO: Count how many images in this batch are classified correctly
-            #!MSG (predicted class = argmax over the logits) and add that to n_correct;
-            #!MSG add the batch size to n_total.
-            logits = model(x)
-            n_correct += int((logits.argmax(dim=1) == y).sum())
-            n_total += len(y)
-            #!TAG HWEND
-    return n_correct / n_total
+        logits = model(**inputs).logits  # (1, seq_len, vocab_size)
+    #!TAG HWBEGIN
+    #!MSG TODO: Find the position of the [MASK] token (tokenizer.mask_token_id) in
+    #!MSG inputs['input_ids'], take the logits at that position, and return the k tokens
+    #!MSG with the highest logits as strings (torch.topk, tokenizer.decode([token_id])).
+    mask_position = torch.where(inputs['input_ids'][0] == tokenizer.mask_token_id)[0][0]
+    top_ids = torch.topk(logits[0, mask_position], k).indices.tolist()
+    return [tokenizer.decode([token_id]) for token_id in top_ids]
+    #!TAG HWEND
 
 
-def train_and_evaluate(model: nn.Module, epochs: int, lr: float = 1e-3) -> list[float]:
-    optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-4)
-    loss_fn = nn.CrossEntropyLoss()
-    test_accuracies = []
-
-    t0 = time.time()
-    for epoch in range(1, epochs + 1):
-        model.train()
-        total_loss, n = 0.0, 0
-        for x, y in train_loader:
-            #!TAG HWBEGIN
-            #!MSG TODO: One optimization step on this batch: forward pass, cross-entropy
-            #!MSG loss with loss_fn, backward pass, optimizer step. Call the loss `loss`.
-            optimizer.zero_grad()
-            logits = model(x)
-            loss = loss_fn(logits, y)
-            loss.backward()
-            optimizer.step()
-            #!TAG HWEND
-            total_loss += float(loss) * len(y)
-            n += len(y)
-
-        test_acc = accuracy(model, test_loader)
-        test_accuracies.append(test_acc)
-        print('EPOCH:\t{:2}\tTRAIN LOSS:\t{:.3f}\tTEST ACCURACY:\t{:.3f}\tELAPSED:\t{:.1f}s'
-              .format(epoch, total_loss / n, test_acc, time.time() - t0))
-    return test_accuracies
-
-# Both models get the same data, epochs, optimizer and learning rate. 1e-3 was the better
-# of the two learning rates tested (3e-4, 1e-3) for *both* models under this budget.
-EPOCHS = 15
-
-print('Training CNN baseline...')
-torch.manual_seed(0)
-cnn_model = SmallCNN()
-cnn_accuracies = train_and_evaluate(cnn_model, epochs=EPOCHS)
-
-print('Training ViT...')
-torch.manual_seed(0)
-vit_model = ViT()
-vit_accuracies = train_and_evaluate(vit_model, epochs=EPOCHS)
-```
-
-```python pycharm={"name": "#%%\n"}
-#!TAG SKIPQUESTEXEC
-plt.plot(range(1, EPOCHS + 1), cnn_accuracies, marker='o', label='CNN')
-plt.plot(range(1, EPOCHS + 1), vit_accuracies, marker='o', label='ViT')
-plt.xlabel('epoch')
-plt.ylabel('test accuracy')
-plt.legend()
-plt.show()
-
-for name, model in [('CNN', cnn_model), ('ViT', vit_model)]:
-    print('{}: train accuracy {:.3f}, test accuracy {:.3f}'
-          .format(name, accuracy(model, train_eval_loader), accuracy(model, test_loader)))
+PROBE_SENTENCES = ['This is a great [MASK].',
+                   'I went to the [MASK] to buy some bread.',
+                   'The actor gave a [MASK] performance.']
+for sentence in PROBE_SENTENCES:
+    print(f'{sentence:45s} {top_mask_predictions(mlm_model, sentence)}')
 ```
 
 <!-- #region pycharm={"name": "#%% md\n"} -->
-On this small a data/epoch budget, the CNN should end up clearly ahead of the ViT on
-test accuracy - when this lab was tested over three random seeds, the CNN reached
-0.54-0.58 and the ViT 0.44-0.46. The CNN's convolutional inductive bias (locality,
-translation equivariance) gives it a head start the ViT has to *learn* from data,
-exactly as Session 10 argued. The source tutorial shows how much it takes to close
-that gap from scratch: with the full 50,000-image training set and 180 epochs on a GPU,
-its ViT reaches 75.6% test accuracy - while the CNNs in the same tutorial series reach
-around 90% on CIFAR-10.
-
-**Question:** Now look at the *training* accuracies printed above, not just the test
-accuracies. Is the ViT behind because it overfits the small training set?
+**Question:** As humans, we can think of many completions for "This is a great [MASK]." -
+"day", "ride", "painting". What decides which ones the model predicts?
 #!TAG HWBEGIN
 
-**Answer:** No - its training accuracy is far lower too (in testing: ViT around
-0.57-0.62, CNN around 0.77-0.79). Under this budget the ViT is also much slower to fit the training data
-at all, so part of the test gap is simply that. The CNN is actually the one with the
-bigger train-test gap, and it still wins on test accuracy. There is a real
-generalization difference on top of that: when the lab was tested with the CNN at a
-lower learning rate (3e-4), its training accuracy (0.54-0.56) was close to the ViT's -
-and at that matched fit, the CNN still tested 4-6 points higher. Both effects are
-consequences of the same thing: the CNN's built-in assumptions make useful image
-features easier to find *and* more likely to transfer to new images.
+**Answer:** The corpus it was pretrained on. MLM teaches the model the statistical patterns
+of its training text, here English Wikipedia and BookCorpus, so its predictions are fairly
+generic, everyday or encyclopedic words. A model that should work well on a particular kind
+of text (legal contracts, scientific articles, movie reviews) may treat that domain's typical
+words as rare - which is what domain adaptation in Exercise 3 addresses.
 #!TAG HWEND
 
-**Question:** If you had a much bigger compute and data budget, would you expect this
-gap to shrink, stay the same, or reverse?
+## Exercise 2: Preparing the Data for Masked Language Modeling
+
+To adapt the model to movie reviews, we use the IMDb dataset (Large Movie Review Dataset), a
+corpus of highly polarized reviews usually used for sentiment analysis. We don't need its
+labels for language modeling. The source trains on 10,000 chunks; we take 2,000 reviews.
+The training split is sorted by label, so we shuffle before selecting.
+<!-- #endregion -->
+
+```python pycharm={"name": "#%%\n"}
+imdb = load_dataset('stanfordnlp/imdb', split='train').shuffle(seed=42).select(range(2000))
+print(imdb)
+print(imdb[0]['text'][:300])
+```
+
+<!-- #region pycharm={"name": "#%% md\n"} -->
+For both autoregressive and masked language modeling, a common preprocessing step is to
+**concatenate all examples and split the whole corpus into chunks of equal size**, instead of
+tokenizing each example on its own: individual examples would otherwise be truncated if they
+are too long, losing text that is useful for language modeling, or padded if they are short.
+So we tokenize *without* truncation, then group the tokens into chunks of 128 (BERT's context
+is 512 tokens, but shorter chunks train faster). The last, incomplete chunk is dropped. For
+MLM, the labels start out as a copy of the inputs - the masking happens later.
+<!-- #endregion -->
+
+```python pycharm={"name": "#%%\n"}
+CHUNK_SIZE = 128
+
+tokenized_imdb = imdb.map(lambda batch: tokenizer(batch['text']), batched=True,
+                          remove_columns=['text', 'label'])
+print(tokenized_imdb)
+print('first review lengths:', [len(ids) for ids in tokenized_imdb[:5]['input_ids']])
+```
+
+```python pycharm={"name": "#%%\n"}
+#!TAG SKIPQUESTEXEC
+def group_texts(examples: dict[str, list[list[int]]]) -> dict[str, list[list[int]]]:
+    #!TAG HWBEGIN
+    #!MSG TODO: `examples` maps each feature name (input_ids, token_type_ids, attention_mask)
+    #!MSG to a list of tokenized reviews. For every feature:
+    #!MSG 1. concatenate all reviews into one long list,
+    #!MSG 2. cut it into chunks of CHUNK_SIZE, dropping the last incomplete chunk.
+    #!MSG Return a dict with the chunked features plus a 'labels' entry that copies the
+    #!MSG chunked input_ids.
+    concatenated = {k: sum(examples[k], []) for k in examples.keys()}
+    total_length = len(concatenated['input_ids']) // CHUNK_SIZE * CHUNK_SIZE
+    result = {k: [t[i:i + CHUNK_SIZE] for i in range(0, total_length, CHUNK_SIZE)]
+              for k, t in concatenated.items()}
+    result['labels'] = result['input_ids'].copy()
+    return result
+    #!TAG HWEND
+
+
+lm_dataset = tokenized_imdb.map(group_texts, batched=True).train_test_split(test_size=0.1, seed=42)
+lm_dataset.set_format('torch')
+print(lm_dataset)
+assert all(len(ids) == CHUNK_SIZE for ids in lm_dataset['train'][:100]['input_ids'])
+print(tokenizer.decode(lm_dataset['train'][1]['input_ids']))
+```
+
+<!-- #region pycharm={"name": "#%% md\n"} -->
+Grouping produced many more examples than the 2,000 reviews, and a chunk can span the end of
+one review and the start of the next - look for the `[SEP]` and `[CLS]` tokens in the middle
+of the decoded chunk above.
+
+**BERT's masking scheme** (Session 8). The labels are still identical to the inputs - we are
+missing the key step: inserting `[MASK]` tokens at random positions. BERT selects 15% of the
+tokens as prediction targets, and of those replaces 80% by `[MASK]`, 10% by a random token,
+and leaves 10% unchanged. Only the selected tokens count in the loss: all other labels are
+set to `-100`, the index that PyTorch's cross-entropy (and so the model's loss) ignores.
+Special tokens (`[CLS]`, `[SEP]`) are never selected.
+<!-- #endregion -->
+
+```python pycharm={"name": "#%%\n"}
+#!TAG SKIPQUESTEXEC
+def mask_tokens(input_ids: Tensor, mlm_probability: float = 0.15,
+                generator: torch.Generator | None = None) -> tuple[Tensor, Tensor]:
+    """BERT-style masking for a batch of token IDs. Returns (masked inputs, labels)."""
+    labels = input_ids.clone()
+    inputs = input_ids.clone()
+    special = torch.tensor([tokenizer.get_special_tokens_mask(ids, already_has_special_tokens=True)
+                            for ids in input_ids.tolist()], dtype=torch.bool)
+    #!TAG HWBEGIN
+    #!MSG TODO:
+    #!MSG 1. Select each non-special token with probability mlm_probability
+    #!MSG    (torch.bernoulli on a probability tensor, with generator=generator).
+    #!MSG 2. Set the labels of all non-selected tokens to -100.
+    #!MSG 3. Of the selected tokens, replace 80% by tokenizer.mask_token_id, then half of the
+    #!MSG    remaining selected ones (10% overall) by a random token ID
+    #!MSG    (torch.randint(len(tokenizer), ...)); the rest stay unchanged.
+    probabilities = torch.full(labels.shape, mlm_probability)
+    probabilities[special] = 0.0
+    selected = torch.bernoulli(probabilities, generator=generator).bool()
+    labels[~selected] = -100
+
+    to_mask = torch.bernoulli(torch.full(labels.shape, 0.8), generator=generator).bool() & selected
+    inputs[to_mask] = tokenizer.mask_token_id
+
+    to_randomize = (torch.bernoulli(torch.full(labels.shape, 0.5), generator=generator).bool()
+                    & selected & ~to_mask)
+    random_ids = torch.randint(len(tokenizer), labels.shape, generator=generator)
+    inputs[to_randomize] = random_ids[to_randomize]
+    #!TAG HWEND
+    return inputs, labels
+```
+
+```python pycharm={"name": "#%%\n"}
+#!TAG SKIPQUESTEXEC
+def masking_statistics(inputs: Tensor, labels: Tensor, original: Tensor) -> str:
+    selected = labels != -100
+    return ('selected {:.1%} of all tokens; of those: [MASK] {:.1%}, random {:.1%}, unchanged {:.1%}'
+            .format(float(selected.float().mean()),
+                    float((inputs[selected] == tokenizer.mask_token_id).float().mean()),
+                    float(((inputs[selected] != tokenizer.mask_token_id)
+                           & (inputs[selected] != original[selected])).float().mean()),
+                    float((inputs[selected] == original[selected]).float().mean())))
+
+
+sample_ids = lm_dataset['train'][:256]['input_ids']
+masked, labels = mask_tokens(sample_ids, generator=torch.Generator().manual_seed(0))
+print('ours:        ', masking_statistics(masked, labels, sample_ids))
+
+# Hugging Face's own collator implements the same scheme - the source course uses it directly.
+hf_collator = DataCollatorForLanguageModeling(tokenizer, mlm_probability=0.15)
+hf_batch = hf_collator([{'input_ids': ids} for ids in sample_ids])
+print('Hugging Face:', masking_statistics(hf_batch['input_ids'], hf_batch['labels'], sample_ids))
+
+print(tokenizer.decode(masked[0][:60]))
+```
+
+<!-- #region pycharm={"name": "#%% md\n"} -->
+Both should select about 15% of the tokens (slightly less, because special tokens are never
+selected), with about 80% / 10% / 10% among those. A random token can by chance be the
+original one, so "unchanged" comes out a little above 10%.
+
+**Question:** Why doesn't BERT simply replace *all* selected tokens by `[MASK]`?
 #!TAG HWBEGIN
 
-**Answer:** Shrink, and eventually reverse. Session 10's point: up to a certain dataset
-size, CNNs beat ViTs because of their built-in assumptions, but the Transformer scales
-well enough to make up for the missing inductive biases with massive amounts of data.
-Beyond that point, not being restricted to the patterns convolutions can express
-becomes an advantage.
+**Answer:** The `[MASK]` token never occurs during fine-tuning (Session 8). If the model only
+ever had to predict at `[MASK]` positions, it would learn useful representations mainly for
+those positions, and fine-tuning inputs would look different from everything it saw during
+pretraining. With 10% random and 10% unchanged tokens, the model cannot tell which input
+tokens are targets, so it has to build a good representation of *every* token - including
+ones that look perfectly normal. (The source course also shows *whole word masking*, which
+masks all sub-word tokens of a word together.)
 #!TAG HWEND
 
-## Exercise 3: What Does the `[CLS]` Token Actually Attend To?
+## Exercise 3: Domain Adaptation - Continuing BERT's Pretraining on Movie Reviews
 
-The ViT's final classification relies entirely on the `[CLS]` token's representation
-after the last encoder layer. We can inspect, in each of the 4 encoder layers, the
-attention weights from the `[CLS]` token to every patch, to see where it collects its
-information from.
+Fine-tuning a pretrained language model on in-domain text before training a task-specific
+head is called **domain adaptation**; it was popularized by ULMFiT in 2018. Its loss is the
+MLM loss on the masked positions, and we report its exponential, the **perplexity**: a model
+that is not "perplexed" by unseen text assigns high probability to the right tokens.
 
-`nn.TransformerEncoderLayer` doesn't expose its attention weights by default - we need
-to call its internal `self_attn` module directly with `need_weights=True`. Our encoder
-layers apply attention to their input *before* any normalization (PyTorch's default,
-post-norm layout), so the input to layer $l$'s `self_attn` is simply the output of
-layer $l-1$.
+Since masking is random, the validation perplexity would change from one evaluation to the
+next. The source course's solution: mask the validation set *once*, with a fixed seed, and
+reuse it. We also use 256 validation chunks to keep evaluation fast.
 <!-- #endregion -->
 
 ```python pycharm={"name": "#%%\n"}
 #!TAG SKIPQUESTEXEC
+val_ids = lm_dataset['test'][:256]['input_ids']
+val_inputs, val_labels = mask_tokens(val_ids, generator=torch.Generator().manual_seed(1234))
+val_batches = [(val_inputs[i:i + 64], val_labels[i:i + 64]) for i in range(0, len(val_ids), 64)]
 
-def get_cls_attention(model: ViT, x: Tensor, layer: int) -> Tensor:
-    """Attention from [CLS] to the 64 patches in encoder layer `layer`, shape (batch, 64)."""
+
+def mlm_perplexity(model) -> float:
     model.eval()
     with torch.no_grad():
-        layers = model.encoder.layers
-        #!TAG HWBEGIN
-        #!MSG TODO:
-        #!MSG 1. Rebuild the encoder's input exactly as ViT.forward does: patch embedding,
-        #!MSG    [CLS] token in front, plus the position embedding.
-        #!MSG 2. Run it through layers[0], ..., layers[layer - 1] to get the input of
-        #!MSG    layers[layer].
-        #!MSG 3. Call layers[layer].self_attn(h, h, h, need_weights=True,
-        #!MSG    average_attn_weights=True). It returns (output, attention weights); the
-        #!MSG    weights have shape (batch, seq_len, seq_len), averaged over the heads.
-        #!MSG 4. Row 0 is the [CLS] token's attention to every token. Keep only its
-        #!MSG    attention to the 64 patches (drop column 0, the [CLS] token itself).
-        h = model.patch_embed(x)
-        cls = model.cls_token.expand(x.size(0), -1, -1)
-        h = torch.cat([cls, h], dim=1) + model.pos_embed
-        for previous_layer in layers[:layer]:
-            h = previous_layer(h)
+        losses = [float(model(input_ids=x, labels=y).loss) for x, y in val_batches]
+    model.train()
+    return math.exp(sum(losses) / len(losses))
 
-        _, attn_weights = layers[layer].self_attn(
-            h, h, h, need_weights=True, average_attn_weights=True,
-        )
-        cls_to_patches = attn_weights[:, 0, 1:]
-        #!TAG HWEND
-    return cls_to_patches
 
-N_SAMPLES = 4
-sample_images = torch.stack([test_dataset[i][0] for i in range(N_SAMPLES)])
-sample_labels = [CIFAR_CLASSES[test_dataset[i][1]] for i in range(N_SAMPLES)]
-n_layers = len(vit_model.encoder.layers)
-cls_attention = torch.stack([get_cls_attention(vit_model, sample_images, l) for l in range(n_layers)])
-print(cls_attention.shape)  # (layers, images, 64) -- one attention weight per patch
+print(f'perplexity before domain adaptation: {mlm_perplexity(mlm_model):.2f}')
 ```
 
 <!-- #region pycharm={"name": "#%% md\n"} -->
-Before looking at pictures, two numbers per layer. If the `[CLS]` token attended to all
-64 patches equally, every weight would be $1/64$ and the entropy of each attention row
-would be $\log 64 \approx 4.16$. We print how far the largest weight is above that
-uniform value, and the average entropy:
+The training loop is the same as for any PyTorch model - Hugging Face models compute their
+own loss when `labels` are passed. New masks are drawn for every batch, so the model never
+sees the same masking of a chunk twice. We train for 60 steps of 32 chunks (about 1,900 of
+the ~3,900 training chunks), with AdamW and a learning rate of $10^{-4}$ (the source: $5
+\cdot 10^{-5}$ for a much longer run).
 <!-- #endregion -->
 
 ```python pycharm={"name": "#%%\n"}
 #!TAG SKIPQUESTEXEC
-for l in range(n_layers):
-    a = cls_attention[l]
-    entropy = -(a / a.sum(1, keepdim=True) * (a / a.sum(1, keepdim=True)).log()).sum(1).mean()
-    print('layer {}: largest weight = {:.1f} x uniform, entropy = {:.2f} (uniform: 4.16)'
-          .format(l, float((a.max(1).values * 64).mean()), float(entropy)))
-```
+MLM_STEPS, MLM_BATCH, MLM_LR = 60, 32, 1e-4
 
-```python pycharm={"name": "#%%\n"}
-#!TAG SKIPQUESTEXEC
+mask_generator = torch.Generator().manual_seed(0)
+train_loader = DataLoader(lm_dataset['train']['input_ids'], batch_size=MLM_BATCH, shuffle=True,
+                          generator=torch.Generator().manual_seed(0))
+optimizer = torch.optim.AdamW(mlm_model.parameters(), lr=MLM_LR)
 
-def unnormalize(img: Tensor) -> Tensor:
-    mean = torch.tensor(CIFAR_MEAN).view(3, 1, 1)
-    std = torch.tensor(CIFAR_STD).view(3, 1, 1)
-    return (img * std + mean).clamp(0, 1)
+mlm_model.train()
+t0 = time.time()
+for step, batch_ids in enumerate(train_loader, start=1):
+    #!TAG HWBEGIN
+    #!MSG TODO: Mask the batch with your mask_tokens (generator=mask_generator), compute
+    #!MSG the model's loss (model(input_ids=..., labels=...).loss), backward pass, optimizer
+    #!MSG step, zero the gradients. Call the loss `loss`.
+    inputs, labels = mask_tokens(batch_ids, generator=mask_generator)
+    loss = mlm_model(input_ids=inputs, labels=labels).loss
+    loss.backward()
+    optimizer.step()
+    optimizer.zero_grad()
+    #!TAG HWEND
+    if step % 10 == 0:
+        print(f'STEP: {step:3d}\tTRAIN LOSS: {loss.item():.3f}\tELAPSED: {time.time() - t0:.0f}s')
+    if step == MLM_STEPS:
+        break
 
-# One shared color scale for every map - otherwise each map would be stretched to its
-# own min/max and even a perfectly flat map would look like it had strong structure.
-vmax = float(cls_attention.max())
-fig, axes = plt.subplots(N_SAMPLES, n_layers + 1, figsize=(2.4 * (n_layers + 1), 2.4 * N_SAMPLES))
-for i in range(N_SAMPLES):
-    axes[i, 0].imshow(unnormalize(sample_images[i]).permute(1, 2, 0))
-    axes[i, 0].set_title(sample_labels[i])
-    for l in range(n_layers):
-        im = axes[i, l + 1].imshow(cls_attention[l, i].view(8, 8), cmap='viridis', vmin=0, vmax=vmax)
-        axes[i, l + 1].set_title(f'layer {l}')
-    for ax in axes[i]:
-        ax.axis('off')
-fig.colorbar(im, ax=axes, shrink=0.6, label='attention weight')
-plt.show()
+print(f'perplexity after domain adaptation: {mlm_perplexity(mlm_model):.2f}')
+for sentence in PROBE_SENTENCES:
+    print(f'{sentence:45s} {top_mask_predictions(mlm_model, sentence)}')
 ```
 
 <!-- #region pycharm={"name": "#%% md\n"} -->
-The first layer should look almost perfectly flat - and almost the same for every
-image. In the later layers, the `[CLS]` token concentrates on a few patches (when this
-lab was tested, the largest weight was roughly 7-12 times the uniform value) and which
-patches it picks differs from image to image. Whether those patches are actually "on the
-object" is worth checking with your own eyes rather than assuming - with this little
-training, often they won't be.
+For reference (seeds 0, 1, 2, one CPU run each): perplexity drops from 21.26 to 18.9-19.3 in
+about 2.5 minutes of training. "This is a great [MASK]." changes from *success, deal, bird,
+flood, legend* to answers such as *film, movie, story* - but also *mistake* and *disaster*:
+the model has learned what IMDb reviews talk about, not whether they are positive.
 
-**Question:** Why is the first layer's `[CLS]` attention almost the same for every
-image?
+**Question:** Lab 7 reports a perplexity for a GPT-style model too. Why can't you compare
+the two numbers?
 #!TAG HWBEGIN
 
-**Answer:** In layer 0, the `[CLS]` token's input is `cls_token + pos_embed[0]` - the
-same vector for every image, so its query is identical for every image too. Any
-difference could only come from the patch keys, and the trained model barely uses them
-here. That is consistent with the model collecting information into `[CLS]` only in
-later layers, after the patches have exchanged information with each other and the
-`[CLS]` token's own query depends on the image.
+**Answer:** They measure different tasks. The GPT-style perplexity is about predicting each
+next token from its left context only. The MLM perplexity here is about predicting 15% of the
+tokens from context on *both* sides - much more information per prediction - and it also
+depends on the masking scheme (80/10/10) and on the tokenizer: Lab 7 predicts bytes, BERT
+WordPiece tokens. A perplexity is only comparable between models evaluated on the same
+targets, with the same tokenizer.
+#!TAG HWEND
+
+## Exercise 4: Fine-Tuning BERT for Paraphrase Detection
+
+Now the second half of Session 8: fine-tuning. We use **MRPC** (Microsoft Research Paraphrase
+Corpus, part of the GLUE benchmark): pairs of sentences with a label saying whether they mean
+the same thing. It is small - 3,668 training pairs and 408 validation pairs - so it trains
+quickly. We start again from the original pretrained checkpoint, not the domain-adapted one:
+MRPC consists of news sentences, not movie reviews.
+<!-- #endregion -->
+
+```python pycharm={"name": "#%%\n"}
+mrpc = load_dataset('nyu-mll/glue', 'mrpc')
+print(mrpc)
+print(mrpc['train'].features['label'])
+print(mrpc['train'][0])
+```
+
+<!-- #region pycharm={"name": "#%% md\n"} -->
+We can't pass two separate sentences to the model - they have to be handled as a pair. Given
+two texts, the tokenizer builds the input BERT expects, `[CLS] sentence1 [SEP] sentence2
+[SEP]`, and the `token_type_ids` that tell the model which part is the first sentence (type 0)
+and which is the second (type 1) - BERT learned these segment embeddings during pretraining,
+through next sentence prediction (Session 8).
+<!-- #endregion -->
+
+```python pycharm={"name": "#%%\n"}
+pair = tokenizer(mrpc['train'][0]['sentence1'], mrpc['train'][0]['sentence2'])
+for token, token_type in list(zip(tokenizer.convert_ids_to_tokens(pair['input_ids']), pair['token_type_ids']))[:40]:
+    print(f'{token}:{token_type}', end='  ')
+```
+
+<!-- #region pycharm={"name": "#%% md\n"} -->
+We tokenize every pair (no padding yet), remove the text columns and rename `label` to
+`labels`, the argument name the model expects. Padding happens per batch: **dynamic padding**
+pads each batch only to its own longest pair, instead of padding everything to the longest
+pair in the dataset. `DataCollatorWithPadding` does this.
+<!-- #endregion -->
+
+```python pycharm={"name": "#%%\n"}
+#!TAG SKIPQUESTEXEC
+def tokenize_pairs(batch: dict) -> dict:
+    #!TAG HWBEGIN
+    #!MSG TODO: Tokenize batch['sentence1'] and batch['sentence2'] as pairs, with
+    #!MSG truncation=True.
+    return tokenizer(batch['sentence1'], batch['sentence2'], truncation=True)
+    #!TAG HWEND
+
+
+mrpc_tokenized = (mrpc.map(tokenize_pairs, batched=True)
+                  .remove_columns(['sentence1', 'sentence2', 'idx'])
+                  .rename_column('label', 'labels'))
+padding_collator = DataCollatorWithPadding(tokenizer)
+cls_train_loader = DataLoader(mrpc_tokenized['train'], batch_size=16, shuffle=True,
+                              collate_fn=padding_collator, generator=torch.Generator().manual_seed(0))
+cls_val_loader = DataLoader(mrpc_tokenized['validation'], batch_size=64, collate_fn=padding_collator)
+
+batch = next(iter(cls_train_loader))
+print({k: tuple(v.shape) for k, v in batch.items()})
+```
+
+<!-- #region pycharm={"name": "#%% md\n"} -->
+`AutoModelForSequenceClassification` puts a new, randomly initialized classification head on
+top of BERT's `[CLS]` representation - the fine-tuning setup from Session 8. The two
+possible errors of a paraphrase detector matter differently depending on the use, and the
+classes are imbalanced, so GLUE reports **F1** for MRPC alongside accuracy:
+$F_1 = \frac{2\,TP}{2\,TP + FP + FN}$, with "paraphrase" as the positive class.
+<!-- #endregion -->
+
+```python pycharm={"name": "#%%\n"}
+#!TAG SKIPQUESTEXEC
+def evaluate_classifier(model) -> tuple[float, float]:
+    model.eval()
+    n_correct = n_total = tp = fp = fn = 0
+    with torch.no_grad():
+        for batch in cls_val_loader:
+            #!TAG HWBEGIN
+            #!MSG TODO: Predict the class of every pair (argmax over model(**batch).logits)
+            #!MSG and update n_correct, n_total, tp, fp, fn (positive class: label 1).
+            predictions = model(**batch).logits.argmax(dim=-1)
+            labels = batch['labels']
+            n_correct += int((predictions == labels).sum())
+            n_total += len(labels)
+            tp += int(((predictions == 1) & (labels == 1)).sum())
+            fp += int(((predictions == 1) & (labels == 0)).sum())
+            fn += int(((predictions == 0) & (labels == 1)).sum())
+            #!TAG HWEND
+    model.train()
+    return n_correct / n_total, 2 * tp / (2 * tp + fp + fn)
+
+
+majority = sum(mrpc['validation']['label']) / len(mrpc['validation'])
+print(f'majority baseline (always "paraphrase"): accuracy {majority:.3f}, F1 {2 * majority / (1 + majority):.3f}')
+
+torch.manual_seed(0)
+cls_model = AutoModelForSequenceClassification.from_pretrained(CHECKPOINT, num_labels=2)
+print('before fine-tuning: accuracy {:.3f}, F1 {:.3f}'.format(*evaluate_classifier(cls_model)))
+```
+
+<!-- #region pycharm={"name": "#%% md\n"} -->
+The training loop follows the source: AdamW, and a learning rate that decays linearly from its
+maximum to 0 over all training steps (the `Trainer`'s default). The source trains BERT-base
+for 3 epochs at $5 \cdot 10^{-5}$; for our much smaller model, 2 epochs at $10^{-4}$ worked
+better in testing.
+<!-- #endregion -->
+
+```python pycharm={"name": "#%%\n"}
+#!TAG SKIPQUESTEXEC
+CLS_EPOCHS, CLS_LR = 2, 1e-4
+
+optimizer = torch.optim.AdamW(cls_model.parameters(), lr=CLS_LR)
+total_steps = CLS_EPOCHS * len(cls_train_loader)
+scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lambda step: 1 - step / total_steps)
+
+cls_model.train()
+t0 = time.time()
+for epoch in range(1, CLS_EPOCHS + 1):
+    for batch in cls_train_loader:
+        #!TAG HWBEGIN
+        #!MSG TODO: One training step: forward pass (the model returns .loss when the batch
+        #!MSG contains labels), backward pass, optimizer step, scheduler step, zero the
+        #!MSG gradients.
+        loss = cls_model(**batch).loss
+        loss.backward()
+        optimizer.step()
+        scheduler.step()
+        optimizer.zero_grad()
+        #!TAG HWEND
+    accuracy, f1 = evaluate_classifier(cls_model)
+    print(f'EPOCH: {epoch}\tVAL ACCURACY: {accuracy:.3f}\tVAL F1: {f1:.3f}\tELAPSED: {time.time() - t0:.0f}s')
+```
+
+<!-- #region pycharm={"name": "#%% md\n"} -->
+For reference (seeds 0, 1, 2): before fine-tuning, accuracy is 0.42-0.60 and F1 is
+0.41-0.73. After two epochs (about 2-2.5 minutes on CPU), accuracy is 0.77-0.79 and F1 is
+0.84-0.85. Always answering "paraphrase" gets accuracy 0.684 and F1 0.812.
+
+**Question:** Before fine-tuning, the classifier is *worse* than always answering
+"paraphrase". Why - BERT is pretrained, after all?
+#!TAG HWBEGIN
+
+**Answer:** Only the BERT body is pretrained. The classification head on top of the `[CLS]`
+representation is new and randomly initialized, so its predictions mean nothing until it is
+trained. Fine-tuning trains the head and, at the same time, adapts all of BERT's weights to
+the task - which is why a few minutes on a small dataset are enough, while training the same
+architecture from scratch on 3,668 pairs would get nowhere near this.
+#!TAG HWEND
+
+**Question:** Why report F1 next to accuracy for MRPC? Look at the majority baseline.
+#!TAG HWBEGIN
+
+**Answer:** About two thirds of the pairs are paraphrases, so a model that always says
+"paraphrase" already gets about 68% accuracy - and an F1 of about 0.81, because it never
+misses a paraphrase. Neither number alone tells you whether the model has learned anything;
+both have to be compared against that baseline. F1 also ignores true negatives, so it focuses
+on how well the positive class is found and how many false alarms come with it.
 #!TAG HWEND
 
 ## Conclusion
 
 Here's what you should take away from this lab:
 
- - Patch embedding (Exercise 1) is genuinely simple: a single strided convolution turns
-an image into a sequence of tokens, and everything after that is the same Transformer
-encoder Session 7 already derived - "a Transformer for images" really is that direct.
- - The CNN-vs-ViT gap under a small data/epoch budget (Exercise 2) is the measurable
-version of the inductive-bias argument Session 10 made in words: convolutions build in
-assumptions about images that a ViT has to learn from data instead. Here that shows up
-twice - the ViT fits the training data more slowly, *and* it transfers less of what it
-has learned to new images.
- - Attention weights (Exercise 3) are directly inspectable: you can ask "what is this
-token looking at?" and get a literal answer. But read them carefully - use one shared
-color scale, check them against the uniform baseline, and compare layers, before
-concluding that a model "looks at" anything.
+ - A pretrained masked language model fills in a `[MASK]` from the logits at that position
+(Exercise 1), and its predictions reflect the corpus it was pretrained on.
+ - BERT's training data is simple to build: concatenate the corpus, cut it into chunks, and
+select 15% of the tokens with the 80/10/10 replacement scheme (Exercise 2).
+ - Continuing the MLM training on in-domain text (domain adaptation) shifts the model's
+predictions towards that domain within a few minutes (Exercise 3).
+ - Fine-tuning puts a new head on the `[CLS]` token and trains everything for the task;
+judge the result against a baseline, with metrics that suit the class balance (Exercise 4).
 <!-- #endregion -->
