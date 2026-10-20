@@ -13,7 +13,7 @@ jupyter:
 ---
 
 <!-- #region pycharm={"name": "#%% md\n"} -->
-# Lab 6
+# Lab 8
 
 > Adapted from the UvA Deep Learning Tutorials' "Vision Transformers" notebook
 > (`phlippe/uvadlc_notebooks`, Tutorial 15, MIT license). The source trains a larger ViT
