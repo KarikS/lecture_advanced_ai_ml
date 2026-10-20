@@ -17,6 +17,62 @@ the general backpropagation derivation for Exercise 2) - those are dropped here 
 favor of a fully hands-on, code-only version: you're given the results, your job is to
 turn them into working code.
 
+Lab 4 (`templates/py-lab-04-template.md`, Session 6) is a recap lab spanning RNN, VAE,
+and GAN, one exercise per model family. `lecture_i2dl`'s own Python labs were checked
+first, but none fit directly:
+
+- Exercise 1 (vanilla RNN vs. LSTM on the "adding problem", a synthetic long-range
+  dependency task from Hochreiter & Schmidhuber, 1997) is a fresh implementation.
+  `py-lab-08-template.md` ("Lab 7") is a pen-and-paper BPTT derivation, too deep for a
+  recap lab. Extending `py-lab-09-template.md` ("Lab 8")'s LSTM-on-IMDB exercise with a
+  vanilla-RNN baseline was tried, but neither model beat chance accuracy within a
+  lab-feasible budget (a 5,000-review subset, 3 epochs), so the comparison showed
+  nothing.
+- Exercise 2 (a 2D-latent VAE on MNIST) is a fresh implementation; its bonus cell
+  (deliberately overweighting the KL term to induce posterior collapse) is adapted from
+  `py-lab-11-template.md` ("Lab 10")'s VAE exercise.
+- Exercise 3 (a GAN on a toy ring of 2D Gaussians, chosen so the generated distribution
+  can be plotted directly at every stage of training) is a fresh implementation. A
+  real-image GAN was avoided, partly because `py-lab-12-template.md` ("Lab 11 - currently
+  not in use")'s own MNIST GAN exercise has been retired in the source course.
+
+Lab 5 (`templates/py-lab-05-template.md`, Session 7) is not adapted from either source
+course's Python labs. The toy task and its qualitative result (a pure `Conv1d` stack
+fails at a task requiring long-range routing; a single self-attention layer solves it;
+the same attention layer then fails a harder position-dependent version of the task
+until a positional encoding is added) are adapted from François Fleuret's *Deep
+Learning* course (University of Geneva, `fleuret.org/dlc`, §13.2 "Attention
+Mechanisms") - licensed CC BY-NC-SA 4.0, so this lab specifically (unlike Labs 1-4)
+carries that non-commercial/share-alike license rather than this repository's usual
+terms. The dataset generator, model code, and training loop are a fresh implementation
+for this course; Fleuret's own code for this task was not published alongside his
+slides.
+
+Lab 6 (`templates/py-lab-06-template.md`, Session 10) trains a small Vision Transformer
+from scratch on a CIFAR-10 subset, alongside a CNN baseline trained under the same
+data/epoch budget, so the CNN-vs-ViT inductive-bias/data-hunger argument from Session
+10's slides is reproduced on real data rather than only argued. Adapted from the UvA
+Deep Learning Tutorials' "Vision Transformers" notebook (`phlippe/uvadlc_notebooks`,
+Tutorial 15), licensed MIT (verified directly from the repo's own `LICENSE.md`) - scaled
+down substantially from the source tutorial's 180-epoch/full-CIFAR-10 run (under an hour
+on an NVIDIA TitanRTX) to a CPU-feasible subset/epoch budget for a 2h session; the exact
+numbers are documented in the template's own header note.
+
+Lab 7 (`templates/py-lab-07-template.md`, Session 9) builds the "simple, modern variant"
+Transformer LM from Session 9 (pre-norm RMSNorm, SwiGLU, RoPE, no biases) component by
+component, then trains it, samples from it and removes RoPE again as an ablation. Adapted
+from Stanford CS336 *Language Modeling from Scratch*, Spring 2025, Assignment 1
+(`stanford-cs336/assignment1-basics`, tag `spring2025`, commit `430e2c8`), Copyright 2025
+Stanford University, licensed MIT (verified from the `LICENSE` file at that tag). Exercises
+1-4 follow the handout's §3 problem by problem; Exercises 5-6 follow §4.1, §5.1, §6 and §7.3
+(the NoPE ablation). Every model component is checked against the assignment's own snapshot
+tests. The snapshots, the reference weights they were computed with, and the 5 MB TinyStories
+sample used for training are downloaded at runtime from that pinned commit into `.data/cs336/`
+rather than committed here. Deviations from the source, all for a CPU-feasible 2h session: no
+BPE tokenizer (the handout's §2; the lab uses raw UTF-8 bytes as tokens), PyTorch's AdamW
+instead of a hand-written one (§4.3), and a much smaller model and training budget; the exact
+numbers are in the template's header note and Exercise 5.
+
 ## USER: How to get started
 
 Every lab session is contained in one notebook. The recommended way to run them is
