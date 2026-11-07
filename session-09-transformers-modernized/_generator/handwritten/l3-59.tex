@@ -1,0 +1,9 @@
+\small
+\textbf{Let's think about the compute involved for attention}
+\begin{center}
+\includegraphics[page=59,trim=153 127 201 109,clip,width=\linewidth,height=80pt,keepaspectratio]{figure/cs336-l3.pdf}
+\end{center}
+\textbf{Total arithmetic operations} $(bnd^2)$, \textbf{total memory accesses}
+\[ (\overset{\text{\scriptsize X}}{bnd} + \overset{\text{\scriptsize softmax}}{bhn^2} + \overset{\text{\scriptsize projection}}{d^2}) \]
+
+Arithmetic intensity is high $O\left(\left(\frac{1}{k} + \frac{1}{bn}\right)^{-1}\right)$ -- we can keep our GPUs running

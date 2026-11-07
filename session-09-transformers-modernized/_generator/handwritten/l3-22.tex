@@ -1,0 +1,6 @@
+GLUs modify the `first part' of a FF layer
+\[ FF(x) = \textcolor{red}{\max(0, xW_1)}\,W_2 \]
+Instead of a linear + ReLU, augment the above with an (entrywise) linear term
+\[ \textcolor{red}{\max(0, xW_1)} \rightarrow \max(0, xW_1) \otimes (xV) \]
+This gives the gated variant (ReGLU) -- note that we have an extra parameter ($V$)
+\[ \text{FF}_{\text{ReGLU}}(x) = (\max(0, xW_1) \otimes xV)\,W_2 \]

@@ -1,0 +1,7 @@
+\begin{itemize}
+  \item The `default' choices of $d_{ff} = 4 d_{model}$ and $d_{ff} = 2.66 d_{model}$ have worked well for nearly all modern LLMs.
+  \medskip
+  \item But T5 does show that even radical choices of $d_{ff} = 64 d_{model}$ can work. This hyperparameter choice isn't written in stone.
+  \medskip
+  \item That said, T5 has a follow-up model (T5 v1.1) that is `improved' and uses a much more standard 2.5 multiplier on GeGLU, so the 64-times multiplier is likely suboptimal.
+\end{itemize}

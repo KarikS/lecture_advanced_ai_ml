@@ -1,0 +1,29 @@
+\makebox[\textwidth][c]{%
+\begin{minipage}{400pt}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.58\textwidth}
+\footnotesize
+\setlength{\itemsep}{0pt}
+\textbf{Pre-vs-post norm:}
+\begin{itemize}
+  \item Everyone does pre-norm (except OPT350M), likely with good reason.
+\end{itemize}
+\textbf{Layer vs RMSnorm:}
+\begin{itemize}
+  \item RMSnorm has clear compute wins, sometimes even performance
+\end{itemize}
+\textbf{Gating:}
+\begin{itemize}
+  \item GLUs seem generally better, though differences are small
+\end{itemize}
+\textbf{Serial vs parallel layers:}
+\begin{itemize}
+  \item No extremely serious ablations, but has a compute win.
+\end{itemize}
+\end{column}
+\begin{column}{0.4\textwidth}
+\centering
+\includegraphics[page=29,trim=406 20 42 35,clip,width=\linewidth,height=170pt,keepaspectratio]{figure/cs336-l3.pdf}
+\end{column}
+\end{columns}
+\end{minipage}}

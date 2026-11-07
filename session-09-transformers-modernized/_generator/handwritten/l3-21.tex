@@ -1,0 +1,19 @@
+\small
+\renewcommand{\arraystretch}{1.2}
+\makebox[\textwidth][c]{%
+\begin{tabular}{@{}>{\raggedright\arraybackslash}m{40pt}@{\hspace{8pt}}>{\raggedright\arraybackslash}m{120pt}@{\hspace{8pt}}>{\centering\arraybackslash}m{90pt}@{\hspace{12pt}}>{\raggedright\arraybackslash}m{110pt}@{}}
+\toprule
+ & & & \textbf{Notable models}\\
+\midrule
+\textbf{ReLU} & $FF(x) = \max(0, xW_1)\,W_2$
+ & \includegraphics[page=21,trim=357 231 218 64,clip,width=\linewidth,height=52pt,keepaspectratio]{figure/cs336-l3.pdf}
+ & Original transformer, T5, Gopher, Chinchilla, OPT\\
+\midrule
+\textbf{GeLU} & $FF(x) = \text{GELU}(xW_1)\,W_2$\newline $\text{GELU}(x) := x\,\Phi(x)$
+ & \includegraphics[page=21,trim=356 107 219 187,clip,width=\linewidth,height=52pt,keepaspectratio]{figure/cs336-l3.pdf}
+ & GPT1/2/3, GPTJ, GPT-Neox, BLOOM\\
+\midrule
+\multicolumn{3}{@{}l}{\textbf{SwiGLU / GeGLU} (next slide..)}
+ & Llama, PaLM, T5 v1.1, \emph{most models post 2023}\\
+\bottomrule
+\end{tabular}}

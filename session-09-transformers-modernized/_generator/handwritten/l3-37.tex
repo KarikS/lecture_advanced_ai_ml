@@ -1,0 +1,5 @@
+Feedforward -- model dimension ratio.
+\[ \text{FFN}(x) = \max(0, xW_1 + b_1)\,W_2 + b_2 \]
+There are two dimensions that are relevant -- the feedforward dim ($d_{ff}$) and model dim ($d_{model}$). What should their relationship be?
+\[ \boldsymbol{d_{ff} = 4\, d_{model}} \]
+This is \emph{almost always} true. There's just a few exceptions.

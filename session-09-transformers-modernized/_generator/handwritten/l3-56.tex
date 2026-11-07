@@ -1,0 +1,14 @@
+\begin{center}
+\begin{tikzpicture}
+\node[anchor=south west, inner sep=0] (img) {\includegraphics[page=56,trim=126 86 126 81,clip,width=\linewidth,height=118pt,keepaspectratio]{figure/cs336-l3.pdf}};
+\begin{scope}[x={(img.south east)}, y={(img.north west)}]
+\fill[white] (0.000,0.080) rectangle (0.212,0.214);
+\fill[white] (0.842,0.080) rectangle (1.013,0.214);
+\end{scope}
+\end{tikzpicture}
+\end{center}
+The query and keys are Layer (RMS) normed before going into the softmax operation.
+
+\medskip
+\textbf{Other examples: DCLM, OLMo2, Gemma 2}\\
+{\footnotesize Originally from vision and multimodal models [Dehgani 2023, Idefcs, Chameleon]\par}

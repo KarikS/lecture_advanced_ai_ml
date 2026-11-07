@@ -58,33 +58,83 @@
 
 % CS336 slide 4
 \begin{frame}{Starting point: the `original' transformer}
-% full-body crop (figures would be too small next to the bullets)
-\begin{center}
-  \includegraphics[page=4,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l3.pdf}
-\end{center}
+% hand-typeset (_generator/handwritten/)
+\begin{columns}[T]
+\begin{column}{0.4\textwidth}
+\centering
+\includegraphics[page=4,trim=79 5 385 68,clip,width=\linewidth,height=165pt,keepaspectratio]{figure/cs336-l3.pdf}
+\end{column}
+\begin{column}{0.58\textwidth}
+\small
+\textbf{Review:} choices in the standard transformer
+
+\medskip
+\textbf{Position embedding:} sines and cosines
+\begin{align*}
+PE_{(pos,2i)} &= \sin\left(pos/10000^{2i/d_{\text{model}}}\right)\\
+PE_{(pos,2i+1)} &= \cos\left(pos/10000^{2i/d_{\text{model}}}\right)
+\end{align*}
+\textbf{FFN:} ReLU
+\[ \text{FFN}(x) = \max(0, xW_1 + b_1)W_2 + b_2 \]
+\textbf{Norm type:} post-norm, LayerNorm
+\end{column}
+\end{columns}
 \end{frame}
 
 % CS336 slide 5
 \begin{frame}{A Simple, Modern Variant}
-% full-body crop (figures would be too small next to the bullets)
-\begin{center}
-  \includegraphics[page=5,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l3.pdf}
-\end{center}
+% hand-typeset (_generator/handwritten/)
+\begin{columns}[T]
+\begin{column}{0.45\textwidth}
+\centering
+\includegraphics[page=5,trim=24 58 363 100,clip,width=\linewidth,height=150pt,keepaspectratio]{figure/cs336-l3.pdf}
+\end{column}
+\begin{column}{0.53\textwidth}
+\textbf{Differences:}
+\begin{itemize}
+  \item \textbf{LayerNorm} is in front of the block
+  \item \textbf{Rotary position embeddings (RoPE)}
+  \item FF layers use \textbf{SwiGLU}, not ReLU
+  \item Linear layers (and layernorm) have \textbf{no bias} (constant) terms
+\end{itemize}
+\bigskip
+\centering
+\textbf{Why did we pick these?}\\
+\textbf{What should you pick?}
+\end{column}
+\end{columns}
 \end{frame}
 
 % CS336 slide 6
 \begin{frame}{How should we think about architectures?}
+% hand-typeset (_generator/handwritten/)
+Lots of architecture. Just in the last year since last 336..
 \begin{center}
-  \includegraphics[page=6,trim=32 11 46 61,clip,width=318pt]{figure/cs336-l3.pdf}\par
+\includegraphics[page=6,trim=31 195 47 95,clip,width=250pt]{figure/cs336-l3.pdf}\\[2pt]
+\colorbox{blue!8}{\small Over 19 new \emph{dense} model releases, many of them with minor architecture tweaks..}\\[2pt]
+\includegraphics[page=6,trim=31 11 47 234,clip,width=250pt]{figure/cs336-l3.pdf}
 \end{center}
 \end{frame}
 
 % CS336 slide 7
-\begin{frame}[shrink=8]{Let's look at the data (on dense architectures)}
-% full-body crop (figures would be too small next to the bullets)
-\begin{center}
-  \includegraphics[page=7,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l3.pdf}
-\end{center}
+\begin{frame}{Let's look at the data (on dense architectures)}
+% hand-typeset (_generator/handwritten/)
+Learn from the many other models (and papers) out there
+\begin{columns}[T]
+\begin{column}{0.5\textwidth}
+\centering
+\includegraphics[page=7,trim=72 8 328 101,clip,width=\linewidth,height=145pt,keepaspectratio]{figure/cs336-l3.pdf}
+\end{column}
+\begin{column}{0.48\textwidth}
+\vspace{2.5em}
+\textbf{We will talk through many major architecture and hyperparameter variants.}
+\begin{itemize}
+  \item What do all these models have in common?
+  \item What parts vary?
+  \item What can we learn from this?
+\end{itemize}
+\end{column}
+\end{columns}
 \end{frame}
 
 % CS336 slide 8
@@ -115,39 +165,89 @@
 % FRAMES-BEGIN l3 9 14
 % CS336 slide 9
 \begin{frame}{Architecture variations..}
+% hand-typeset (_generator/handwritten/)
 \begin{itemize}
   \item Let's think about the core architecture piece
   \begin{itemize}
     \item Trends toward `LLaMA- like' architectures
   \end{itemize}
 \end{itemize}
-\begin{center}
-  \includegraphics[page=9,trim=20 10 49 98,clip,width=265pt]{figure/cs336-l3.pdf}\par
-\end{center}
+\begin{columns}[T]
+\begin{column}{0.64\textwidth}
+\centering
+\includegraphics[page=9,trim=20 10 259 98,clip,width=\linewidth,height=125pt,keepaspectratio]{figure/cs336-l3.pdf}
+\end{column}
+\begin{column}{0.34\textwidth}
+\vspace{1.5em}
+\textbf{High level view:}
+\begin{itemize}
+  \item Low consensus (except pre-norm)
+  \item Trends toward `LLaMA-like' architectures
+\end{itemize}
+\end{column}
+\end{columns}
 \end{frame}
 
 % CS336 slide 10
 \begin{frame}{Pre-vs-post norm}
-% full-body crop (figures would be too small next to the bullets)
-\begin{center}
-  \includegraphics[page=10,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l3.pdf}
-\end{center}
+% hand-typeset (_generator/handwritten/)
+The one thing \emph{everyone} agrees on (in 2024)
+\begin{columns}[T]
+\begin{column}{0.36\textwidth}
+\centering
+\includegraphics[page=10,trim=51 75 441 103,clip,width=\linewidth,height=95pt,keepaspectratio]{figure/cs336-l3.pdf}\\
+{\scriptsize Figure from Xiong 2020\par}
+\end{column}
+\begin{column}{0.62\textwidth}
+\centering
+\includegraphics[page=10,trim=290 154 20 127,clip,width=\linewidth]{figure/cs336-l3.pdf}\par
+\medskip
+\small Set up LayerNorm so that it doesn't affect the main residual signal path (on the left)
+\end{column}
+\end{columns}
+\medskip
+{\small\centering
+\textbf{Almost all modern LMs use pre-norm (but BERT was post-norm)}\\
+(One somewhat funny exception -- OPT350M. I don't know why this is post-norm)\par}
 \end{frame}
 
 % CS336 slide 11
 \begin{frame}{Pre-vs-post-norm, the data}
-% full-body crop (figures would be too small next to the bullets)
-\begin{center}
-  \includegraphics[page=11,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l3.pdf}
-\end{center}
+% hand-typeset (_generator/handwritten/)
+\begin{columns}[T]
+\begin{column}{0.48\textwidth}
+\centering
+\includegraphics[page=11,trim=29 58 378 93,clip,width=\linewidth,height=150pt,keepaspectratio]{figure/cs336-l3.pdf}\\
+{\scriptsize Salazar and Ngyuen 2019\par}
+\end{column}
+\begin{column}{0.5\textwidth}
+\centering
+\includegraphics[page=11,trim=363 178 -1 68,clip,width=\linewidth]{figure/cs336-l3.pdf}\\
+\includegraphics[page=11,trim=374 18 190 221,clip,width=\linewidth,height=72pt,keepaspectratio]{figure/cs336-l3.pdf}\\
+{\scriptsize Figure from Xiong 2020\par}
+\end{column}
+\end{columns}
 \end{frame}
 
 % CS336 slide 12
 \begin{frame}{Pre-vs-post norm, explanations?}
-% full-body crop (figures would be too small next to the bullets)
-\begin{center}
-  \includegraphics[page=12,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l3.pdf}
-\end{center}
+% hand-typeset (_generator/handwritten/)
+\begin{columns}[T]
+\begin{column}{0.49\textwidth}
+\centering
+Gradient attenuation [Xiong 2020]\\[2pt]
+\includegraphics[page=12,trim=85 80 369 104,clip,width=\linewidth,height=105pt,keepaspectratio]{figure/cs336-l3.pdf}
+\end{column}
+\begin{column}{0.49\textwidth}
+\centering
+Gradient spikes [Salazar and Ngyuen]\\[2pt]
+\includegraphics[page=12,trim=392 82 44 104,clip,width=\linewidth,height=105pt,keepaspectratio]{figure/cs336-l3.pdf}
+\end{column}
+\end{columns}
+\medskip
+{\centering
+\textbf{Original stated advantage} -- removing warmup.\\
+\textbf{Today} -- stability and larger LRs for large networks\par}
 \end{frame}
 
 % CS336 slide 13
@@ -163,10 +263,23 @@
 
 % CS336 slide 14
 \begin{frame}{LayerNorm vs RMSNorm}
-% full-body crop (figures would be too small next to the bullets)
-\begin{center}
-  \includegraphics[page=14,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l3.pdf}
-\end{center}
+% hand-typeset (_generator/handwritten/)
+\small
+\renewcommand{\arraystretch}{1.3}
+\makebox[\textwidth][c]{%
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{150pt}@{\hspace{12pt}}>{\centering\arraybackslash}m{130pt}@{\hspace{12pt}}>{\raggedright\arraybackslash}p{95pt}@{}}
+\toprule
+ & & \textbf{Notable models}\\
+\midrule
+Original transformer: \textbf{LayerNorm} -- normalizes the mean and variance across $d_{\text{model}}$
+ & $\displaystyle y = \frac{x - \operatorname{E}[x]}{\sqrt{\operatorname{Var}[x] + \epsilon}} * \gamma + \beta$
+ & GPT3/2/1, OPT, GPT-J, BLOOM\\
+\midrule
+Many modern LMs: \textbf{RMSNorm} -- does not subtract mean or add a bias term
+ & $\displaystyle y = \frac{x}{\sqrt{\|x\|_2^2 + \varepsilon}} * \gamma$
+ & LLaMA-family, PaLM, Chinchilla, T5\\
+\bottomrule
+\end{tabular}}
 \end{frame}
 
 % FRAMES-END
@@ -220,19 +333,29 @@
 
 % CS336 slide 17
 \begin{frame}{RMSNorm - validation}
+% hand-typeset (_generator/handwritten/)
 \begin{itemize}
-  \item RMSNorm runtime (and surprisingly, perf) gains have been seen in papers
+  \item \textbf{RMSNorm} runtime (and surprisingly, perf) gains have been seen in papers
 \end{itemize}
+\vspace{1.5em}
 \begin{center}
-  \includegraphics[page=17,trim=59 70 27 170,clip,width=330pt]{figure/cs336-l3.pdf}\par
+\includegraphics[page=17,trim=59 124 43 169,clip,width=\linewidth]{figure/cs336-l3.pdf}
 \end{center}
+{\raggedleft\scriptsize Narang et al 2020\par}
 \end{frame}
 
 % CS336 slide 18
 \begin{frame}{More generally: dropping bias terms}
-\begin{center}
-  \includegraphics[page=18,trim=62 34 35 67,clip,width=330pt]{figure/cs336-l3.pdf}\par
-\end{center}
+% hand-typeset (_generator/handwritten/)
+\textbf{Most modern transformers don't have bias terms.}
+
+\bigskip
+Original Transformer:
+\[ \text{FFN}(x) = \max(0, xW_1 + b_1)\,W_2 + b_2 \]
+Most implementations (if they're not gated):
+\[ FFN(x) = \sigma(xW_1)\,W_2 \]
+\medskip
+{\centering \textbf{Reasons:} memory (similar to RMSnorm) and optimization stability\par}
 \end{frame}
 
 % CS336 slide 19
@@ -270,39 +393,71 @@
 
 % CS336 slide 21
 \begin{frame}{A few of the common activations}
-% full-body crop (figures would be too small next to the bullets)
-\begin{center}
-  \includegraphics[page=21,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l3.pdf}
-\end{center}
+% hand-typeset (_generator/handwritten/)
+\small
+\renewcommand{\arraystretch}{1.2}
+\makebox[\textwidth][c]{%
+\begin{tabular}{@{}>{\raggedright\arraybackslash}m{40pt}@{\hspace{8pt}}>{\raggedright\arraybackslash}m{120pt}@{\hspace{8pt}}>{\centering\arraybackslash}m{90pt}@{\hspace{12pt}}>{\raggedright\arraybackslash}m{110pt}@{}}
+\toprule
+ & & & \textbf{Notable models}\\
+\midrule
+\textbf{ReLU} & $FF(x) = \max(0, xW_1)\,W_2$
+ & \includegraphics[page=21,trim=357 231 218 64,clip,width=\linewidth,height=52pt,keepaspectratio]{figure/cs336-l3.pdf}
+ & Original transformer, T5, Gopher, Chinchilla, OPT\\
+\midrule
+\textbf{GeLU} & $FF(x) = \text{GELU}(xW_1)\,W_2$\newline $\text{GELU}(x) := x\,\Phi(x)$
+ & \includegraphics[page=21,trim=356 107 219 187,clip,width=\linewidth,height=52pt,keepaspectratio]{figure/cs336-l3.pdf}
+ & GPT1/2/3, GPTJ, GPT-Neox, BLOOM\\
+\midrule
+\multicolumn{3}{@{}l}{\textbf{SwiGLU / GeGLU} (next slide..)}
+ & Llama, PaLM, T5 v1.1, \emph{most models post 2023}\\
+\bottomrule
+\end{tabular}}
 \end{frame}
 
 % CS336 slide 22
 \begin{frame}{Gated activations (*GLU)}
-\begin{itemize}
-  \item GLUs modify the `first part' of a FF layer
-  \item Instead of a linear + ReLU, augment the above with an (entrywise) linear term
-  \item This gives the gated variant (ReGLU) -- note that we have an extra parameter (V)
-\end{itemize}
-\begin{center}
-  \includegraphics[page=22,trim=169 229 184 119,clip,width=220pt]{figure/cs336-l3.pdf}\par
-  \includegraphics[page=22,trim=176 115 176 233,clip,width=220pt]{figure/cs336-l3.pdf}\par
-  \includegraphics[page=22,trim=176 13 178 334,clip,width=220pt]{figure/cs336-l3.pdf}\par
-\end{center}
+% hand-typeset (_generator/handwritten/)
+GLUs modify the `first part' of a FF layer
+\[ FF(x) = \textcolor{red}{\max(0, xW_1)}\,W_2 \]
+Instead of a linear + ReLU, augment the above with an (entrywise) linear term
+\[ \textcolor{red}{\max(0, xW_1)} \rightarrow \max(0, xW_1) \otimes (xV) \]
+This gives the gated variant (ReGLU) -- note that we have an extra parameter ($V$)
+\[ \text{FF}_{\text{ReGLU}}(x) = (\max(0, xW_1) \otimes xV)\,W_2 \]
 \end{frame}
 
 % CS336 slide 23
 \begin{frame}{Gated variants of standard FF layers}
-% full-body crop (figures would be too small next to the bullets)
-\begin{center}
-  \includegraphics[page=23,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l3.pdf}
-\end{center}
+% hand-typeset (_generator/handwritten/)
+\small
+\renewcommand{\arraystretch}{1.3}
+\makebox[\textwidth][c]{%
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{270pt}@{\hspace{12pt}}>{\raggedright\arraybackslash}p{110pt}@{}}
+\toprule
+ & \textbf{Notable models}\\
+\midrule
+\textbf{GeGLU}\newline
+$\text{FFN}_{\text{GEGLU}}(x, W, V, W_2) = (\text{GELU}(xW) \otimes xV)\,W_2$
+ & T5 v1.1, mT5, LaMDA, Phi3, Gemma 2, Gemma 3\\
+\midrule
+\textbf{SwiGLU} (swish is $x * \text{sigmoid}(x)$)\newline
+$\text{FFN}_{\text{SwiGLU}}(x, W, V, W_2) = (\text{Swish}_1(xW) \otimes xV)\,W_2$
+ & LLaMa 1/2/3, PaLM, Mistral, OlMo, \emph{most models post 2023}\\
+\bottomrule
+\end{tabular}}
+
+\bigskip
+{\centering Note: Gated models use smaller dimensions for the $d_{ff}$ by 2/3\par}
 \end{frame}
 
 % CS336 slide 24
 \begin{frame}{Do gated linear units work?}
+% hand-typeset (_generator/handwritten/)
+Yes, fairly consistently so.
 \begin{center}
-  \includegraphics[page=24,trim=72 47 135 71,clip,width=295pt]{figure/cs336-l3.pdf}\par
+\includegraphics[page=24,trim=225 75 188 109,clip,width=\linewidth,height=135pt,keepaspectratio]{figure/cs336-l3.pdf}
 \end{center}
+{\raggedleft\scriptsize Shazeer 2020\par}
 \end{frame}
 
 % CS336 slide 25
@@ -354,10 +509,36 @@
 
 % CS336 slide 29
 \begin{frame}{Summary: architectures}
-% full-body crop (figures would be too small next to the bullets)
-\begin{center}
-  \includegraphics[page=29,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l3.pdf}
-\end{center}
+% hand-typeset (_generator/handwritten/)
+\makebox[\textwidth][c]{%
+\begin{minipage}{400pt}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.58\textwidth}
+\footnotesize
+\setlength{\itemsep}{0pt}
+\textbf{Pre-vs-post norm:}
+\begin{itemize}
+  \item Everyone does pre-norm (except OPT350M), likely with good reason.
+\end{itemize}
+\textbf{Layer vs RMSnorm:}
+\begin{itemize}
+  \item RMSnorm has clear compute wins, sometimes even performance
+\end{itemize}
+\textbf{Gating:}
+\begin{itemize}
+  \item GLUs seem generally better, though differences are small
+\end{itemize}
+\textbf{Serial vs parallel layers:}
+\begin{itemize}
+  \item No extremely serious ablations, but has a compute win.
+\end{itemize}
+\end{column}
+\begin{column}{0.4\textwidth}
+\centering
+\includegraphics[page=29,trim=406 20 42 35,clip,width=\linewidth,height=170pt,keepaspectratio]{figure/cs336-l3.pdf}
+\end{column}
+\end{columns}
+\end{minipage}}
 \end{frame}
 
 % FRAMES-END
@@ -370,25 +551,68 @@
 % FRAMES-BEGIN l3 30 35
 % CS336 slide 30
 \begin{frame}{Many variations in position embeddings}
-% full-body crop (figures would be too small next to the bullets)
-\begin{center}
-  \includegraphics[page=30,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l3.pdf}
-\end{center}
+% hand-typeset (_generator/handwritten/)
+\footnotesize
+\renewcommand{\arraystretch}{1.2}
+\makebox[\textwidth][c]{%
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{130pt}@{\hspace{10pt}}>{\centering\arraybackslash}p{160pt}@{\hspace{10pt}}>{\raggedright\arraybackslash}p{100pt}@{}}
+\toprule
+ & & \textbf{Notable models}\\
+\midrule
+\textbf{Sine embeddings:} add sines and cosines that enable localization
+ & $\mathit{Embed}(x, i) = v_x + PE_{pos}$\newline
+   $PE_{(pos,2i)} = \sin\left(pos/10000^{2i/d_{\text{model}}}\right)$\newline
+   $PE_{(pos,2i+1)} = \cos\left(pos/10000^{2i/d_{\text{model}}}\right)$
+ & Original transformer\\
+\midrule
+\textbf{Absolute embeddings:} add a position vector to the embedding
+ & $\mathit{Embed}(x, i) = v_x + u_i$
+ & GPT1/2/3, OPT\\
+\midrule
+\textbf{Relative embeddings:} add a vector to the \emph{attention computation}
+ & $e_{ij} = \dfrac{x_i W^Q \left(x_j W^K + a_{ij}^K\right)^T}{\sqrt{d_z}}$
+ & T5, Gopher, Chinchilla\\
+\midrule
+\textbf{Rope embeddings} (next slides..)
+ &
+ & GPTJ, PaLM, LLaMA,\newline \emph{Most 2024+ models}\\
+\bottomrule
+\end{tabular}}
 \end{frame}
 
 % CS336 slide 31
 \begin{frame}{RoPE: rotary position embeddings}
-\begin{center}
-  \includegraphics[page=31,trim=62 34 35 67,clip,width=330pt]{figure/cs336-l3.pdf}\par
-\end{center}
+% hand-typeset (_generator/handwritten/)
+\small
+\textbf{High level thought process:} a \emph{relative} position embedding should be some $f(x, i)$ s.t.
+\[ \langle f(x, i), f(y, j) \rangle = g(x, y, i - j) \]
+That is, the attention function \emph{only} gets to depend on the relative position ($i-j$). How do existing embeddings not fulfill this goal?
+\begin{itemize}
+  \item \textbf{Sine:} Has various cross-terms that are not relative
+  \[ \langle \mathit{Embed}(x, i), \mathit{Embed}(y, i) \rangle = \langle v_x, v_y \rangle + \langle PE_i, v_y \rangle \ldots \]
+  \item \textbf{Absolute:} obviously not relative
+  \item \textbf{Relative embeddings:}
+  \[ e_{ij} = \frac{x_i W^Q \left(x_j W^K + a_{ij}^K\right)^T}{\sqrt{d_z}} \quad \text{is not an inner product} \]
+\end{itemize}
 \end{frame}
 
 % CS336 slide 32
 \begin{frame}{RoPE: rotary position embeddings}
-% full-body crop (figures would be too small next to the bullets)
-\begin{center}
-  \includegraphics[page=32,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l3.pdf}
-\end{center}
+% hand-typeset (_generator/handwritten/)
+\textbf{How can we solve this problem?}
+\begin{itemize}
+  \item We want our embeddings to be \textbf{invariant to absolute position}
+  \item We know that inner products are invariant to arbitrary rotation.
+\end{itemize}
+\medskip
+\footnotesize
+\renewcommand{\arraystretch}{1.1}
+\makebox[\textwidth][c]{%
+\begin{tabular}{@{}*{3}{>{\centering\arraybackslash}p{125pt}}@{}}
+\includegraphics[page=32,trim=122 107 472 169,clip,width=\linewidth,height=58pt,keepaspectratio]{figure/cs336-l3.pdf} & \includegraphics[page=32,trim=342 105 280 169,clip,width=\linewidth,height=58pt,keepaspectratio]{figure/cs336-l3.pdf} & \includegraphics[page=32,trim=467 112 89 192,clip,width=\linewidth,height=45pt,keepaspectratio]{figure/cs336-l3.pdf}\\[4pt]
+\textbf{Position independent embedding} & \textbf{Embedding ``we know that''} & \textbf{Embedding ``of course we know''}\\
+ & Rotate we by `0 positions'\newline know by `1 positions' & Rotate we by `2 positions'\newline Rotate know by `3 positions'
+\end{tabular}}
 \end{frame}
 
 % CS336 slide 33
@@ -418,13 +642,29 @@
 
 % CS336 slide 35
 \begin{frame}{Implementation and code for RoPE}
-\begin{itemize}
-  \item \ldots{} Same stuff as the usual multi-head self attention below
-  \item Note: embedding at each attention operation to enforce position invariance
-\end{itemize}
-\begin{center}
-  \includegraphics[page=35,trim=46 102 82 91,clip,width=330pt]{figure/cs336-l3.pdf}\par
-\end{center}
+% hand-typeset (_generator/handwritten/)
+\makebox[\textwidth][c]{\begin{minipage}{400pt}
+{\footnotesize\textcolor{dhbwink}{$\triangleright$ Usual attention stuff}\par}
+{\ttfamily\fontsize{6.4}{7.6}\selectfont query\_states = self.q\_proj(hidden\_states)\\
+key\_states = self.k\_proj(hidden\_states)\\
+value\_states = self.v\_proj(hidden\_states)\\
+\mbox{}\\
+\# Flash attention requires the input to have the shape\\
+\# batch\_size x seq\_length x head\_dim x hidden\_dim\\
+\# therefore we just need to keep the original shape\\
+query\_states = query\_states.view(bsz, q\_len, self.num\_heads, self.head\_dim).transpose(1, 2)\\
+key\_states = key\_states.view(bsz, q\_len, self.num\_key\_value\_heads, self.head\_dim).transpose(1, 2)\\
+value\_states = value\_states.view(bsz, q\_len, self.num\_key\_value\_heads, self.head\_dim).transpose(1, 2)\par}
+\smallskip
+{\footnotesize\textcolor{dhbwink}{$\triangleright$ Get the RoPE matrix cos/sin}\par}
+{\ttfamily\fontsize{6.4}{7.6}\selectfont cos, sin = self.rotary\_emb(value\_states, position\_ids)\par}
+\smallskip
+{\footnotesize\textcolor{dhbwink}{$\triangleright$ Multiply query/key inputs}\par}
+{\ttfamily\fontsize{6.4}{7.6}\selectfont query\_states, key\_states = apply\_rotary\_pos\_emb(query\_states, key\_states, cos, sin)\par}
+{\centering\footnotesize \ldots\ Same stuff as the usual multi-head self attention below\par}
+\end{minipage}}\par
+\vspace{8pt}
+{\centering \textbf{Note:} embedding at \emph{each attention operation} to enforce position invariance\par}
 \end{frame}
 
 % FRAMES-END
@@ -452,29 +692,56 @@
 
 % CS336 slide 37
 \begin{frame}{Surprising (?) consensus hyperparameter 1}
-\begin{center}
-  \includegraphics[page=37,trim=62 17 34 67,clip,width=321pt]{figure/cs336-l3.pdf}\par
-\end{center}
+% hand-typeset (_generator/handwritten/)
+Feedforward -- model dimension ratio.
+\[ \text{FFN}(x) = \max(0, xW_1 + b_1)\,W_2 + b_2 \]
+There are two dimensions that are relevant -- the feedforward dim ($d_{ff}$) and model dim ($d_{model}$). What should their relationship be?
+\[ \boldsymbol{d_{ff} = 4\, d_{model}} \]
+This is \emph{almost always} true. There's just a few exceptions.
 \end{frame}
 
 % CS336 slide 38
 \begin{frame}{Exception \#1 -- GLU variants}
-\begin{itemize}
-  \item Models are roughly in this range, though PaLM, LLaMA2 and Mistral are slightly larger
-\end{itemize}
+% hand-typeset (_generator/handwritten/)
+\small
+Remember that GLU variants scale down by 2/3rd. This means most GLU variants have $d_{ff} = \frac{8}{3} d_{model}$. This is mostly what happens. Some notable such examples.
+
 \begin{center}
-  \includegraphics[page=38,trim=62 33 35 67,clip,width=280pt]{figure/cs336-l3.pdf}\par
+\footnotesize
+\renewcommand{\arraystretch}{0.9}
+\begin{tabular}{@{}lr@{}}
+\toprule
+\textbf{Model} & $\boldsymbol{d_{ff}/d_{model}}$\\
+\midrule
+PaLM & 4\\
+Mistral 7B & 3.5\\
+LLaMA-2 70B & 3.5\\
+LLaMA 70B & 2.68\\
+Qwen 14B & 2.67\\
+DeepSeek 67B & 2.68\\
+Yi 34B & 2.85\\
+T5 v1.1 & 2.5\\
+\bottomrule
+\end{tabular}
 \end{center}
+Models are roughly in this range, though PaLM, LLaMA2 and Mistral are slightly larger
 \end{frame}
 
 % CS336 slide 39
 \begin{frame}{Exception \#2 -- T5}
-\begin{itemize}
-  \item Other, recent exceptions -- Gemma 2 (8x), SmolLM/Gemma 3 (4x, GLU)
-\end{itemize}
+% hand-typeset (_generator/handwritten/)
+\small
+As we have (and will) see, most LMs are have boring, conservative hyperparameters.
+One exception is T5 [Raffel et al 2020] which has some \emph{very bold} settings.
+
+\smallskip
+In particular, for the 11B model, they set
+\[ d_{ff} = \text{65,536} \qquad d_{model} = 1024 \]
+For an astounding 64-times multiplier.
 \begin{center}
-  \includegraphics[page=39,trim=62 33 35 67,clip,width=280pt]{figure/cs336-l3.pdf}\par
+\includegraphics[page=39,trim=116 34 116 276,clip,width=0.8\linewidth]{figure/cs336-l3.pdf}
 \end{center}
+Other, recent exceptions -- Gemma 2 (8x), SmolLM/Gemma 3 (4x, GLU)
 \end{frame}
 
 % CS336 slide 40
@@ -490,9 +757,14 @@
 
 % CS336 slide 41
 \begin{frame}{What can we learn from the model-dim hyperparam?}
-\begin{center}
-  \includegraphics[page=41,trim=13 26 39 98,clip,width=330pt]{figure/cs336-l3.pdf}\par
-\end{center}
+% hand-typeset (_generator/handwritten/)
+\begin{itemize}
+  \item The `default' choices of $d_{ff} = 4 d_{model}$ and $d_{ff} = 2.66 d_{model}$ have worked well for nearly all modern LLMs.
+  \medskip
+  \item But T5 does show that even radical choices of $d_{ff} = 64 d_{model}$ can work. This hyperparameter choice isn't written in stone.
+  \medskip
+  \item That said, T5 has a follow-up model (T5 v1.1) that is `improved' and uses a much more standard 2.5 multiplier on GeGLU, so the 64-times multiplier is likely suboptimal.
+\end{itemize}
 \end{frame}
 
 % CS336 slide 42
@@ -511,13 +783,27 @@
 
 % CS336 slide 43
 \begin{frame}{How many heads, whats the model dim?}
+% hand-typeset (_generator/handwritten/)
 \begin{itemize}
   \item Some examples of this hyperparameter
-  \item Most models have ratios around 1 -- notable exceptions by some google models.
 \end{itemize}
+\medskip
 \begin{center}
-  \includegraphics[page=43,trim=116 80 62 116,clip,width=313pt]{figure/cs336-l3.pdf}\par
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+ & \textbf{Num heads} & \textbf{Head dim} & \textbf{Model dim} & \textbf{Ratio}\\
+\midrule
+GPT3 & 96 & 128 & 12288 & 1\\
+T5 & 128 & 128 & 1024 & 16\\
+T5 v1.1 & 64 & 64 & 4096 & 1\\
+LaMDA & 128 & 128 & 8192 & 2\\
+PaLM & 48 & 258 & 18432 & 1.48\\
+LLaMA2 & 64 & 128 & 8192 & 1\\
+\bottomrule
+\end{tabular}
 \end{center}
+\medskip
+Most models have ratios around 1 -- notable exceptions by some google models.
 \end{frame}
 
 % CS336 slide 44
@@ -533,39 +819,106 @@
 
 % CS336 slide 45
 \begin{frame}{Aspect ratios}
+% hand-typeset (_generator/handwritten/)
 \begin{itemize}
-  \item Should my model be deep or wide? How deep and how wide?
+  \item Should my model be deep or wide? \emph{How} deep and how wide?
   \item Most models are surprisingly consistent on this one too!
 \end{itemize}
 \begin{center}
-  \includegraphics[page=45,trim=16 17 213 146,clip,width=246pt]{figure/cs336-l3.pdf}\par
+\small
+\renewcommand{\arraystretch}{0.95}
+\begin{tabular}{@{}llr@{}}
+\toprule
+ & \textbf{Model} & $\boldsymbol{d_{model}/n_{layer}}$\\
+\midrule
+ & BLOOM & 205\\
+ & T5 v1.1 & 171\\
+\rowcolor{blue!8} & PaLM (540B) & 156\\
+\rowcolor{blue!8} \emph{Sweet spot?} & GPT3/OPT/Mistral/Qwen & 128\\
+\rowcolor{blue!8} & LLaMA / LLaMA2 / Chinchila & 102\\
+ & T5 (11B) & 43\\
+ & GPT2 & 33\\
+\bottomrule
+\end{tabular}
 \end{center}
 \end{frame}
 
 % CS336 slide 46
 \begin{frame}{Considerations about aspect ratio}
+% hand-typeset (_generator/handwritten/)
 \begin{itemize}
-  \item Extremely deep models are harder to parallelize and have higher latency
+  \item \textbf{Extremely deep models are harder to parallelize and have higher latency}
 \end{itemize}
 \begin{center}
-  \includegraphics[page=46,trim=75 10 26 116,clip,width=304pt]{figure/cs336-l3.pdf}\par
+\includegraphics[page=46,trim=76 208 39 117,clip,width=\linewidth]{figure/cs336-l3.pdf}\\[-1pt]
+{\raggedleft\scriptsize [Tay et al 2021]\par}
+\smallskip
+\includegraphics[page=46,trim=189 10 257 209,clip,width=\linewidth,height=80pt,keepaspectratio]{figure/cs336-l3.pdf}
 \end{center}
 \end{frame}
 
 % CS336 slide 47
 \begin{frame}{Evidence on aspect ratio scaling}
-% full-body crop (figures would be too small next to the bullets)
-\begin{center}
-  \includegraphics[page=47,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l3.pdf}
-\end{center}
+% hand-typeset (_generator/handwritten/)
+\begin{columns}[T]
+\begin{column}{0.5\textwidth}
+\centering
+\includegraphics[page=47,trim=69 104 377 93,clip,width=\linewidth]{figure/cs336-l3.pdf}\\
+{\scriptsize [Kaplan et al 2020]\par}
+\end{column}
+\begin{column}{0.48\textwidth}
+\centering
+\includegraphics[page=47,trim=392 67 71 77,clip,width=\linewidth,height=150pt,keepaspectratio]{figure/cs336-l3.pdf}\\
+{\scriptsize [Tay et al 2021]\par}
+\end{column}
+\end{columns}
 \end{frame}
 
 % CS336 slide 48
 \begin{frame}{What are typical vocabulary sizes?}
-% full-body crop (figures would be too small next to the bullets)
-\begin{center}
-  \includegraphics[page=48,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l3.pdf}
-\end{center}
+% hand-typeset (_generator/handwritten/)
+\begin{columns}[T]
+\begin{column}{0.48\textwidth}
+\centering
+Monolingual models -- 30-50k vocab
+
+\medskip
+\small
+\begin{tabular}{@{}lr@{}}
+\toprule
+\textbf{Model} & \textbf{Token count}\\
+\midrule
+Original transformer & 37000\\
+GPT & 40257\\
+GPT2/3 & 50257\\
+T5/T5v1.1 & 32128\\
+LLaMA & 32000\\
+\bottomrule
+\end{tabular}
+\end{column}
+\begin{column}{0.48\textwidth}
+\centering
+Multilingual / production systems 100-250k
+
+\medskip
+\small
+\begin{tabular}{@{}lr@{}}
+\toprule
+\textbf{Model} & \textbf{Token count}\\
+\midrule
+mT5 & 250000\\
+PaLM & 256000\\
+GPT4 & 100276\\
+Command A & 255000\\
+DeepSeek & 100000\\
+Qwen 15B & 152064\\
+Yi & 64000\\
+\bottomrule
+\end{tabular}
+\end{column}
+\end{columns}
+\medskip
+{\centering Monolingual vocabs don't need to be huge, but multilingual ones do\par}
 \end{frame}
 
 % CS336 slide 49
@@ -583,32 +936,91 @@
 
 % CS336 slide 50
 \begin{frame}{Dropout and weight decay in practice}
+% hand-typeset (_generator/handwritten/)
+\begin{columns}[T]
+\begin{column}{0.58\textwidth}
+\footnotesize
+\renewcommand{\arraystretch}{0.95}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Model} & \textbf{Dropout*} & \textbf{Weight decay}\\
+\midrule
+Original transformer & 0.1 & 0\\
+GPT2 & 0.1 & 0.1\\
+T5 & 0.1 & 0\\
+GPT3 & 0.1 & 0.1\\
+T5 v1.1 & 0 & 0\\
+PaLM & 0 & (variable)\\
+OPT & 0.1 & 0.1\\
+LLaMA & 0 & 0.1\\
+Qwen 14B & 0.1 & 0.1\\
+\bottomrule
+\end{tabular}
+\end{column}
+\begin{column}{0.4\textwidth}
+\vspace{2.5em}
 \begin{itemize}
   \item Many older models used dropout during pretraining
-  \begin{itemize}
-    \item Newer models (except Qwen) rely only on weight decay
-  \end{itemize}
+  \item Newer models (except Qwen) rely only on weight decay
 \end{itemize}
-\begin{center}
-  \includegraphics[page=50,trim=181 50 257 80,clip,width=124pt]{figure/cs336-l3.pdf}\par
-\end{center}
+\end{column}
+\end{columns}
+\vfill
 {\scriptsize * Most of the times papers just don't discuss dropout. On open models, this closely matches not doing dropout. This may not be true of closed models.\par}
 \end{frame}
 
 % CS336 slide 51
 \begin{frame}{Why weight decay LLMs?}
-% full-body crop (figures would be too small next to the bullets)
-\begin{center}
-  \includegraphics[page=51,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l3.pdf}
-\end{center}
+% hand-typeset (_generator/handwritten/)
+[Andriushchenko et al 2023] has interesting observations about LLM weight decay
+
+\medskip
+\begin{columns}[T]
+\begin{column}{0.33\textwidth}
+\centering
+\includegraphics[page=51,trim=61 94 463 127,clip,width=\linewidth]{figure/cs336-l3.pdf}\\[2pt]
+{\small It's not to control overfitting\par}
+\end{column}
+\begin{column}{0.65\textwidth}
+\centering
+\includegraphics[page=51,trim=275 106 19 127,clip,width=\linewidth]{figure/cs336-l3.pdf}\\[2pt]
+{\small Weight decay interacts with learning rates (cosine schedule)\par}
+\end{column}
+\end{columns}
 \end{frame}
 
 % CS336 slide 52
 \begin{frame}{Summary: hyperparameters}
-% full-body crop (figures would be too small next to the bullets)
-\begin{center}
-  \includegraphics[page=52,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l3.pdf}
-\end{center}
+% hand-typeset (_generator/handwritten/)
+\makebox[\textwidth][c]{%
+\begin{minipage}{400pt}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.58\textwidth}
+\footnotesize
+\setlength{\itemsep}{0pt}
+\textbf{Feedforward}
+\begin{itemize}
+  \item Factor-of-4 rule of thumb (8/3 for GLUs) is standard (with some evidence)
+\end{itemize}
+\textbf{Head dim}
+\begin{itemize}
+  \item Head dim*Num head = D model is standard -- but low to no validation
+\end{itemize}
+\textbf{Aspect ratio}
+\begin{itemize}
+  \item Wide range of `good' values (100-200). Systems concerns dictate the value
+\end{itemize}
+\textbf{Regularization}
+\begin{itemize}
+  \item You still `regularize' LMs but its effects are primarily on optimization dynamics
+\end{itemize}
+\end{column}
+\begin{column}{0.4\textwidth}
+\centering
+\includegraphics[page=52,trim=395 14 35 44,clip,width=\linewidth,height=170pt,keepaspectratio]{figure/cs336-l3.pdf}
+\end{column}
+\end{columns}
+\end{minipage}}
 \end{frame}
 
 % FRAMES-END
@@ -634,33 +1046,47 @@
 
 % CS336 slide 54
 \begin{frame}{Where do the issues arise? Beware of softmaxes!}
-% full-body crop (figures would be too small next to the bullets)
+% hand-typeset (_generator/handwritten/)
+\textbf{Softmaxes} -- can be ill-behaved due to exponentials / division by zero
+
+\medskip
 \begin{center}
-  \includegraphics[page=54,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l3.pdf}
+\includegraphics[page=54,trim=167 34 220 124,clip,width=\linewidth,height=140pt,keepaspectratio]{figure/cs336-l3.pdf}
 \end{center}
 \end{frame}
 
 % CS336 slide 55
 \begin{frame}{Output softmax stability -- the `z-loss'}
-\begin{itemize}
-  \item This is useful for stability! PaLM pioneered this `z loss' trick.
-  \item Other examples: Baichuan 2 (2023), DCLM (2024), OLMo 2 (2025)
-\end{itemize}
+% hand-typeset (_generator/handwritten/)
+Recall the softmax calculation
 \begin{center}
-  \includegraphics[page=55,trim=72 192 378 73,clip,width=114pt]{figure/cs336-l3.pdf}\par
-  \includegraphics[page=55,trim=366 195 50 99,clip,width=129pt]{figure/cs336-l3.pdf}\par
-  \includegraphics[page=55,trim=168 89 132 281,clip,width=178pt]{figure/cs336-l3.pdf}\par
+\includegraphics[page=55,trim=97 193 379 100,clip,width=\linewidth,height=62pt,keepaspectratio]{figure/cs336-l3.pdf}\hspace{10pt}\includegraphics[page=55,trim=366 220 66 100,clip,width=\linewidth,height=46pt,keepaspectratio]{figure/cs336-l3.pdf}\\[-1pt]
+{\raggedleft\scriptsize [From Devlin 2014]\par}
 \end{center}
+This is useful for stability! PaLM pioneered this `z loss' trick.
+\begin{center}
+\includegraphics[page=55,trim=169 90 133 282,clip,width=0.85\linewidth]{figure/cs336-l3.pdf}
+\end{center}
+\textbf{Other examples:} Baichuan 2 (2023), DCLM (2024), OLMo 2 (2025)
 \end{frame}
 
 % CS336 slide 56
 \begin{frame}{Attention softmax stability -- the `QK norm'}
-\begin{itemize}
-  \item Other examples: DCLM, OLMo2, Gemma 2 Originally from vision and multimodal models [Dehgani 2023, Idefcs, Chameleon]
-\end{itemize}
+% hand-typeset (_generator/handwritten/)
 \begin{center}
-  \includegraphics[page=56,trim=72 85 60 81,clip,width=330pt]{figure/cs336-l3.pdf}\par
+\begin{tikzpicture}
+\node[anchor=south west, inner sep=0] (img) {\includegraphics[page=56,trim=126 86 126 81,clip,width=\linewidth,height=118pt,keepaspectratio]{figure/cs336-l3.pdf}};
+\begin{scope}[x={(img.south east)}, y={(img.north west)}]
+\fill[white] (0.000,0.080) rectangle (0.212,0.214);
+\fill[white] (0.842,0.080) rectangle (1.013,0.214);
+\end{scope}
+\end{tikzpicture}
 \end{center}
+The query and keys are Layer (RMS) normed before going into the softmax operation.
+
+\medskip
+\textbf{Other examples: DCLM, OLMo2, Gemma 2}\\
+{\footnotesize Originally from vision and multimodal models [Dehgani 2023, Idefcs, Chameleon]\par}
 \end{frame}
 
 % CS336 slide 57
@@ -711,13 +1137,16 @@
 % FRAMES-BEGIN l3 59 68
 % CS336 slide 59
 \begin{frame}{GQA/MQA -- Reducing attention head cost}
-\begin{itemize}
-  \item Let's think about the compute involved for attention
-\end{itemize}
+% hand-typeset (_generator/handwritten/)
+\small
+\textbf{Let's think about the compute involved for attention}
 \begin{center}
-  \includegraphics[page=59,trim=130 127 201 108,clip,width=192pt]{figure/cs336-l3.pdf}\par
-  \includegraphics[page=59,trim=63 0 35 298,clip,width=307pt]{figure/cs336-l3.pdf}\par
+\includegraphics[page=59,trim=153 127 201 109,clip,width=\linewidth,height=80pt,keepaspectratio]{figure/cs336-l3.pdf}
 \end{center}
+\textbf{Total arithmetic operations} $(bnd^2)$, \textbf{total memory accesses}
+\[ (\overset{\text{\scriptsize X}}{bnd} + \overset{\text{\scriptsize softmax}}{bhn^2} + \overset{\text{\scriptsize projection}}{d^2}) \]
+
+Arithmetic intensity is high $O\left(\left(\frac{1}{k} + \frac{1}{bn}\right)^{-1}\right)$ -- we can keep our GPUs running
 \end{frame}
 
 % CS336 slide 60
@@ -735,23 +1164,34 @@
 
 % CS336 slide 61
 \begin{frame}{GQA/MQA -- Reducing attention head cost}
-\begin{itemize}
-  \item What's the incremental arithmetic intensity?
-  \item Is there some way around this? The n/d term is difficult to reduce.
-\end{itemize}
-\begin{center}
-  \includegraphics[page=61,trim=62 82 36 140,clip,width=330pt]{figure/cs336-l3.pdf}\par
-\end{center}
+% hand-typeset (_generator/handwritten/)
+What's the incremental arithmetic intensity?
+
+\bigskip
+\textbf{Total arithmetic operations} $(bnd^2)$, \textbf{total memory accesses}
+\[ (\overset{\text{\scriptsize X}}{bn^2 d} + \overset{\text{\scriptsize projection}}{nd^2}) \]
+
+\bigskip
+Arithmetic intensity is not good $O\left(\left(\frac{n}{d} + \frac{1}{b}\right)^{-1}\right)$ -- need large batches + short seq length (n) or big model dimensions (d)
+
+\bigskip
+Is there some way around this? The n/d term is difficult to reduce.
 \end{frame}
 
 % CS336 slide 62
 \begin{frame}{MQA -- just have fewer key dimensions.}
-\begin{itemize}
-  \item Key idea -- have multiple queries, but just one dimension for keys and values
-\end{itemize}
+% hand-typeset (_generator/handwritten/)
+\small
+\textbf{Key idea} -- have multiple queries, but just one dimension for keys and values
 \begin{center}
-  \includegraphics[page=62,trim=62 1 12 112,clip,width=303pt]{figure/cs336-l3.pdf}\par
+\includegraphics[page=62,trim=181 91 181 112,clip,width=\linewidth,height=82pt,keepaspectratio]{figure/cs336-l3.pdf}
 \end{center}
+We have much fewer items to move in and out of memory (KV Cache)
+
+\smallskip
+\textbf{Total memory access} $(bnd + bn^2 k + nd^2)$, \textbf{Arithmetic intensity} $O\big(\big(\textcolor{red}{\tfrac{1}{d}} + \tfrac{n}{\textcolor{red}{d}h} + \tfrac{1}{b}\big)^{-1}\big)$
+
+{\raggedleft\tiny [figure from \url{https://blog.fireworks.ai/multi-query-attention-is-all-you-need-db072e758055}]\par}
 \end{frame}
 
 % CS336 slide 63
@@ -767,10 +1207,20 @@
 
 % CS336 slide 64
 \begin{frame}{Does MQA hurt? Sometimes..}
-% full-body crop (figures would be too small next to the bullets)
-\begin{center}
-  \includegraphics[page=64,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l3.pdf}
-\end{center}
+% hand-typeset (_generator/handwritten/)
+\begin{columns}[T]
+\begin{column}{0.49\textwidth}
+\centering
+Small PPL hit w/ MQA [Shazeer 2019]\\[2pt]
+\includegraphics[page=64,trim=98 116 389 156,clip,width=\linewidth]{figure/cs336-l3.pdf}
+\end{column}
+\begin{column}{0.49\textwidth}
+\centering
+Low/no hit w/ GQA [Ainslie 2023]\\[2pt]
+\includegraphics[page=64,trim=437 154 117 115,clip,width=\linewidth,height=70pt,keepaspectratio]{figure/cs336-l3.pdf}\\
+\includegraphics[page=64,trim=405 6 77 251,clip,width=\linewidth,height=75pt,keepaspectratio]{figure/cs336-l3.pdf}
+\end{column}
+\end{columns}
 \end{frame}
 
 % CS336 slide 65
@@ -838,32 +1288,41 @@
 
 % CS336 slide 3
 \begin{frame}{What's a MoE?}
+% hand-typeset (_generator/handwritten/)
+\begin{center}
+\includegraphics[page=3,trim=51 128 51 101,clip,width=\linewidth]{figure/cs336-l4.pdf}
+\end{center}
+{\raggedleft\scriptsize [Fedus et al 2022]\par}
 \begin{itemize}
   \item Replace big feedforward with (many) big feedforward networks and a selector layer
   \begin{itemize}
     \item You can increase the \# experts without affecting FLOPs
   \end{itemize}
 \end{itemize}
-\begin{center}
-  \includegraphics[page=3,trim=50 108 34 100,clip,width=330pt]{figure/cs336-l4.pdf}\par
-\end{center}
 \end{frame}
 
 % CS336 slide 4
 \begin{frame}{Why are MoEs getting popular?}
+% hand-typeset (_generator/handwritten/)
 \begin{itemize}
   \item Same FLOP, more param does better
 \end{itemize}
 \begin{center}
-  \includegraphics[page=4,trim=79 29 42 112,clip,width=310pt]{figure/cs336-l4.pdf}\par
+\includegraphics[page=4,trim=79 59 66 112,clip,width=\linewidth,height=120pt,keepaspectratio]{figure/cs336-l4.pdf}
 \end{center}
+{\raggedleft\scriptsize [Fedus et al 2022]\par}
 \end{frame}
 
 % CS336 slide 5
 \begin{frame}{Why are MoEs getting popular?}
+% hand-typeset (_generator/handwritten/)
+\begin{itemize}
+  \item Faster to train MoEs
+\end{itemize}
 \begin{center}
-  \includegraphics[page=5,trim=62 15 6 84,clip,width=330pt]{figure/cs336-l4.pdf}\par
+\includegraphics[page=5,trim=61 36 349 121,clip,width=0.47\linewidth]{figure/cs336-l4.pdf}\hfill\includegraphics[page=5,trim=368 52 6 138,clip,width=0.51\linewidth]{figure/cs336-l4.pdf}
 \end{center}
+{\raggedleft\scriptsize [OlMoE]\par}
 \end{frame}
 
 % CS336 slide 6
@@ -878,8 +1337,12 @@
 
 % CS336 slide 7
 \begin{frame}{Why are MoEs getting popular?}
+% hand-typeset (_generator/handwritten/)
+\begin{itemize}
+  \item Parallelizable to many devices
+\end{itemize}
 \begin{center}
-  \includegraphics[page=7,trim=72 14 200 72,clip,width=231pt]{figure/cs336-l4.pdf}\par
+\includegraphics[page=7,trim=181 14 200 101,clip,width=\linewidth,height=140pt,keepaspectratio]{figure/cs336-l4.pdf}
 \end{center}
 \end{frame}
 
@@ -923,15 +1386,23 @@
 
 % CS336 slide 12
 \begin{frame}{Why haven't MoEs been more popular?}
+% hand-typeset (_generator/handwritten/)
 \begin{itemize}
   \item Infrastructure is complex / advantages on multi node
+\end{itemize}
+\begin{center}
+\includegraphics[page=12,trim=113 193 113 104,clip,width=\linewidth,height=46pt,keepaspectratio]{figure/cs336-l4.pdf}\\[-1pt]
+\end{center}
+\vspace{-8pt}
+{\raggedleft\scriptsize [Fedus et al 2022]\par}
+\begin{itemize}
   \item Training objectives are somewhat heuristic (and sometimes unstable)
 \end{itemize}
 \begin{center}
-  \includegraphics[page=12,trim=112 166 34 103,clip,width=249pt]{figure/cs336-l4.pdf}\par
-  \includegraphics[page=12,trim=193 -0 220 262,clip,width=133pt]{figure/cs336-l4.pdf}\par
+\includegraphics[page=12,trim=194 1 221 263,clip,width=\linewidth,height=60pt,keepaspectratio]{figure/cs336-l4.pdf}
 \end{center}
-{\scriptsize [Zoph et al 2022]\par}
+\vspace{-8pt}
+{\raggedleft\scriptsize [Zoph et al 2022]\par}
 \end{frame}
 
 % FRAMES-END
@@ -944,10 +1415,20 @@
 % FRAMES-BEGIN l4 13 23
 % CS336 slide 13
 \begin{frame}{What MoEs generally look like}
-% full-body crop (figures would be too small next to the bullets)
-\begin{center}
-  \includegraphics[page=13,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l4.pdf}
-\end{center}
+% hand-typeset (_generator/handwritten/)
+\begin{columns}[T]
+\begin{column}{0.58\textwidth}
+\centering
+Typical: replace MLP with MoE layer\\[6pt]
+\includegraphics[page=13,trim=46 68 357 161,clip,width=\linewidth]{figure/cs336-l4.pdf}
+\end{column}
+\begin{column}{0.4\textwidth}
+\centering
+Less common: MoE for attention heads\\[6pt]
+\includegraphics[page=13,trim=476 44 95 149,clip,width=\linewidth,height=125pt,keepaspectratio]{figure/cs336-l4.pdf}\\
+{\scriptsize [ModuleFormer, JetMoE]\par}
+\end{column}
+\end{columns}
 \end{frame}
 
 % CS336 slide 14
@@ -961,12 +1442,18 @@
 
 % CS336 slide 15
 \begin{frame}{Routing function - overview}
+% hand-typeset (_generator/handwritten/)
 \begin{itemize}
   \item Many of the routing algorithms boil down to `choose top k'
 \end{itemize}
 \begin{center}
-  \includegraphics[page=15,trim=122 19 28 118,clip,width=291pt]{figure/cs336-l4.pdf}\par
+\includegraphics[page=15,trim=121 76 121 118,clip,width=0.95\linewidth]{figure/cs336-l4.pdf}\\[2pt]
+\makebox[0.95\linewidth]{\small
+\makebox[0.33\linewidth]{\parbox{0.3\linewidth}{\centering Token chooses expert}}%
+\makebox[0.33\linewidth]{\parbox{0.3\linewidth}{\centering Expert chooses token}}%
+\makebox[0.33\linewidth]{\parbox{0.3\linewidth}{\centering Global routing via optimization}}}
 \end{center}
+{\raggedleft\scriptsize [Fedus et al 2022]\par}
 \end{frame}
 
 % CS336 slide 16
@@ -981,18 +1468,32 @@
 
 % CS336 slide 17
 \begin{frame}{Common routing variants in detail}
-% full-body crop (figures would be too small next to the bullets)
-\begin{center}
-  \includegraphics[page=17,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l4.pdf}
-\end{center}
+% hand-typeset (_generator/handwritten/)
+\small
+\makebox[\textwidth][c]{%
+\begin{tabular}{@{}>{\raggedright\arraybackslash}m{50pt}@{\hspace{8pt}}c@{\hspace{14pt}}>{\raggedright\arraybackslash}m{160pt}@{}}
+Top-k & \includegraphics[page=17,trim=125 173 345 70,clip,width=170pt,height=64pt,keepaspectratio]{figure/cs336-l4.pdf}
+ & Used in \emph{most} MoEs\par\smallskip
+   Switch Transformer (k=1)\newline
+   Gshard (k=2), Grok (2), Mixtral (2), Qwen (4), DBRX (4), DeepSeek (7)\\[2pt]
+Hashing & \includegraphics[page=17,trim=125 -2 345 244,clip,width=170pt,height=64pt,keepaspectratio]{figure/cs336-l4.pdf}
+ & Common baseline
+\end{tabular}}
+
+{\raggedleft\scriptsize [Fedus et al 2022]\par}
 \end{frame}
 
 % CS336 slide 18
 \begin{frame}{Other routing methods}
-\begin{center}
-  \includegraphics[page=18,trim=12 176 26 71,clip,width=330pt]{figure/cs336-l4.pdf}\par
-  \includegraphics[page=18,trim=18 8 6 240,clip,width=330pt]{figure/cs336-l4.pdf}\par
-\end{center}
+% hand-typeset (_generator/handwritten/)
+\renewcommand{\arraystretch}{1.2}
+\makebox[\textwidth][c]{%
+\begin{tabular}{@{}>{\raggedright\arraybackslash}m{70pt}@{\hspace{8pt}}c@{\hspace{10pt}}>{\raggedright\arraybackslash}m{170pt}@{}}
+RL to learn routes & \includegraphics[page=18,trim=171 176 307 71,clip,width=\linewidth,height=75pt,keepaspectratio]{figure/cs336-l4.pdf} & Used in some of the earliest work\newline Bengio 2013, not common now\\
+Solve a matching problem & \includegraphics[page=18,trim=171 8 307 240,clip,width=\linewidth,height=75pt,keepaspectratio]{figure/cs336-l4.pdf} & Linear assignment for routing\newline Used in various papers like Clark `22
+\end{tabular}}
+
+{\raggedleft\scriptsize [Fedus et al 2022]\par}
 \end{frame}
 
 % CS336 slide 19
@@ -1046,8 +1547,28 @@
 
 % CS336 slide 23
 \begin{frame}{Expert routing setups for recent MoEs}
+% hand-typeset (_generator/handwritten/)
 \begin{center}
-  \includegraphics[page=23,trim=63 20 71 63,clip,width=300pt]{figure/cs336-l4.pdf}\par
+\footnotesize
+\renewcommand{\arraystretch}{0.92}
+\begin{tabular}{@{}lrrrc@{}}
+\toprule
+\textbf{Model} & \textbf{Routed} & \textbf{Active} & \textbf{Shared} & \textbf{Fine-grained ratio}\\
+\midrule
+GShard & 2048 & 2 & 0 & \\
+Switch Transformer & 64 & 1 & 0 & \\
+ST-MOE & 64 & 2 & 0 & \\
+Mixtral & 8 & 2 & 0 & \\
+DBRX & 16 & 4 & 0 & \\
+Grok & 8 & 2 & 0 & \\
+DeepSeek v1 & 64 & 6 & 2 & 1/4\\
+Qwen 1.5 & 60 & 4 & 4 & 1/8\\\midrule
+DeepSeek v3 & 256 & 8 & 1 & 1/14\\
+OlMoE & 64 & 8 & 0 & 1/8\\
+MiniMax & 32 & 2 & 0 & $\sim$1/4\\
+Llama 4 (maverick) & 128 & 1 & 1 & 1/2\\
+\bottomrule
+\end{tabular}
 \end{center}
 \end{frame}
 
@@ -1114,12 +1635,16 @@
 
 % CS336 slide 28
 \begin{frame}{Heuristic balancing losses}
+% hand-typeset (_generator/handwritten/)
 \begin{itemize}
   \item Another key issue -- systems efficiency requires that we use experts evenly..
 \end{itemize}
 \begin{center}
-  \includegraphics[page=28,trim=21 8 13 102,clip,width=319pt]{figure/cs336-l4.pdf}\par
+\includegraphics[page=28,trim=121 87 159 103,clip,width=\linewidth,height=108pt,keepaspectratio]{figure/cs336-l4.pdf}
 \end{center}
+\vspace{-8pt}
+{\raggedleft\tiny From the Switch Transformer [Fedus et al 2022]\par}
+{\centering\small The derivative with respect to $p_i(x)$ is $\frac{\alpha N}{T^2} \sum \mathbb{1}_{\mathit{argmax}\, p(x) = i}$,\\ so more frequent use = stronger downweighting\par}
 \end{frame}
 
 % CS336 slide 29
@@ -1136,14 +1661,20 @@
 
 % CS336 slide 30
 \begin{frame}{DeepSeek v3 variation -- per-expert biases}
+% hand-typeset (_generator/handwritten/)
 \begin{itemize}
   \item Set up a per-expert bias (making it more likely to get tokens) and use online learning
-  \item They call this `auxiliary loss free balancing'
 \end{itemize}
 \begin{center}
-  \includegraphics[page=30,trim=172 237 172 104,clip,width=171pt]{figure/cs336-l4.pdf}\par
-  \includegraphics[page=30,trim=72 6 142 198,clip,width=231pt]{figure/cs336-l4.pdf}\par
+\includegraphics[page=30,trim=173 237 173 104,clip,width=\linewidth,height=22pt,keepaspectratio]{figure/cs336-l4.pdf}
 \end{center}
+\begin{itemize}
+  \item They call this `\textbf{auxiliary loss free balancing}'
+\end{itemize}
+\begin{center}
+\includegraphics[page=30,trim=142 27 142 198,clip,width=\linewidth,height=68pt,keepaspectratio]{figure/cs336-l4.pdf}
+\end{center}
+{\small (but the approach is not fully aux loss free..)\par}
 \end{frame}
 
 % CS336 slide 31
@@ -1155,10 +1686,19 @@
 
 % CS336 slide 32
 \begin{frame}{Training MoEs -- the systems side}
-% full-body crop (figures would be too small next to the bullets)
-\begin{center}
-  \includegraphics[page=32,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l4.pdf}
-\end{center}
+% hand-typeset (_generator/handwritten/)
+\begin{columns}[T]
+\begin{column}{0.36\textwidth}
+\centering
+MoEs parallelize nicely -- Each FFN can fit in a device\\[4pt]
+\includegraphics[page=32,trim=63 40 475 142,clip,width=\linewidth,height=125pt,keepaspectratio]{figure/cs336-l4.pdf}
+\end{column}
+\begin{column}{0.62\textwidth}
+\centering
+Enables additional kinds of parallelism\\[4pt]
+\includegraphics[page=32,trim=307 38 21 139,clip,width=\linewidth]{figure/cs336-l4.pdf}
+\end{column}
+\end{columns}
 \end{frame}
 
 % CS336 slide 33
@@ -1189,13 +1729,17 @@
 
 % CS336 slide 35
 \begin{frame}{Issues with MoEs - stability}
+% hand-typeset (_generator/handwritten/)
+\begin{center}
+\includegraphics[page=35,trim=55 214 509 77,clip,width=0.25\linewidth]{figure/cs336-l4.pdf}\hspace{6pt}\includegraphics[page=35,trim=221 221 19 84,clip,width=0.72\linewidth]{figure/cs336-l4.pdf}
+\end{center}
+\vspace{-8pt}
+{\raggedleft\scriptsize [Zoph 2022]\par}
 \begin{itemize}
-  \item Solution: Use Float 32 just for the expert router (sometimes with an aux z-loss)
+  \item \textbf{Solution:} Use Float 32 just for the expert router (sometimes with an aux z-loss)
 \end{itemize}
 \begin{center}
-  \includegraphics[page=35,trim=54 213 507 76,clip,width=70pt]{figure/cs336-l4.pdf}\par
-  \includegraphics[page=35,trim=220 194 20 84,clip,width=210pt]{figure/cs336-l4.pdf}\par
-  \includegraphics[page=35,trim=72 64 143 271,clip,width=221pt]{figure/cs336-l4.pdf}\par
+\includegraphics[page=35,trim=72 64 143 271,clip,width=0.85\linewidth]{figure/cs336-l4.pdf}
 \end{center}
 \end{frame}
 
@@ -1211,10 +1755,25 @@
 
 % CS336 slide 37
 \begin{frame}{Issues with MoEs -- fine-tuning}
-% full-body crop (figures would be too small next to the bullets)
+% hand-typeset (_generator/handwritten/)
 \begin{center}
-  \includegraphics[page=37,trim=20 3 8 64,clip,width=330pt]{figure/cs336-l4.pdf}
+Sparse MoEs can overfit on smaller fine-tuning data\\[2pt]
+\includegraphics[page=37,trim=266 176 282 97,clip,width=\linewidth,height=70pt,keepaspectratio]{figure/cs336-l4.pdf}
 \end{center}
+\begin{columns}[T]
+\begin{column}{0.4\textwidth}
+\centering
+{\small Zoph et al solution -- finetune non-MoE MLPs\par}
+\smallskip
+\includegraphics[page=37,trim=77 11 493 267,clip,width=\linewidth,height=62pt,keepaspectratio]{figure/cs336-l4.pdf}
+\end{column}
+\begin{column}{0.58\textwidth}
+\centering
+{\small DeepSeek solution -- use lots of data 1.4M SFT\par}
+\smallskip
+\includegraphics[page=37,trim=321 48 25 294,clip,width=\linewidth]{figure/cs336-l4.pdf}
+\end{column}
+\end{columns}
 \end{frame}
 
 % FRAMES-END
@@ -1260,32 +1819,74 @@
 
 % CS336 slide 41
 \begin{frame}{DeepSeek MoE v1-v2-v3}
-\begin{itemize}
-  \item To wrap up, we'll walk through the DeepSeek MoE architecture.
-\end{itemize}
+% hand-typeset (_generator/handwritten/)
+To wrap up, we'll walk through the DeepSeek MoE architecture.
+
+\smallskip
+\textbf{V1 (16B -- 2.8 active):}
 \begin{center}
-  \includegraphics[page=41,trim=78 149 217 90,clip,width=175pt]{figure/cs336-l4.pdf}\par
-  \includegraphics[page=41,trim=90 40 466 272,clip,width=67pt]{figure/cs336-l4.pdf}\par
-  \includegraphics[page=41,trim=386 34 194 296,clip,width=58pt]{figure/cs336-l4.pdf}\par
+{\footnotesize\textbf{Shared (2) + Fine-grained (64/4) experts}\par}
+\includegraphics[page=41,trim=207 149 217 145,clip,width=\linewidth,height=56pt,keepaspectratio]{figure/cs336-l4.pdf}
 \end{center}
-{\scriptsize Standard Aux-loss balancing (Expert + Device)\par}
+\begin{columns}[T]
+\begin{column}{0.48\textwidth}
+\centering
+{\footnotesize\textbf{Standard, top-k routing}\par}
+\includegraphics[page=41,trim=90 40 467 291,clip,width=\linewidth,height=38pt,keepaspectratio]{figure/cs336-l4.pdf}
+\end{column}
+\begin{column}{0.48\textwidth}
+\centering
+{\footnotesize\textbf{Standard Aux-loss balancing} (Expert + Device)\par}
+\includegraphics[page=41,trim=385 34 193 296,clip,width=\linewidth,height=38pt,keepaspectratio]{figure/cs336-l4.pdf}
+\end{column}
+\end{columns}
 \end{frame}
 
 % CS336 slide 42
 \begin{frame}{DeepSeek MoE v2}
+% hand-typeset (_generator/handwritten/)
+\textbf{V2 (236B -- 21 active):}
 \begin{center}
-  \includegraphics[page=42,trim=70 174 212 69,clip,width=193pt]{figure/cs336-l4.pdf}\par
-  \includegraphics[page=42,trim=58 54 414 246,clip,width=109pt]{figure/cs336-l4.pdf}\par
-  \includegraphics[page=42,trim=374 4 108 293,clip,width=105pt]{figure/cs336-l4.pdf}\par
+{\footnotesize\textbf{Shared (2) + Fine-grained (160/10) experts, 6 active}\par}
+\includegraphics[page=42,trim=211 174 211 122,clip,width=\linewidth,height=55pt,keepaspectratio]{figure/cs336-l4.pdf}
 \end{center}
-{\scriptsize Communication balancing loss -- balancing both communication in and out\par}
+\textbf{\footnotesize New things:}
+\begin{columns}[T]
+\begin{column}{0.44\textwidth}
+\centering
+{\footnotesize Top-M device routing\par}
+\includegraphics[page=42,trim=59 56 415 298,clip,width=\linewidth]{figure/cs336-l4.pdf}
+\end{column}
+\begin{column}{0.54\textwidth}
+\centering
+{\footnotesize Communication balancing loss -- balancing both communication in \emph{and} out\par}
+\includegraphics[page=42,trim=375 5 109 294,clip,width=\linewidth,height=52pt,keepaspectratio]{figure/cs336-l4.pdf}
+\end{column}
+\end{columns}
 \end{frame}
 
 % CS336 slide 43
 \begin{frame}{DeepSeek MoE v3}
+% hand-typeset (_generator/handwritten/)
+\textbf{V3 (671B -- 37 active):}
 \begin{center}
-  \includegraphics[page=43,trim=70 12 80 69,clip,width=291pt]{figure/cs336-l4.pdf}\par
+{\footnotesize\textbf{Shared (1) + Fine-grained (258) experts, 8 active}\par}
+\includegraphics[page=43,trim=211 176 211 122,clip,width=\linewidth,height=55pt,keepaspectratio]{figure/cs336-l4.pdf}
 \end{center}
+\textbf{\small New things}
+\begin{columns}[T]
+\begin{column}{0.48\textwidth}
+\centering
+{\footnotesize Sigmoid+Softmax topK + topM\par}
+\includegraphics[page=43,trim=110 14 401 268,clip,width=\linewidth,height=55pt,keepaspectratio]{figure/cs336-l4.pdf}
+\end{column}
+\begin{column}{0.48\textwidth}
+\centering
+{\footnotesize Aux-loss-free + seq-wise aux\par}
+\vspace{10pt}
+\includegraphics[page=43,trim=415 54 81 312,clip,width=\linewidth]{figure/cs336-l4.pdf}
+\end{column}
+\end{columns}
 \end{frame}
 
 % CS336 slide 44
@@ -1301,26 +1902,45 @@
 
 % CS336 slide 45
 \begin{frame}{What else do you need to make DeepSeek MoE v3?}
-\begin{itemize}
-  \item Basic idea: express the Q, K, V as functions of a lower-dim, `latent' activation
-\end{itemize}
+% hand-typeset (_generator/handwritten/)
+\footnotesize
+\makebox[\textwidth][c]{\begin{minipage}{400pt}
+\textbf{Basic idea:} express the Q, K, V as functions of a lower-dim, `latent' activation
 \begin{center}
-  \includegraphics[page=45,trim=62 2 35 95,clip,width=277pt]{figure/cs336-l4.pdf}\par
+\includegraphics[page=45,trim=297 211 297 95,clip,width=\linewidth,height=48pt,keepaspectratio]{figure/cs336-l4.pdf}\hspace{14pt}\includegraphics[page=45,trim=439 206 66 100,clip,width=\linewidth,height=48pt,keepaspectratio]{figure/cs336-l4.pdf}
 \end{center}
+\textbf{Benefits:} when KV-caching, we only need to store $c_t^{KV}$, which can be much smaller.
+$W^{UK}$ can be merged into the Q projection\\
+\mbox{}\hfill(they also compress queries, for memory savings during training)\quad\raisebox{-0.4\height}{\includegraphics[page=45,trim=561 110 72 239,clip,width=\linewidth,height=20pt,keepaspectratio]{figure/cs336-l4.pdf}}
+
+\textbf{Complexity:} rope conflicts with MLA-style caching.\\[2pt]
+\hspace*{1em}Without RoPE -- $\langle Q, K \rangle = \langle hW^Q, W^{UK} c_t^{KV} \rangle = \langle h\,\textcolor{red}{W^Q W^{UK}}, c_t^{KV} \rangle$\\[2pt]
+\hspace*{1em}With RoPE -- $\langle QR_q, R_k K \rangle = \langle hW^Q R_q, R_k W^{UK} c_t^{KV} \rangle = \langle h\,\textcolor{red}{W^Q R_q R_k W^{UK}}, c_t^{KV} \rangle$\par\smallskip
+{\centering\color{gray} The solution -- Have a few non-latent key dimensions that can be rotated\par}
+\end{minipage}}
 \end{frame}
 
 % CS336 slide 46
 \begin{frame}{What else do you need to make DeepSeek MoE v3?}
-\begin{itemize}
-  \item MTP: Have small, lightweight models that predict multiple steps ahead
-  \begin{itemize}
-    \item (See paper for ablations)
-  \end{itemize}
-\end{itemize}
+% hand-typeset (_generator/handwritten/)
+\textbf{MTP:} Have small, lightweight models that predict multiple steps ahead
+\begin{columns}[T]
+\begin{column}{0.55\textwidth}
+\centering
+\includegraphics[page=46,trim=39 124 319 114,clip,width=\linewidth]{figure/cs336-l4.pdf}\\
+{\scriptsize (But they only do MTP with one token ahead)\hfill [Deepseek v3]\par}
+\end{column}
+\begin{column}{0.43\textwidth}
+\centering
+\includegraphics[page=46,trim=413 106 35 97,clip,width=\linewidth,height=72pt,keepaspectratio]{figure/cs336-l4.pdf}\\
+{\raggedleft\scriptsize [EAGLE]\par}
+\end{column}
+\end{columns}
 \begin{center}
-  \includegraphics[page=46,trim=39 90 15 98,clip,width=272pt]{figure/cs336-l4.pdf}\par
-  \includegraphics[page=46,trim=224 4 213 322,clip,width=116pt]{figure/cs336-l4.pdf}\par
+\includegraphics[page=46,trim=224 4 213 323,clip,width=\linewidth,height=32pt,keepaspectratio]{figure/cs336-l4.pdf}
 \end{center}
+\vspace{-6pt}
+{\raggedleft\footnotesize (See paper for ablations)\par}
 \end{frame}
 
 % CS336 slide 47
@@ -1360,7 +1980,7 @@
 
 \begin{frame}{License \& Attribution}
 \begin{itemize}
-\item \textbf{Source.} All frames except the four listed below are adapted from \textbf{Stanford CS336 \emph{Language Modeling from Scratch}}, Spring 2025, Lectures 3 (\emph{Architectures, hyperparameters}) and 4 (\emph{Mixture of experts}) by Tatsunori Hashimoto, \url{https://github.com/stanford-cs336/spring2025-lectures} --- \textbf{Copyright 2025 Stanford University}, licensed under the \textbf{MIT License} (full notice in \texttt{\_sources/}). One frame per source slide, in the source's order; text in the source's wording, figures and formulas cropped from the source PDF.
+\item \textbf{Source.} All frames except the four listed below are adapted from \textbf{Stanford CS336 \emph{Language Modeling from Scratch}}, Spring 2025, Lectures 3 (\emph{Architectures, hyperparameters}) and 4 (\emph{Mixture of experts}) by Tatsunori Hashimoto, \url{https://github.com/stanford-cs336/spring2025-lectures} --- \textbf{Copyright 2025 Stanford University}, licensed under the \textbf{MIT License} (full notice in \texttt{\_sources/}). One frame per source slide, in the source's order; text and formulas retypeset in the source's wording, figures cropped from the source PDF.
 \item \textbf{Figures} inside the slides are from the papers credited on each frame, reused with that attribution.
 \item \textbf{Original to this course.} \enquote{Since 2017: What Changed Inside the Transformer?}, \enquote{Compute vs.\ Memory}, \enquote{The KV Cache}, \enquote{Where This Is Going}.
 \end{itemize}

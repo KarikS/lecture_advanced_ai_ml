@@ -1,0 +1,16 @@
+\small
+\renewcommand{\arraystretch}{1.3}
+\makebox[\textwidth][c]{%
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{150pt}@{\hspace{12pt}}>{\centering\arraybackslash}m{130pt}@{\hspace{12pt}}>{\raggedright\arraybackslash}p{95pt}@{}}
+\toprule
+ & & \textbf{Notable models}\\
+\midrule
+Original transformer: \textbf{LayerNorm} -- normalizes the mean and variance across $d_{\text{model}}$
+ & $\displaystyle y = \frac{x - \operatorname{E}[x]}{\sqrt{\operatorname{Var}[x] + \epsilon}} * \gamma + \beta$
+ & GPT3/2/1, OPT, GPT-J, BLOOM\\
+\midrule
+Many modern LMs: \textbf{RMSNorm} -- does not subtract mean or add a bias term
+ & $\displaystyle y = \frac{x}{\sqrt{\|x\|_2^2 + \varepsilon}} * \gamma$
+ & LLaMA-family, PaLM, Chinchilla, T5\\
+\bottomrule
+\end{tabular}}
