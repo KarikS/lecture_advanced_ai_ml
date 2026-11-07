@@ -1,17 +1,73 @@
-Suggested order of slides (planned — none authored yet):
+This session compiles to a single deck: slides-tooling-hardware.tex
+(25 pages, 22 frames, built 2026-11-07).
 
-- slides-09-software      [copy+adapt: i2dl/slides/opt1/slides-opt1-hardware-and-software.tex,
-                            \section{Software for Deep Learning} portion]
-- slides-09-tools         [NEW — gap. MLOps tooling: keep interactive/demo-driven rather than
-                            slide-heavy. MiniLM embeddings (Hugging Face) -> TensorBoard
-                            projector -> MLflow tracking -> mirrored in W&B. Specific
-                            setup notes (pip installs, endpoints, academic W&B license) are in
-                            outline_mapping.md gap-strategy #5 — pick exact tools closer to
-                            teaching this segment.]
-- slides-09-hardware      [copy+adapt: same file as software, \section{Hardware for Deep
-                            Learning} portion; possibly overlaps dl4nlp/chapter11-training-llms
-                            compute-cost material]
-- slides-09-eu-sovereignty [NEW — gap, DHBW-specific. Fast-moving policy topic: verify current
-                            status via research before drafting, don't draft from memory. Karik
-                            provides a rough guideline first. See outline_mapping.md
-                            gap-strategy #6.]
+SOURCING PRINCIPLE
+
+One source per part, used in its own order, cut by whole frames/slides only:
+
+  Software   I2DL (SLDS, LMU Munich, CC BY 4.0),
+             slides/opt1/slides-opt1-hardware-and-software.tex,
+             section "Software for Deep Learning" (source lines 74-148),
+             all 3 frames copied verbatim. Copy in _sources/.
+  Hardware   Stanford CS336 Spring 2025, lecture 5 "GPUs" (Tatsunori
+             Hashimoto), Copyright 2025 Stanford University, MIT License
+             (notice in _sources/LICENSE-cs336-spring2025-lectures).
+             Source PDF: figure/cs336-l5.pdf (downloaded 2026-11-07 from
+             github.com/stanford-cs336/spring2025-lectures, nonexecutable/,
+             unchanged).
+  [O]        learning goals (draft, for Karik to rewrite), License &
+             Attribution frame.
+
+Decisions 2026-11-07:
+- Hardware from CS336 lecture 5 instead of the I2DL "Hardware for Deep
+  Learning" section (2021: GTX 1080 Ti / V100, TPU prices, DGX-1). The I2DL
+  hardware frames are not used.
+- Tools (MLOps: MiniLM embeddings -> TensorBoard projector -> MLflow -> W&B,
+  setup notes in outline_mapping.md gap-strategy #5): to become a lab later,
+  not part of this deck.
+- European sovereignty: TODO. Waits for Karik's rough guideline; then research
+  the current status before drafting (fast-moving policy topic).
+
+SECTIONS
+
+ 1. Software for Deep Learning -- I2DL, 3 frames: "Software for Deep
+      Learning" x3 (frameworks and computational graph; TensorFlow, Keras;
+      PyTorch, MXNet)
+ 2. Hardware for Deep Learning: GPUs -- CS336 lecture 5, slides
+      5-18 (Part 1: GPUs in depth), 19-21 (Part 2 opening: square-matmul
+      performance, roofline model, list of tricks), 45 (recap of part 2)
+                                                                (18 frames)
+    left out: 1-4 (title, outline, credits, organization), the Part 2 tricks
+      in detail (22-44: control divergence, low precision, operator fusion,
+      recomputation, coalescing, tiling, the matrix mystery), Part 3 flash
+      attention (46-50), lecture recap (51; refers to flash attention).
+      Selection generous on request; Karik reviews and cuts whole frames.
+
+ADAPTATION (everything that differs from the sources)
+
+Software (I2DL)
+- Computational-graph figure scaled 0.25 -> 0.18 ("% fit16:9").
+- Kept as in the source, dated (2021), for Karik to decide: "Popular in the
+  industry" / "Popular in academia" for TensorFlow / PyTorch; Keras as a
+  "wrapper on Tensorflow" (Keras 3 is multi-backend); PyTorch "Supported by
+  Facebook" (governed by the PyTorch Foundation since 2022); MXNet as an
+  active framework used by Amazon (MXNet was retired to the Apache Attic in
+  2023). These dates are from my knowledge, not checked against sources in
+  this session; verify before changing anything.
+
+Hardware (CS336)
+- One frame per selected slide, title = slide title; text retypeset in the
+  course font in the source's wording; figures (screenshots, plots, diagrams)
+  cropped from the source PDF, with the credits the source gives (Kaplan et
+  al., Bill Dally, NVIDIA blog URL, riselab URL) set as small lines under the
+  figure. Labels inside the cropped figures keep the source's fonts.
+- Typos fixed: slide 6 title "Dennard scaing" -> "Dennard scaling"; slide 7
+  credit "Bill dally" -> "Bill Dally".
+- Kept as in the source: slide 13 "TPUs has fewer TCs"; "(in the parallelism
+  lecture)" on slide 13 (refers to CS336's lecture 7, not part of this course).
+- Slide 18 and 45: the three figure thumbnails stacked in a right column, as
+  in the source.
+
+HISTORY
+
+2026-11-07  First build: I2DL software section + CS336 lecture 5. 25 pages.

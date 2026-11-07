@@ -86,6 +86,11 @@ UCL Course on Reinforcement Learning (2015,
 https://davidstarsilver.wordpress.com/teaching/), published under
 **CC BY-NC 4.0**, and its RLHF part from DL4NLP chapter 10.
 
+Session 12 (Software, Tooling & Hardware) takes its hardware part from
+Stanford CS336 Lecture 5 (*GPUs*, Spring 2025, Tatsunori Hashimoto),
+Copyright 2025 Stanford University, **MIT License**, and its software part
+from I2DL.
+
 We'd also like to thank Marius Lindauer and Katharina Eggensperger for their
 ESSAI 2023 summer school lecture on Neural Architecture Search, published
 under **CC BY-SA**, which the NAS section in this course builds on and
