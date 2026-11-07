@@ -58,7 +58,10 @@ deck's "License & Attribution" frame for details. Likewise, three sections of
 Session 10 (`session-10-transformers-outside-nlp`) condense text from the LMU
 booklet *Multimodal Deep Learning*, licensed **CC BY-NC-SA 4.0**; those
 sections are shared under CC BY-NC-SA 4.0 (see that deck's "License &
-Attribution" frame).
+Attribution" frame). Sections 1-5 of Session 11
+(`session-11-reinforcement-learning`) are adapted from David Silver's UCL
+Course on Reinforcement Learning, licensed **CC BY-NC 4.0**; those sections
+are shared under CC BY-NC 4.0 (see that deck's "License & Attribution" frame).
 
 ## Acknowledgements
 
@@ -77,6 +80,11 @@ per-section sourcing.
 Session 9 (Transformers Modernized) is adapted from Stanford CS336 *Language
 Modeling from Scratch* (Spring 2025, Lectures 3 and 4 by Tatsunori Hashimoto),
 Copyright 2025 Stanford University, published under the **MIT License**.
+
+Session 11 (Reinforcement Learning) takes its RL basics from David Silver's
+UCL Course on Reinforcement Learning (2015,
+https://davidstarsilver.wordpress.com/teaching/), published under
+**CC BY-NC 4.0**, and its RLHF part from DL4NLP chapter 10.
 
 We'd also like to thank Marius Lindauer and Katharina Eggensperger for their
 ESSAI 2023 summer school lecture on Neural Architecture Search, published

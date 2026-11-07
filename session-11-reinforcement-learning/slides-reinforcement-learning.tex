@@ -1,0 +1,3086 @@
+\input{../style/preamble}
+\input{../latex-math/basic-math}
+\input{../latex-math/basic-ml}
+\input{../latex-math/ml-nn}
+
+% Macros the DL4NLP source deck (chapter10-rlhf) gets from its own preamble
+% (lecture_dl4nlp/style/preamble_new.tex).
+\newcommand{\ques}{\textbf{\textcolor{red}{Question:  }}}
+\definecolor{texblue}{rgb}{0, 0, 1}
+\def\myblue#1{\textcolor{texblue}{#1}}
+
+\newcommand{\titlefigure}{figure/threesteps.png}
+\newcommand{\learninggoals}{
+  \item The reinforcement learning problem: agent, environment, reward, state; policy, value function, model
+  \item Markov decision processes, returns and the Bellman equations
+  \item Model-free control with Q-learning, and value function approximation up to DQN
+  \item Policy gradients: REINFORCE and actor-critic
+  \item RLHF: how InstructGPT turns human preferences into a reward model and trains the LLM with PPO, and where it fails
+}
+
+\title{Advanced Artificial Intelligence and Machine Learning}
+\date{}
+
+\begin{document}
+
+\lecturechapter{Reinforcement Learning}
+\lecture{Advanced AI \& ML}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction to Reinforcement Learning}
+% Source: David Silver, UCL RL course (2015), lecture 1
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Silver L1, slide 7
+\begin{frame}{Branches of Machine Learning}
+\begin{center}
+\includegraphics[page=7,trim=80 10 76 64,clip,width=\linewidth,height=165pt,keepaspectratio]{figure/silver-l1.pdf}
+\end{center}
+\end{frame}
+
+% Silver L1, slide 8
+\begin{frame}{Characteristics of Reinforcement Learning}
+What makes reinforcement learning different from other machine learning paradigms?
+\begin{itemize}
+  \item There is no supervisor, only a \emph{reward} signal
+  \item Feedback is delayed, not instantaneous
+  \item Time really matters (sequential, non i.i.d data)
+  \item Agent's actions affect the subsequent data it receives
+\end{itemize}
+\end{frame}
+
+% Silver L1, slide 9
+\begin{frame}{Examples of Reinforcement Learning}
+\begin{itemize}
+  \item Fly stunt manoeuvres in a helicopter
+  \item Defeat the world champion at Backgammon
+  \item Manage an investment portfolio
+  \item Control a power station
+  \item Make a humanoid robot walk
+  \item Play many different Atari games better than humans
+\end{itemize}
+\end{frame}
+
+% Silver L1, slide 13
+\begin{frame}{Rewards}
+\begin{itemize}
+  \item A \textcolor{red}{reward} $R_t$ is a scalar feedback signal
+  \item Indicates how well agent is doing at step $t$
+  \item The agent's job is to maximise cumulative reward
+\end{itemize}
+Reinforcement learning is based on the \textcolor{red}{reward hypothesis}
+\begin{block}{Definition (Reward Hypothesis)}
+\emph{All} goals can be described by the maximisation of expected cumulative reward
+\end{block}
+Do you agree with this statement?
+\end{frame}
+
+% Silver L1, slide 14
+\begin{frame}{Examples of Rewards}
+\makebox[\textwidth][c]{\begin{minipage}{1.24\textwidth}
+\begin{columns}[T]
+\begin{column}{0.5\textwidth}
+\begin{itemize}
+  \item Fly stunt manoeuvres in a helicopter
+  \begin{itemize}
+    \item $+$ve reward for following desired trajectory
+    \item $-$ve reward for crashing
+  \end{itemize}
+  \item Defeat the world champion at Backgammon
+  \begin{itemize}
+    \item $+/-$ve reward for winning/losing a game
+  \end{itemize}
+  \item Manage an investment portfolio
+  \begin{itemize}
+    \item $+$ve reward for each \$ in bank
+  \end{itemize}
+\end{itemize}
+\end{column}
+\begin{column}{0.5\textwidth}
+\begin{itemize}
+  \item Control a power station
+  \begin{itemize}
+    \item $+$ve reward for producing power
+    \item $-$ve reward for exceeding safety thresholds
+  \end{itemize}
+  \item Make a humanoid robot walk
+  \begin{itemize}
+    \item $+$ve reward for forward motion
+    \item $-$ve reward for falling over
+  \end{itemize}
+  \item Play many different Atari games better than humans
+  \begin{itemize}
+    \item $+/-$ve reward for increasing/decreasing score
+  \end{itemize}
+\end{itemize}
+\end{column}
+\end{columns}
+\end{minipage}}
+\end{frame}
+
+% Silver L1, slide 15
+\begin{frame}{Sequential Decision Making}
+\begin{itemize}
+  \item Goal: \emph{select actions to maximise total future reward}
+  \item Actions may have long term consequences
+  \item Reward may be delayed
+  \item It may be better to sacrifice immediate reward to gain more long-term reward
+  \item Examples:
+  \begin{itemize}
+    \item A financial investment (may take months to mature)
+    \item Refuelling a helicopter (might prevent a crash in several hours)
+    \item Blocking opponent moves (might help winning chances many moves from now)
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+% Silver L1, slide 16
+\begin{frame}{Agent and Environment}
+\begin{center}
+\includegraphics[page=16,trim=30 15 49 66,clip,width=\linewidth,height=165pt,keepaspectratio]{figure/silver-l1.pdf}
+\end{center}
+\end{frame}
+
+% Silver L1, slide 17
+\begin{frame}{Agent and Environment}
+\begin{columns}[c]
+\begin{column}{0.45\textwidth}
+\centering
+\includegraphics[page=17,trim=18 22 183 72,clip,width=\linewidth]{figure/silver-l1.pdf}
+\end{column}
+\begin{column}{0.55\textwidth}
+\begin{itemize}
+  \item At each step $t$ the agent:
+  \begin{itemize}
+    \item Executes action $A_t$
+    \item Receives observation $O_t$
+    \item Receives scalar reward $R_t$
+  \end{itemize}
+  \item The environment:
+  \begin{itemize}
+    \item Receives action $A_t$
+    \item Emits observation $O_{t+1}$
+    \item Emits scalar reward $R_{t+1}$
+  \end{itemize}
+  \item $t$ increments at env.\ step
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+% Silver L1, slide 18
+\begin{frame}{History and State}
+\begin{itemize}
+  \item The \textcolor{red}{history} is the sequence of observations, actions, rewards
+  \[ H_t = O_1, R_1, A_1, \ldots, A_{t-1}, O_t, R_t \]
+  \item i.e.\ all observable variables up to time $t$
+  \item i.e.\ the sensorimotor stream of a robot or embodied agent
+  \item What happens next depends on the history:
+  \begin{itemize}
+    \item The agent selects actions
+    \item The environment selects observations/rewards
+  \end{itemize}
+  \item \textcolor{red}{State} is the information used to determine what happens next
+  \item Formally, state is a function of the history:
+  \[ S_t = f(H_t) \]
+\end{itemize}
+\end{frame}
+
+% Silver L1, slide 19
+\begin{frame}{Environment State}
+\begin{columns}[c]
+\begin{column}{0.45\textwidth}
+\centering
+\includegraphics[page=19,trim=18 22 183 70,clip,width=\linewidth]{figure/silver-l1.pdf}
+\end{column}
+\begin{column}{0.55\textwidth}
+\begin{itemize}
+  \item The \textcolor{red}{environment state} $S^e_t$ is the environment's private representation
+  \item i.e.\ whatever data the environment uses to pick the next observation/reward
+  \item The environment state is not usually visible to the agent
+  \item Even if $S^e_t$ is visible, it may contain irrelevant information
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+% Silver L1, slide 20
+\begin{frame}{Agent State}
+\begin{columns}[c]
+\begin{column}{0.45\textwidth}
+\centering
+\includegraphics[page=20,trim=18 14 183 62,clip,width=\linewidth]{figure/silver-l1.pdf}
+\end{column}
+\begin{column}{0.55\textwidth}
+\begin{itemize}
+  \item The \textcolor{red}{agent state} $S^a_t$ is the agent's internal representation
+  \item i.e.\ whatever information the agent uses to pick the next action
+  \item i.e.\ it is the information used by reinforcement learning algorithms
+  \item It can be any function of history:
+  \[ S^a_t = f(H_t) \]
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+% Silver L1, slide 23
+\begin{frame}{Fully Observable Environments}
+\begin{columns}[c]
+\begin{column}{0.45\textwidth}
+\centering
+\includegraphics[page=23,trim=18 22 183 70,clip,width=\linewidth]{figure/silver-l1.pdf}
+\end{column}
+\begin{column}{0.55\textwidth}
+\textcolor{red}{Full observability}: agent \textcolor{red}{directly} observes environment state
+\[ O_t = S^a_t = S^e_t \]
+\begin{itemize}
+  \item Agent state $=$ environment state $=$ information state
+  \item Formally, this is a \textcolor{red}{Markov decision process} (MDP)
+  \item (Next lecture and the majority of this course)
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+% Silver L1, slide 24
+\begin{frame}{Partially Observable Environments}
+\begin{itemize}
+  \item \textcolor{red}{Partial observability}: agent \textcolor{red}{indirectly} observes environment:
+  \begin{itemize}
+    \item A robot with camera vision isn't told its absolute location
+    \item A trading agent only observes current prices
+    \item A poker playing agent only observes public cards
+  \end{itemize}
+  \item Now agent state $\neq$ environment state
+  \item Formally this is a \textcolor{red}{partially observable Markov decision process} (POMDP)
+  \item Agent must construct its own state representation $S^a_t$, e.g.
+  \begin{itemize}
+    \item Complete history: $S^a_t = H_t$
+    \item \textcolor{red}{Beliefs} of environment state: $S^a_t = (\mathbb{P}[S^e_t = s^1], \ldots, \mathbb{P}[S^e_t = s^n])$
+    \item Recurrent neural network: $S^a_t = \sigma(S^a_{t-1} W_s + O_t W_o)$
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+% Silver L1, slide 25
+\begin{frame}{Major Components of an RL Agent}
+\begin{itemize}
+  \item An RL agent may include one or more of these components:
+  \begin{itemize}
+    \item Policy: agent's behaviour function
+    \item Value function: how good is each state and/or action
+    \item Model: agent's representation of the environment
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+% Silver L1, slide 26
+\begin{frame}{Policy}
+\begin{itemize}
+  \item A \textcolor{red}{policy} is the agent's behaviour
+  \item It is a map from state to action, e.g.
+  \item Deterministic policy: $a = \pi(s)$
+  \item Stochastic policy: $\pi(a|s) = \mathbb{P}[A_t = a | S_t = s]$
+\end{itemize}
+\end{frame}
+
+% Silver L1, slide 27
+\begin{frame}{Value Function}
+\begin{itemize}
+  \item Value function is a prediction of future reward
+  \item Used to evaluate the goodness/badness of states
+  \item And therefore to select between actions, e.g.
+\end{itemize}
+\[ v_\pi(s) = \mathbb{E}_\pi\left[R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+3} + \ldots \mid S_t = s\right] \]
+\end{frame}
+
+% Silver L1, slide 29
+\begin{frame}{Model}
+\begin{itemize}
+  \item A \textcolor{red}{model} predicts what the environment will do next
+  \item $\mathcal{P}$ predicts the next state
+  \item $\mathcal{R}$ predicts the next (immediate) reward, e.g.
+\end{itemize}
+\begin{align*}
+\mathcal{P}^a_{ss'} &= \mathbb{P}[S_{t+1} = s' \mid S_t = s, A_t = a]\\
+\mathcal{R}^a_s &= \mathbb{E}[R_{t+1} \mid S_t = s, A_t = a]
+\end{align*}
+\end{frame}
+
+% Silver L1, slide 30
+\begin{frame}{Maze Example}
+\begin{columns}[c]
+\begin{column}{0.5\textwidth}
+\centering
+\includegraphics[page=30,trim=20 52 191 94,clip,width=\linewidth]{figure/silver-l1.pdf}
+\end{column}
+\begin{column}{0.5\textwidth}
+\begin{itemize}
+  \item Rewards: $-1$ per time-step
+  \item Actions: N, E, S, W
+  \item States: Agent's location
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+% Silver L1, slide 31
+\begin{frame}{Maze Example: Policy}
+\begin{center}
+\includegraphics[page=31,trim=30 32 127 64,clip,width=\linewidth,height=150pt,keepaspectratio]{figure/silver-l1.pdf}
+\end{center}
+\begin{itemize}
+  \item Arrows represent policy $\pi(s)$ for each state $s$
+\end{itemize}
+\end{frame}
+
+% Silver L1, slide 32
+\begin{frame}{Maze Example: Value Function}
+\begin{center}
+\includegraphics[page=32,trim=30 32 127 63,clip,width=\linewidth,height=150pt,keepaspectratio]{figure/silver-l1.pdf}
+\end{center}
+\begin{itemize}
+  \item Numbers represent value $v_\pi(s)$ of each state $s$
+\end{itemize}
+\end{frame}
+
+% Silver L1, slide 33
+\begin{frame}{Maze Example: Model}
+\begin{columns}[c]
+\begin{column}{0.5\textwidth}
+\centering
+\includegraphics[page=33,trim=20 66 181 67,clip,width=\linewidth]{figure/silver-l1.pdf}
+\end{column}
+\begin{column}{0.5\textwidth}
+\begin{itemize}
+  \item Agent may have an internal model of the environment
+  \item Dynamics: how actions change the state
+  \item Rewards: how much reward from each state
+  \item The model may be imperfect
+\end{itemize}
+\end{column}
+\end{columns}
+\begin{itemize}
+  \item Grid layout represents transition model $\mathcal{P}^a_{ss'}$
+  \item Numbers represent immediate reward $\mathcal{R}^a_s$ from each state $s$ (same for all $a$)
+\end{itemize}
+\end{frame}
+
+% Silver L1, slide 34
+\begin{frame}{Categorizing RL agents (1)}
+\begin{itemize}
+  \item Value Based
+  \begin{itemize}
+    \item \textcolor{gray}{No Policy (Implicit)}
+    \item Value Function
+  \end{itemize}
+  \item Policy Based
+  \begin{itemize}
+    \item Policy
+    \item \textcolor{gray}{No Value Function}
+  \end{itemize}
+  \item Actor Critic
+  \begin{itemize}
+    \item Policy
+    \item Value Function
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+% Silver L1, slide 35
+\begin{frame}{Categorizing RL agents (2)}
+\begin{itemize}
+  \item Model Free
+  \begin{itemize}
+    \item Policy and/or Value Function
+    \item \textcolor{gray}{No Model}
+  \end{itemize}
+  \item Model Based
+  \begin{itemize}
+    \item Policy and/or Value Function
+    \item Model
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+% Silver L1, slide 36
+\begin{frame}{RL Agent Taxonomy}
+\begin{center}
+\includegraphics[page=36,trim=78 10 76 64,clip,width=\linewidth,height=165pt,keepaspectratio]{figure/silver-l1.pdf}
+\end{center}
+\end{frame}
+
+% Silver L1, slide 37
+\begin{frame}{Learning and Planning}
+Two fundamental problems in sequential decision making
+\begin{itemize}
+  \item Reinforcement Learning:
+  \begin{itemize}
+    \item The environment is initially unknown
+    \item The agent interacts with the environment
+    \item The agent improves its policy
+  \end{itemize}
+  \item Planning:
+  \begin{itemize}
+    \item A model of the environment is known
+    \item The agent performs computations with its model (without any external interaction)
+    \item The agent improves its policy
+    \item a.k.a.\ deliberation, reasoning, introspection, pondering, thought, search
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+% Silver L1, slide 40
+\begin{frame}{Exploration and Exploitation (1)}
+\begin{itemize}
+  \item Reinforcement learning is like trial-and-error learning
+  \item The agent should discover a good policy
+  \item From its experiences of the environment
+  \item Without losing too much reward along the way
+\end{itemize}
+\end{frame}
+
+% Silver L1, slide 41
+\begin{frame}{Exploration and Exploitation (2)}
+\begin{itemize}
+  \item \emph{Exploration} finds more information about the environment
+  \item \emph{Exploitation} exploits known information to maximise reward
+  \item It is usually important to explore as well as exploit
+\end{itemize}
+\end{frame}
+
+% Silver L1, slide 43
+\begin{frame}{Prediction and Control}
+\begin{itemize}
+  \item Prediction: evaluate the future
+  \begin{itemize}
+    \item Given a policy
+  \end{itemize}
+  \item Control: optimise the future
+  \begin{itemize}
+    \item Find the best policy
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+% Silver L1, slide 44
+\begin{frame}{Gridworld Example: Prediction}
+\begin{center}
+\includegraphics[page=44,trim=26 66 26 86,clip,width=\linewidth]{figure/silver-l1.pdf}
+\end{center}
+What is the value function for the uniform random policy?
+\end{frame}
+
+% Silver L1, slide 45
+\begin{frame}{Gridworld Example: Control}
+\begin{center}
+\includegraphics[page=45,trim=30 78 30 84,clip,width=\linewidth]{figure/silver-l1.pdf}
+\end{center}
+What is the optimal value function over all possible policies?\\
+What is the optimal policy?
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Markov Decision Processes}
+% Source: David Silver, UCL RL course (2015), lecture 2
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Silver L2, slide 3
+\begin{frame}{Introduction to MDPs}
+\begin{itemize}
+  \item \emph{Markov decision processes} formally describe an environment for reinforcement learning
+  \item Where the environment is \emph{fully observable}
+  \item i.e.\ The current \emph{state} completely characterises the process
+  \item Almost all RL problems can be formalised as MDPs, e.g.
+  \begin{itemize}
+    \item Optimal control primarily deals with continuous MDPs
+    \item Partially observable problems can be converted into MDPs
+    \item Bandits are MDPs with one state
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+% Silver L2, slide 4
+\begin{frame}{Markov Property}
+``The future is independent of the past given the present''
+\begin{block}{Definition}
+A state $S_t$ is \emph{Markov} if and only if
+\[ \mathbb{P}[S_{t+1} \mid S_t] = \mathbb{P}[S_{t+1} \mid S_1, \ldots, S_t] \]
+\end{block}
+\begin{itemize}
+  \item The state captures all relevant information from the history
+  \item Once the state is known, the history may be thrown away
+  \item i.e.\ The state is a sufficient statistic of the future
+\end{itemize}
+\end{frame}
+
+% Silver L2, slide 5
+\begin{frame}{State Transition Matrix}
+For a Markov state $s$ and successor state $s'$, the \emph{state transition probability} is defined by
+\[ \mathcal{P}_{ss'} = \mathbb{P}\left[S_{t+1} = s' \mid S_t = s\right] \]
+State transition matrix $\mathcal{P}$ defines transition probabilities from all states $s$ to all successor states $s'$,
+\[ \mathcal{P} = \text{from}\
+\overset{\text{to}}{\begin{bmatrix} \mathcal{P}_{11} & \ldots & \mathcal{P}_{1n} \\ \vdots & & \\ \mathcal{P}_{n1} & \ldots & \mathcal{P}_{nn} \end{bmatrix}} \]
+where each row of the matrix sums to 1.
+\end{frame}
+
+% Silver L2, slide 6
+\begin{frame}{Markov Process}
+A Markov process is a memoryless random process, i.e.\ a sequence of random states $S_1, S_2, \ldots$ with the Markov property.
+\begin{block}{Definition}
+A \emph{Markov Process} (or \emph{Markov Chain}) is a tuple $\langle \mathcal{S}, \mathcal{P} \rangle$
+\begin{itemize}
+  \item $\mathcal{S}$ is a (finite) set of states
+  \item $\mathcal{P}$ is a state transition probability matrix,\\
+  $\mathcal{P}_{ss'} = \mathbb{P}[S_{t+1} = s' \mid S_t = s]$
+\end{itemize}
+\end{block}
+\end{frame}
+
+% Silver L2, slide 7
+\begin{frame}{Example: Student Markov Chain}
+\begin{center}
+\includegraphics[page=7,trim=74 12 67 66,clip,width=\linewidth,height=170pt,keepaspectratio]{figure/silver-l2.pdf}
+\end{center}
+\end{frame}
+
+% Silver L2, slide 8
+\begin{frame}{Example: Student Markov Chain Episodes}
+\begin{columns}[c]
+\begin{column}{0.48\textwidth}
+\centering
+\includegraphics[page=8,trim=13 48 195 96,clip,width=\linewidth]{figure/silver-l2.pdf}
+\end{column}
+\begin{column}{0.52\textwidth}
+Sample \textcolor{red}{episodes} for Student Markov Chain starting from $S_1 = C1$
+\[ S_1, S_2, \ldots, S_T \]
+\begin{itemize}
+  \item C1 C2 C3 Pass Sleep
+  \item C1 FB FB C1 C2 Sleep
+  \item C1 C2 C3 Pub C2 C3 Pass Sleep
+  \item C1 FB FB C1 C2 C3 Pub C1 FB FB FB C1 C2 C3 Pub C2 Sleep
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+% Silver L2, slide 10
+\begin{frame}{Markov Reward Process}
+A Markov reward process is a Markov chain with values.
+\begin{block}{Definition}
+A \emph{Markov Reward Process} is a tuple $\langle \mathcal{S}, \mathcal{P}, \textcolor{red}{\mathcal{R}}, \textcolor{red}{\gamma} \rangle$
+\begin{itemize}
+  \item $\mathcal{S}$ is a finite set of states
+  \item $\mathcal{P}$ is a state transition probability matrix,\\
+  $\mathcal{P}_{ss'} = \mathbb{P}[S_{t+1} = s' \mid S_t = s]$
+  \item \textcolor{red}{$\mathcal{R}$ is a reward function, $\mathcal{R}_s = \mathbb{E}[R_{t+1} \mid S_t = s]$}
+  \item \textcolor{red}{$\gamma$ is a discount factor, $\gamma \in [0, 1]$}
+\end{itemize}
+\end{block}
+\end{frame}
+
+% Silver L2, slide 11
+\begin{frame}{Example: Student MRP}
+\begin{center}
+\includegraphics[page=11,trim=74 14 67 62,clip,width=\linewidth,height=170pt,keepaspectratio]{figure/silver-l2.pdf}
+\end{center}
+\end{frame}
+
+% Silver L2, slide 12
+\begin{frame}{Return}
+\begin{block}{Definition}
+The \emph{return} $G_t$ is the total discounted reward from time-step $t$.
+\[ G_t = R_{t+1} + \gamma R_{t+2} + \ldots = \sum_{k=0}^\infty \gamma^k R_{t+k+1} \]
+\end{block}
+\begin{itemize}
+  \item The \emph{discount} $\gamma \in [0, 1]$ is the present value of future rewards
+  \item The value of receiving reward $R$ after $k+1$ time-steps is $\gamma^k R$.
+  \item This values immediate reward above delayed reward.
+  \begin{itemize}
+    \item $\gamma$ close to $0$ leads to ``myopic'' evaluation
+    \item $\gamma$ close to $1$ leads to ``far-sighted'' evaluation
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+% Silver L2, slide 13
+\begin{frame}{Why discount?}
+Most Markov reward and decision processes are discounted. Why?
+\begin{itemize}
+  \item Mathematically convenient to discount rewards
+  \item Avoids infinite returns in cyclic Markov processes
+  \item Uncertainty about the future may not be fully represented
+  \item If the reward is financial, immediate rewards may earn more interest than delayed rewards
+  \item Animal/human behaviour shows preference for immediate reward
+  \item It is sometimes possible to use \emph{undiscounted} Markov reward processes (i.e.\ $\gamma = 1$), e.g.\ if all sequences terminate.
+\end{itemize}
+\end{frame}
+
+% Silver L2, slide 14
+\begin{frame}{Value Function}
+The value function $v(s)$ gives the long-term value of state $s$
+\begin{block}{Definition}
+The \emph{state value function} $v(s)$ of an MRP is the expected return starting from state $s$
+\[ v(s) = \mathbb{E}[G_t \mid S_t = s] \]
+\end{block}
+\end{frame}
+
+% Silver L2, slide 19
+\begin{frame}{Bellman Equation for MRPs}
+The value function can be decomposed into two parts:
+\begin{itemize}
+  \item immediate reward $R_{t+1}$
+  \item discounted value of successor state $\gamma v(S_{t+1})$
+\end{itemize}
+\begin{align*}
+v(s) &= \mathbb{E}[G_t \mid S_t = s]\\
+&= \mathbb{E}\left[R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+3} + \ldots \mid S_t = s\right]\\
+&= \mathbb{E}[R_{t+1} + \gamma(R_{t+2} + \gamma R_{t+3} + \ldots) \mid S_t = s]\\
+&= \mathbb{E}[R_{t+1} + \gamma G_{t+1} \mid S_t = s]\\
+&= \mathbb{E}[R_{t+1} + \gamma v(S_{t+1}) \mid S_t = s]
+\end{align*}
+\end{frame}
+
+% Silver L2, slide 20
+\begin{frame}{Bellman Equation for MRPs (2)}
+\[ v(s) = \mathbb{E}[R_{t+1} + \gamma v(S_{t+1}) \mid S_t = s] \]
+\begin{center}
+\begin{tikzpicture}[x=1cm,y=1cm]
+\node[circle,draw,inner sep=0pt,minimum size=9pt] (t) at (0,0) {};
+\node[circle,draw,inner sep=0pt,minimum size=9pt] (l) at (-1,-1.4) {};
+\node[circle,draw,inner sep=0pt,minimum size=9pt] (r) at (1,-1.4) {};
+\draw (t) -- (l); \draw (t) -- (r) node[midway,right] {$r$};
+\node[left=6pt] at (t) {$v(s) \mapsto s$};
+\node[left=6pt] at (l) {$v(s') \mapsto s'$};
+\end{tikzpicture}
+\end{center}
+\[ v(s) = \mathcal{R}_s + \gamma \sum_{s' \in \mathcal{S}} \mathcal{P}_{ss'} v(s') \]
+\end{frame}
+
+% Silver L2, slide 24
+\begin{frame}{Markov Decision Process}
+A Markov decision process (MDP) is a Markov reward process with decisions. It is an \emph{environment} in which all states are Markov.
+\begin{block}{Definition}
+A \emph{Markov Decision Process} is a tuple $\langle \mathcal{S}, \textcolor{red}{\mathcal{A}}, \mathcal{P}, \mathcal{R}, \gamma \rangle$
+\begin{itemize}
+  \item $\mathcal{S}$ is a finite set of states
+  \item \textcolor{red}{$\mathcal{A}$ is a finite set of actions}
+  \item $\mathcal{P}$ is a state transition probability matrix,\\
+  $\mathcal{P}^{\textcolor{red}{a}}_{ss'} = \mathbb{P}[S_{t+1} = s' \mid S_t = s, \textcolor{red}{A_t = a}]$
+  \item $\mathcal{R}$ is a reward function, $\mathcal{R}^{\textcolor{red}{a}}_s = \mathbb{E}[R_{t+1} \mid S_t = s, \textcolor{red}{A_t = a}]$
+  \item $\gamma$ is a discount factor $\gamma \in [0, 1]$.
+\end{itemize}
+\end{block}
+\end{frame}
+
+% Silver L2, slide 25
+\begin{frame}{Example: Student MDP}
+\begin{center}
+\includegraphics[page=25,trim=60 17 61 64,clip,width=\linewidth,height=170pt,keepaspectratio]{figure/silver-l2.pdf}
+\end{center}
+\end{frame}
+
+% Silver L2, slide 26
+\begin{frame}{Policies (1)}
+\begin{block}{Definition}
+A \emph{policy} $\pi$ is a distribution over actions given states,
+\[ \pi(a|s) = \mathbb{P}[A_t = a \mid S_t = s] \]
+\end{block}
+\begin{itemize}
+  \item A policy fully defines the behaviour of an agent
+  \item MDP policies depend on the current state (not the history)
+  \item i.e.\ Policies are \emph{stationary} (time-independent),\\
+  $A_t \sim \pi(\cdot|S_t), \forall t > 0$
+\end{itemize}
+\end{frame}
+
+% Silver L2, slide 28
+\begin{frame}{Value Function}
+\begin{block}{Definition}
+The \emph{state-value function} $v_\pi(s)$ of an MDP is the expected return starting from state $s$, and then following policy $\pi$
+\[ v_\pi(s) = \mathbb{E}_\pi[G_t \mid S_t = s] \]
+\end{block}
+\begin{block}{Definition}
+The \emph{action-value function} $q_\pi(s, a)$ is the expected return starting from state $s$, taking action $a$, and then following policy $\pi$
+\[ q_\pi(s, a) = \mathbb{E}_\pi[G_t \mid S_t = s, A_t = a] \]
+\end{block}
+\end{frame}
+
+% Silver L2, slide 30
+\begin{frame}{Bellman Expectation Equation}
+The state-value function can again be decomposed into immediate reward plus discounted value of successor state,
+\[ v_\pi(s) = \mathbb{E}_\pi[R_{t+1} + \gamma v_\pi(S_{t+1}) \mid S_t = s] \]
+\vspace{1em}
+The action-value function can similarly be decomposed,
+\[ q_\pi(s, a) = \mathbb{E}_\pi[R_{t+1} + \gamma q_\pi(S_{t+1}, A_{t+1}) \mid S_t = s, A_t = a] \]
+\end{frame}
+
+% Silver L2, slide 31
+\begin{frame}{Bellman Expectation Equation for $V^\pi$}
+\begin{center}
+\begin{tikzpicture}[x=1cm,y=1cm]
+\node[circle,draw,inner sep=0pt,minimum size=9pt] (t) at (0,0) {};
+\node[circle,fill,inner sep=0pt,minimum size=6pt] (l) at (-1,-1.4) {};
+\node[circle,fill,inner sep=0pt,minimum size=6pt] (r) at (1,-1.4) {};
+\draw (t) -- (l); \draw (t) -- (r);
+\node[left=6pt] at (t) {$v_\pi(s) \mapsto s$};
+\node[left=6pt] at (l) {$q_\pi(s, a) \mapsto a$};
+\end{tikzpicture}
+\end{center}
+\[ v_\pi(s) = \sum_{a \in \mathcal{A}} \pi(a|s) q_\pi(s, a) \]
+\end{frame}
+
+% Silver L2, slide 32
+\begin{frame}{Bellman Expectation Equation for $Q^\pi$}
+\begin{center}
+\begin{tikzpicture}[x=1cm,y=1cm]
+\node[circle,fill,inner sep=0pt,minimum size=6pt] (t) at (0,0) {};
+\node[circle,draw,inner sep=0pt,minimum size=9pt] (l) at (-1,-1.4) {};
+\node[circle,draw,inner sep=0pt,minimum size=9pt] (r) at (1,-1.4) {};
+\draw (t) -- (l); \draw (t) -- (r) node[midway,right] {$r$};
+\node[left=6pt] at (t) {$q_\pi(s, a) \mapsto s, a$};
+\node[left=6pt] at (l) {$v_\pi(s') \mapsto s'$};
+\end{tikzpicture}
+\end{center}
+\[ q_\pi(s, a) = \mathcal{R}^a_s + \gamma \sum_{s' \in \mathcal{S}} \mathcal{P}^a_{ss'} v_\pi(s') \]
+\end{frame}
+
+% Silver L2, slide 35
+\begin{frame}{Example: Bellman Expectation Equation in Student MDP}
+\begin{center}
+\includegraphics[page=35,trim=56 17 67 64,clip,width=\linewidth,height=170pt,keepaspectratio]{figure/silver-l2.pdf}
+\end{center}
+\end{frame}
+
+% Silver L2, slide 37
+\begin{frame}{Optimal Value Function}
+\begin{block}{Definition}
+The \emph{optimal state-value function} $v_*(s)$ is the maximum value function over all policies
+\[ v_*(s) = \max_\pi v_\pi(s) \]
+The \emph{optimal action-value function} $q_*(s, a)$ is the maximum action-value function over all policies
+\[ q_*(s, a) = \max_\pi q_\pi(s, a) \]
+\end{block}
+\begin{itemize}
+  \item The optimal value function specifies the best possible performance in the MDP.
+  \item An MDP is ``solved'' when we know the optimal value fn.
+\end{itemize}
+\end{frame}
+
+% Silver L2, slide 40
+\begin{frame}{Optimal Policy}
+Define a partial ordering over policies
+\[ \pi \geq \pi' \text{ if } v_\pi(s) \geq v_{\pi'}(s), \forall s \]
+\begin{block}{Theorem}
+\emph{For any Markov Decision Process}
+\begin{itemize}
+  \item \emph{There exists an optimal policy $\pi_*$ that is better than or equal to all other policies, $\pi_* \geq \pi, \forall \pi$}
+  \item \emph{All optimal policies achieve the optimal value function, $v_{\pi_*}(s) = v_*(s)$}
+  \item \emph{All optimal policies achieve the optimal action-value function, $q_{\pi_*}(s, a) = q_*(s, a)$}
+\end{itemize}
+\end{block}
+\end{frame}
+
+% Silver L2, slide 41
+\begin{frame}{Finding an Optimal Policy}
+An optimal policy can be found by maximising over $q_*(s, a)$,
+\[ \pi_*(a|s) = \begin{cases} 1 & \text{if } a = \operatorname*{argmax}\limits_{a \in \mathcal{A}} q_*(s, a)\\ 0 & \text{otherwise} \end{cases} \]
+\begin{itemize}
+  \item There is always a deterministic optimal policy for any MDP
+  \item If we know $q_*(s, a)$, we immediately have the optimal policy
+\end{itemize}
+\end{frame}
+
+% Silver L2, slide 43
+\begin{frame}{Bellman Optimality Equation for $v_*$}
+The optimal value functions are recursively related by the Bellman optimality equations:
+\begin{center}
+\begin{tikzpicture}[x=1cm,y=1cm]
+\node[circle,draw,inner sep=0pt,minimum size=9pt] (t) at (0,0) {};
+\node[circle,fill,inner sep=0pt,minimum size=6pt] (l) at (-1,-1.4) {};
+\node[circle,fill,inner sep=0pt,minimum size=6pt] (r) at (1,-1.4) {};
+\draw (t) -- (l); \draw (t) -- (r);
+\node[left=6pt] at (t) {$v_*(s) \mapsto s$};
+\node[left=6pt] at (l) {$q_*(s, a) \mapsto a$};
+\draw ($(t)!0.45!(l)$) arc[start angle=234.5, end angle=305.5, radius=0.77];
+\end{tikzpicture}
+\end{center}
+\[ v_*(s) = \max_a q_*(s, a) \]
+\end{frame}
+
+% Silver L2, slide 44
+\begin{frame}{Bellman Optimality Equation for $Q^*$}
+\begin{center}
+\begin{tikzpicture}[x=1cm,y=1cm]
+\node[circle,fill,inner sep=0pt,minimum size=6pt] (t) at (0,0) {};
+\node[circle,draw,inner sep=0pt,minimum size=9pt] (l) at (-1,-1.4) {};
+\node[circle,draw,inner sep=0pt,minimum size=9pt] (r) at (1,-1.4) {};
+\draw (t) -- (l); \draw (t) -- (r) node[midway,right] {$r$};
+\node[left=6pt] at (t) {$q_*(s, a) \mapsto s, a$};
+\node[left=6pt] at (l) {$v_*(s') \mapsto s'$};
+\end{tikzpicture}
+\end{center}
+\[ q_*(s, a) = \mathcal{R}^a_s + \gamma \sum_{s' \in \mathcal{S}} \mathcal{P}^a_{ss'} v_*(s') \]
+\end{frame}
+
+% Silver L2, slide 48
+\begin{frame}{Solving the Bellman Optimality Equation}
+\begin{itemize}
+  \item Bellman Optimality Equation is non-linear
+  \item No closed form solution (in general)
+  \item Many iterative solution methods
+  \begin{itemize}
+    \item Value Iteration
+    \item Policy Iteration
+    \item Q-learning
+    \item Sarsa
+  \end{itemize}
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Model-Free Control}
+% Source: David Silver, UCL RL course (2015), lecture 5
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Silver L5, slide 3
+\begin{frame}{Model-Free Reinforcement Learning}
+\begin{itemize}
+  \item Last lecture:
+  \begin{itemize}
+    \item \textcolor{red}{Model-free prediction}
+    \item \emph{Estimate} the value function of an \emph{unknown} MDP
+  \end{itemize}
+  \item This lecture:
+  \begin{itemize}
+    \item \textcolor{red}{Model-free control}
+    \item \emph{Optimise} the value function of an \emph{unknown} MDP
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+% Silver L5, slide 5
+\begin{frame}{On and Off-Policy Learning}
+\begin{itemize}
+  \item \textcolor{red}{On-policy} learning
+  \begin{itemize}
+    \item ``Learn on the job''
+    \item Learn about policy $\pi$ from experience sampled from $\pi$
+  \end{itemize}
+  \item \textcolor{red}{Off-policy} learning
+  \begin{itemize}
+    \item ``Look over someone's shoulder''
+    \item Learn about policy $\pi$ from experience sampled from $\mu$
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+% Silver L5, slide 11
+\begin{frame}{$\epsilon$-Greedy Exploration}
+\begin{itemize}
+  \item Simplest idea for ensuring continual exploration
+  \item All $m$ actions are tried with non-zero probability
+  \item With probability $1 - \epsilon$ choose the greedy action
+  \item With probability $\epsilon$ choose an action at random
+\end{itemize}
+\[ \pi(a|s) = \begin{cases} \epsilon/m + 1 - \epsilon & \text{if } a^* = \operatorname*{argmax}\limits_{a \in \mathcal{A}} Q(s, a)\\ \epsilon/m & \text{otherwise} \end{cases} \]
+\end{frame}
+
+% Silver L5, slide 19
+\begin{frame}{MC vs. TD Control}
+\begin{itemize}
+  \item Temporal-difference (TD) learning has several advantages over Monte-Carlo (MC)
+  \begin{itemize}
+    \item Lower variance
+    \item Online
+    \item Incomplete sequences
+  \end{itemize}
+  \item Natural idea: use TD instead of MC in our control loop
+  \begin{itemize}
+    \item Apply TD to $Q(S, A)$
+    \item Use $\epsilon$-greedy policy improvement
+    \item Update every time-step
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+% Silver L5, slide 20
+\begin{frame}{Updating Action-Value Functions with Sarsa}
+\begin{center}
+\includegraphics[page=20,trim=150 86 158 78,clip,width=55pt]{figure/silver-l5.pdf}
+\end{center}
+\[ Q(S, A) \leftarrow Q(S, A) + \alpha\left(R + \gamma Q(S', A') - Q(S, A)\right) \]
+\end{frame}
+
+% Silver L5, slide 31
+\begin{frame}{Off-Policy Learning}
+\begin{itemize}
+  \item Evaluate target policy $\pi(a|s)$ to compute $v_\pi(s)$ or $q_\pi(s, a)$
+  \item While following behaviour policy $\mu(a|s)$
+  \[ \{S_1, A_1, R_2, \ldots, S_T\} \sim \mu \]
+  \item Why is this important?
+  \item Learn from observing humans or other agents
+  \item Re-use experience generated from old policies $\pi_1, \pi_2, \ldots, \pi_{t-1}$
+  \item Learn about \emph{optimal} policy while following \emph{exploratory} policy
+  \item Learn about \emph{multiple} policies while following \emph{one} policy
+\end{itemize}
+\end{frame}
+
+% Silver L5, slide 35
+\begin{frame}{Q-Learning}
+\begin{itemize}
+  \item We now consider off-policy learning of action-values $Q(s, a)$
+  \item \textcolor{red}{No} importance sampling is required
+  \item \textcolor{red}{Next} action is chosen using behaviour policy $A_{t+1} \sim \mu(\cdot|S_t)$
+  \item But we consider alternative successor action $A' \sim \pi(\cdot|S_t)$
+  \item And update $Q(S_t, A_t)$ towards value of alternative action
+\end{itemize}
+\[ Q(S_t, A_t) \leftarrow Q(S_t, A_t) + \alpha\left(\textcolor{red}{R_{t+1} + \gamma Q(S_{t+1}, A')} - Q(S_t, A_t)\right) \]
+\end{frame}
+
+% Silver L5, slide 36
+\begin{frame}{Off-Policy Control with Q-Learning}
+\begin{itemize}
+  \item We now allow both behaviour and target policies to \textcolor{red}{improve}
+  \item The target policy $\pi$ is \textcolor{red}{greedy} w.r.t.\ $Q(s, a)$
+  \[ \pi(S_{t+1}) = \operatorname*{argmax}_{a'} Q(S_{t+1}, a') \]
+  \item The behaviour policy $\mu$ is e.g.\ \textcolor{red}{$\epsilon$-greedy} w.r.t.\ $Q(s, a)$
+  \item The Q-learning target then simplifies:
+\end{itemize}
+\begin{align*}
+&R_{t+1} + \gamma Q(S_{t+1}, A')\\
+={}&R_{t+1} + \gamma Q\big(S_{t+1}, \operatorname*{argmax}_{a'} Q(S_{t+1}, a')\big)\\
+={}&R_{t+1} + \max_{a'} \gamma Q(S_{t+1}, a')
+\end{align*}
+\end{frame}
+
+% Silver L5, slide 37
+\begin{frame}{Q-Learning Control Algorithm}
+\begin{center}
+\includegraphics[page=37,trim=140 124 148 70,clip,width=75pt]{figure/silver-l5.pdf}
+\end{center}
+\[ Q(S, A) \leftarrow Q(S, A) + \alpha\left(R + \gamma \max_{a'} Q(S', a') - Q(S, A)\right) \]
+\begin{block}{Theorem}
+\emph{Q-learning control converges to the optimal action-value function, $Q(s, a) \rightarrow q_*(s, a)$}
+\end{block}
+\end{frame}
+
+% Silver L5, slide 38
+\begin{frame}{Q-Learning Algorithm for Off-Policy Control}
+\begin{center}
+\fbox{\begin{minipage}{0.95\textwidth}
+\small\raggedright
+Initialize $Q(s, a), \forall s \in \mathcal{S}, a \in \mathcal{A}(s)$, arbitrarily, and $Q(\textit{terminal-state}, \cdot) = 0$\\
+Repeat (for each episode):\\
+\hspace*{1em}Initialize $S$\\
+\hspace*{1em}Repeat (for each step of episode):\\
+\hspace*{2em}Choose $A$ from $S$ using policy derived from $Q$ (e.g., $\varepsilon$-greedy)\\
+\hspace*{2em}Take action $A$, observe $R$, $S'$\\
+\hspace*{2em}$Q(S, A) \leftarrow Q(S, A) + \alpha\big[R + \gamma \max_a Q(S', a) - Q(S, A)\big]$\\
+\hspace*{2em}$S \leftarrow S'$;\\
+\hspace*{1em}until $S$ is terminal
+\end{minipage}}
+\end{center}
+\end{frame}
+
+% Silver L5, slide 40
+\begin{frame}{Cliff Walking Example}
+\begin{center}
+\includegraphics[page=40,trim=72 7 71 62,clip,width=\linewidth,height=175pt,keepaspectratio]{figure/silver-l5.pdf}
+\end{center}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Value Function Approximation}
+% Source: David Silver, UCL RL course (2015), lecture 6
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Silver L6, slide 5
+\begin{frame}{Large-Scale Reinforcement Learning}
+Reinforcement learning can be used to solve \emph{large} problems, e.g.
+\begin{itemize}
+  \item Backgammon: $10^{20}$ states
+  \item Computer Go: $10^{170}$ states
+  \item Helicopter: continuous state space
+\end{itemize}
+How can we scale up the model-free methods for \emph{prediction} and \emph{control} from the last two lectures?
+\end{frame}
+
+% Silver L6, slide 6
+\begin{frame}{Value Function Approximation}
+\begin{itemize}
+  \item So far we have represented value function by a \emph{lookup} table
+  \begin{itemize}
+    \item Every state $s$ has an entry $V(s)$
+    \item Or every state-action pair $s, a$ has an entry $Q(s, a)$
+  \end{itemize}
+  \item Problem with large MDPs:
+  \begin{itemize}
+    \item There are too many states and/or actions to store in memory
+    \item It is too slow to learn the value of each state individually
+  \end{itemize}
+  \item Solution for large MDPs:
+  \begin{itemize}
+    \item Estimate value function with \emph{function approximation}
+    \[ \hat{v}(s, \mathbf{w}) \approx v_\pi(s) \quad \text{or} \quad \hat{q}(s, a, \mathbf{w}) \approx q_\pi(s, a) \]
+    \item \emph{Generalise} from seen states to unseen states
+    \item \emph{Update} parameter $\mathbf{w}$ using MC or TD learning
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+% Silver L6, slide 7
+\begin{frame}{Types of Value Function Approximation}
+\begin{center}
+\includegraphics[page=7,trim=28 32 37 72,clip,width=\linewidth,height=165pt,keepaspectratio]{figure/silver-l6.pdf}
+\end{center}
+\end{frame}
+
+% Silver L6, slide 8
+\begin{frame}{Which Function Approximator?}
+There are many function approximators, e.g.
+\begin{itemize}
+  \item Linear combinations of features
+  \item Neural network
+  \item Decision tree
+  \item Nearest neighbour
+  \item Fourier / wavelet bases
+  \item \ldots
+\end{itemize}
+\end{frame}
+
+% Silver L6, slide 11
+\begin{frame}{Gradient Descent}
+\begin{columns}[c]
+\begin{column}{0.62\textwidth}
+\begin{itemize}
+  \item Let $J(\mathbf{w})$ be a differentiable function of parameter vector $\mathbf{w}$
+  \item Define the \emph{gradient} of $J(\mathbf{w})$ to be
+  \[ \nabla_\mathbf{w} J(\mathbf{w}) = \begin{pmatrix} \frac{\partial J(\mathbf{w})}{\partial \mathbf{w}_1} \\ \vdots \\ \frac{\partial J(\mathbf{w})}{\partial \mathbf{w}_n} \end{pmatrix} \]
+  \item To find a local minimum of $J(\mathbf{w})$
+  \item Adjust $\mathbf{w}$ in direction of $-$ve gradient
+  \[ \Delta \mathbf{w} = -\tfrac{1}{2} \alpha \nabla_\mathbf{w} J(\mathbf{w}) \]
+\end{itemize}
+where $\alpha$ is a step-size parameter
+\end{column}
+\begin{column}{0.38\textwidth}
+\centering
+\includegraphics[page=11,trim=230 14 7 72,clip,width=\linewidth]{figure/silver-l6.pdf}
+\end{column}
+\end{columns}
+\end{frame}
+
+% Silver L6, slide 12
+\begin{frame}{Value Function Approx.\ By Stochastic Gradient Descent}
+\begin{itemize}
+  \item Goal: find parameter vector $\mathbf{w}$ minimising mean-squared error between approximate value fn $\hat{v}(s, \mathbf{w})$ and true value fn $v_\pi(s)$
+  \[ J(\mathbf{w}) = \mathbb{E}_\pi\left[(v_\pi(S) - \hat{v}(S, \mathbf{w}))^2\right] \]
+  \item Gradient descent finds a local minimum
+  \begin{align*}
+  \Delta \mathbf{w} &= -\tfrac{1}{2} \alpha \nabla_\mathbf{w} J(\mathbf{w})\\
+  &= \alpha \mathbb{E}_\pi\left[(v_\pi(S) - \hat{v}(S, \mathbf{w})) \nabla_\mathbf{w} \hat{v}(S, \mathbf{w})\right]
+  \end{align*}
+  \item Stochastic gradient descent \emph{samples} the gradient
+  \[ \Delta \mathbf{w} = \alpha (v_\pi(S) - \hat{v}(S, \mathbf{w})) \nabla_\mathbf{w} \hat{v}(S, \mathbf{w}) \]
+  \item Expected update is equal to full gradient update
+\end{itemize}
+\end{frame}
+
+% Silver L6, slide 21
+\begin{frame}{Control with Value Function Approximation}
+\begin{center}
+\includegraphics[page=21,trim=28 66 133 72,clip,width=\linewidth,height=135pt,keepaspectratio]{figure/silver-l6.pdf}
+\end{center}
+\textcolor{red}{Policy evaluation} \textcolor{red}{Approximate} policy evaluation, $\hat{q}(\cdot, \cdot, \mathbf{w}) \approx q_\pi$\\
+\textcolor{red}{Policy improvement} $\epsilon$-greedy policy improvement
+\end{frame}
+
+% Silver L6, slide 22
+\begin{frame}{Action-Value Function Approximation}
+\begin{itemize}
+  \item Approximate the action-value function
+  \[ \hat{q}(S, A, \mathbf{w}) \approx q_\pi(S, A) \]
+  \item Minimise mean-squared error between approximate action-value fn $\hat{q}(S, A, \mathbf{w})$ and true action-value fn $q_\pi(S, A)$
+  \[ J(\mathbf{w}) = \mathbb{E}_\pi\left[(q_\pi(S, A) - \hat{q}(S, A, \mathbf{w}))^2\right] \]
+  \item Use stochastic gradient descent to find a local minimum
+  \begin{align*}
+  -\tfrac{1}{2} \nabla_\mathbf{w} J(\mathbf{w}) &= (q_\pi(S, A) - \hat{q}(S, A, \mathbf{w})) \nabla_\mathbf{w} \hat{q}(S, A, \mathbf{w})\\
+  \Delta \mathbf{w} &= \alpha (q_\pi(S, A) - \hat{q}(S, A, \mathbf{w})) \nabla_\mathbf{w} \hat{q}(S, A, \mathbf{w})
+  \end{align*}
+\end{itemize}
+\end{frame}
+
+% Silver L6, slide 37
+\begin{frame}{Stochastic Gradient Descent with Experience Replay}
+Given experience consisting of $\langle \textit{state}, \textit{value} \rangle$ pairs
+\[ \mathcal{D} = \{\langle s_1, v_1^\pi \rangle, \langle s_2, v_2^\pi \rangle, \ldots, \langle s_T, v_T^\pi \rangle\} \]
+Repeat:
+\begin{enumerate}
+  \item Sample state, value from experience
+  \[ \langle s, v^\pi \rangle \sim \mathcal{D} \]
+  \item Apply stochastic gradient descent update
+  \[ \Delta \mathbf{w} = \alpha (v^\pi - \hat{v}(s, \mathbf{w})) \nabla_\mathbf{w} \hat{v}(s, \mathbf{w}) \]
+\end{enumerate}
+Converges to least squares solution
+\[ \mathbf{w}^\pi = \operatorname*{argmin}_\mathbf{w} LS(\mathbf{w}) \]
+\end{frame}
+
+% Silver L6, slide 38
+\begin{frame}{Experience Replay in Deep Q-Networks (DQN)}
+DQN uses \textcolor{red}{experience replay} and \textcolor{red}{fixed Q-targets}
+\begin{itemize}
+  \item Take action $a_t$ according to $\epsilon$-greedy policy
+  \item Store transition $(s_t, a_t, r_{t+1}, s_{t+1})$ in replay memory $\mathcal{D}$
+  \item Sample random mini-batch of transitions $(s, a, r, s')$ from $\mathcal{D}$
+  \item Compute Q-learning targets w.r.t.\ old, fixed parameters $\mathbf{w}^-$
+  \item Optimise MSE between Q-network and Q-learning targets
+  \[ \mathcal{L}_i(\mathbf{w}_i) = \mathbb{E}_{s,a,r,s' \sim \mathcal{D}_i}\left[\left(r + \gamma \max_{a'} Q(s', a'; \mathbf{w}_i^-) - Q(s, a; \mathbf{w}_i)\right)^2\right] \]
+  \item Using variant of stochastic gradient descent
+\end{itemize}
+\end{frame}
+
+% Silver L6, slide 39
+\begin{frame}{DQN in Atari}
+\begin{itemize}
+  \item End-to-end learning of values $Q(s, a)$ from pixels $s$
+  \item Input state $s$ is stack of raw pixels from last 4 frames
+  \item Output is $Q(s, a)$ for 18 joystick/button positions
+  \item Reward is change in score for that step
+\end{itemize}
+\begin{center}
+\includegraphics[page=39,trim=34 18 34 139,clip,width=\linewidth,height=100pt,keepaspectratio]{figure/silver-l6.pdf}
+\end{center}
+\textcolor{red}{Network architecture and hyperparameters fixed across all games}\par
+\hfill{\tiny Figure: Mnih et al.\ (2015), \emph{Nature}}
+\end{frame}
+
+% Silver L6, slide 40
+\begin{frame}{DQN Results in Atari}
+\begin{center}
+\includegraphics[page=40,trim=28 0 28 60,clip,width=\linewidth,height=175pt,keepaspectratio]{figure/silver-l6.pdf}
+\end{center}
+\vspace{-0.5em}
+\hfill{\tiny Figure: Mnih et al.\ (2015), \emph{Nature}}
+\end{frame}
+
+% Silver L6, slide 41
+\begin{frame}{How much does DQN help?}
+\begin{center}
+\begin{tabular}{lrrrr}
+\toprule
+ & Replay & Replay & No replay & No replay\\
+ & Fixed-Q & Q-learning & Fixed-Q & Q-learning\\
+\midrule
+Breakout & 316.81 & 240.73 & 10.16 & 3.17\\
+Enduro & 1006.3 & 831.25 & 141.89 & 29.1\\
+River Raid & 7446.62 & 4102.81 & 2867.66 & 1453.02\\
+Seaquest & 2894.4 & 822.55 & 1003 & 275.81\\
+Space Invaders & 1088.94 & 826.33 & 373.22 & 301.99\\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Policy Gradient}
+% Source: David Silver, UCL RL course (2015), lecture 7
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Silver L7, slide 3
+\begin{frame}{Policy-Based Reinforcement Learning}
+\begin{itemize}
+  \item In the last lecture we approximated the value or action-value function using parameters $\theta$,
+  \begin{align*}
+  V_\theta(s) &\approx V^\pi(s)\\
+  Q_\theta(s, a) &\approx Q^\pi(s, a)
+  \end{align*}
+  \item A policy was generated directly from the value function
+  \begin{itemize}
+    \item e.g.\ using $\epsilon$-greedy
+  \end{itemize}
+  \item In this lecture we will directly parametrise the \textcolor{red}{policy}
+  \[ \pi_\theta(s, a) = \mathbb{P}[a \mid s, \theta] \]
+  \item We will focus again on \textcolor{red}{model-free} reinforcement learning
+\end{itemize}
+\end{frame}
+
+% Silver L7, slide 4
+\begin{frame}{Value-Based and Policy-Based RL}
+\begin{columns}[c]
+\begin{column}{0.45\textwidth}
+\begin{itemize}
+  \item Value Based
+  \begin{itemize}
+    \item Learnt Value Function
+    \item Implicit policy (e.g.\ $\epsilon$-greedy)
+  \end{itemize}
+  \item Policy Based
+  \begin{itemize}
+    \item No Value Function
+    \item Learnt Policy
+  \end{itemize}
+  \item Actor-Critic
+  \begin{itemize}
+    \item Learnt Value Function
+    \item Learnt Policy
+  \end{itemize}
+\end{itemize}
+\end{column}
+\begin{column}{0.55\textwidth}
+\centering
+\includegraphics[page=4,trim=167 53 15 97,clip,width=\linewidth]{figure/silver-l7.pdf}
+\end{column}
+\end{columns}
+\end{frame}
+
+% Silver L7, slide 5
+\begin{frame}{Advantages of Policy-Based RL}
+Advantages:
+\begin{itemize}
+  \item Better convergence properties
+  \item Effective in high-dimensional or continuous action spaces
+  \item Can learn stochastic policies
+\end{itemize}
+Disadvantages:
+\begin{itemize}
+  \item Typically converge to a local rather than global optimum
+  \item Evaluating a policy is typically inefficient and high variance
+\end{itemize}
+\end{frame}
+
+% Silver L7, slide 7
+\begin{frame}{Example: Aliased Gridworld (1)}
+\begin{center}
+\includegraphics[page=7,trim=100 147 101 62,clip,width=162pt]{figure/silver-l7.pdf}
+\end{center}
+\begin{itemize}
+  \item The agent cannot differentiate the grey states
+  \item Consider features of the following form (for all N, E, S, W)
+  \[ \phi(s, a) = \mathbf{1}(\text{wall to N}, a = \text{move E}) \]
+  \item Compare value-based RL, using an approximate value function
+  \[ Q_\theta(s, a) = f(\phi(s, a), \theta) \]
+  \item To policy-based RL, using a parametrised policy
+  \[ \pi_\theta(s, a) = g(\phi(s, a), \theta) \]
+\end{itemize}
+\end{frame}
+
+% Silver L7, slide 8
+\begin{frame}{Example: Aliased Gridworld (2)}
+\begin{center}
+\includegraphics[page=8,trim=100 136 101 72,clip,width=162pt]{figure/silver-l7.pdf}
+\end{center}
+\begin{itemize}
+  \item Under aliasing, an optimal \textcolor{red}{deterministic} policy will either
+  \begin{itemize}
+    \item move W in both grey states (shown by red arrows)
+    \item move E in both grey states
+  \end{itemize}
+  \item Either way, it can get stuck and \emph{never} reach the money
+  \item Value-based RL learns a near-deterministic policy
+  \begin{itemize}
+    \item e.g.\ greedy or $\epsilon$-greedy
+  \end{itemize}
+  \item So it will traverse the corridor for a long time
+\end{itemize}
+\end{frame}
+
+% Silver L7, slide 9
+\begin{frame}{Example: Aliased Gridworld (3)}
+\begin{center}
+\includegraphics[page=9,trim=100 140 101 68,clip,width=162pt]{figure/silver-l7.pdf}
+\end{center}
+\begin{itemize}
+  \item An optimal \textcolor{red}{stochastic} policy will randomly move E or W in grey states
+  \begin{align*}
+  \pi_\theta(\text{wall to N and S}, \text{move E}) &= 0.5\\
+  \pi_\theta(\text{wall to N and S}, \text{move W}) &= 0.5
+  \end{align*}
+  \item It will reach the goal state in a few steps with high probability
+  \item Policy-based RL can learn the optimal stochastic policy
+\end{itemize}
+\end{frame}
+
+% Silver L7, slide 10
+\begin{frame}{Policy Objective Functions}
+\begin{itemize}
+  \item Goal: given policy $\pi_\theta(s, a)$ with parameters $\theta$, find best $\theta$
+  \item But how do we measure the quality of a policy $\pi_\theta$?
+  \item In episodic environments we can use the \textcolor{red}{start value}
+  \[ J_1(\theta) = V^{\pi_\theta}(s_1) = \mathbb{E}_{\pi_\theta}[v_1] \]
+  \item In continuing environments we can use the \textcolor{red}{average value}
+  \[ J_{avV}(\theta) = \sum_s d^{\pi_\theta}(s) V^{\pi_\theta}(s) \]
+  \item Or the \textcolor{red}{average reward per time-step}
+  \[ J_{avR}(\theta) = \sum_s d^{\pi_\theta}(s) \sum_a \pi_\theta(s, a) \mathcal{R}^a_s \]
+  \item where $d^{\pi_\theta}(s)$ is \textcolor{red}{stationary distribution} of Markov chain for $\pi_\theta$
+\end{itemize}
+\end{frame}
+
+% Silver L7, slide 11
+\begin{frame}{Policy Optimisation}
+\begin{itemize}
+  \item Policy based reinforcement learning is an \textcolor{red}{optimisation} problem
+  \item Find $\theta$ that maximises $J(\theta)$
+  \item Some approaches do not use gradient
+  \begin{itemize}
+    \item Hill climbing
+    \item Simplex / amoeba / Nelder Mead
+    \item Genetic algorithms
+  \end{itemize}
+  \item Greater efficiency often possible using gradient
+  \begin{itemize}
+    \item Gradient descent
+    \item Conjugate gradient
+    \item Quasi-newton
+  \end{itemize}
+  \item We focus on gradient descent, many extensions possible
+  \item And on methods that exploit sequential structure
+\end{itemize}
+\end{frame}
+
+% Silver L7, slide 12
+\begin{frame}{Policy Gradient}
+\begin{columns}[c]
+\begin{column}{0.62\textwidth}
+\small
+\begin{itemize}
+  \item Let $J(\theta)$ be any policy objective function
+  \item Policy gradient algorithms search for a \emph{local} maximum in $J(\theta)$ by ascending the gradient of the policy, w.r.t.\ parameters $\theta$
+  \[ \Delta\theta = \alpha \nabla_\theta J(\theta) \]
+  \item Where $\nabla_\theta J(\theta)$ is the \textcolor{red}{policy gradient}
+  \[ \nabla_\theta J(\theta) = \begin{pmatrix} \frac{\partial J(\theta)}{\partial \theta_1} \\ \vdots \\ \frac{\partial J(\theta)}{\partial \theta_n} \end{pmatrix} \]
+  \item and $\alpha$ is a step-size parameter
+\end{itemize}
+\end{column}
+\begin{column}{0.38\textwidth}
+\centering
+\includegraphics[page=12,trim=230 16 7 70,clip,width=\linewidth]{figure/silver-l7.pdf}
+\end{column}
+\end{columns}
+\end{frame}
+
+% Silver L7, slide 16
+\begin{frame}{Score Function}
+\begin{itemize}
+  \item We now compute the policy gradient \emph{analytically}
+  \item Assume policy $\pi_\theta$ is differentiable whenever it is non-zero
+  \item and we know the gradient $\nabla_\theta\pi_\theta(s, a)$
+  \item \textcolor{red}{Likelihood ratios} exploit the following identity
+  \begin{align*}
+  \nabla_\theta\pi_\theta(s, a) &= \pi_\theta(s, a) \frac{\nabla_\theta\pi_\theta(s, a)}{\pi_\theta(s, a)}\\
+  &= \pi_\theta(s, a) \nabla_\theta \log \pi_\theta(s, a)
+  \end{align*}
+  \item The \textcolor{red}{score function} is $\nabla_\theta \log \pi_\theta(s, a)$
+\end{itemize}
+\end{frame}
+
+% Silver L7, slide 17
+\begin{frame}{Softmax Policy}
+\begin{itemize}
+  \item We will use a softmax policy as a running example
+  \item Weight actions using linear combination of features $\phi(s, a)^\top \theta$
+  \item Probability of action is proportional to exponentiated weight
+  \[ \pi_\theta(s, a) \propto e^{\phi(s, a)^\top \theta} \]
+  \item The score function is
+  \[ \nabla_\theta \log \pi_\theta(s, a) = \phi(s, a) - \mathbb{E}_{\pi_\theta}[\phi(s, \cdot)] \]
+\end{itemize}
+\end{frame}
+
+% Silver L7, slide 19
+\begin{frame}{One-Step MDPs}
+\begin{itemize}
+  \item Consider a simple class of \textcolor{red}{one-step} MDPs
+  \begin{itemize}
+    \item Starting in state $s \sim d(s)$
+    \item Terminating after one time-step with reward $r = \mathcal{R}_{s,a}$
+  \end{itemize}
+  \item Use likelihood ratios to compute the policy gradient
+\end{itemize}
+\begin{align*}
+J(\theta) &= \mathbb{E}_{\pi_\theta}[r]\\
+&= \sum_{s \in \mathcal{S}} d(s) \sum_{a \in \mathcal{A}} \pi_\theta(s, a) \mathcal{R}_{s,a}\\
+\nabla_\theta J(\theta) &= \sum_{s \in \mathcal{S}} d(s) \sum_{a \in \mathcal{A}} \pi_\theta(s, a) \nabla_\theta \log \pi_\theta(s, a) \mathcal{R}_{s,a}\\
+&= \mathbb{E}_{\pi_\theta}[\nabla_\theta \log \pi_\theta(s, a) r]
+\end{align*}
+\end{frame}
+
+% Silver L7, slide 20
+\begin{frame}{Policy Gradient Theorem}
+\begin{itemize}
+  \item The policy gradient theorem generalises the likelihood ratio approach to multi-step MDPs
+  \item Replaces instantaneous reward $r$ with long-term value $Q^\pi(s, a)$
+  \item Policy gradient theorem applies to start state objective, average reward and average value objective
+\end{itemize}
+\begin{block}{Theorem}
+\emph{For any differentiable policy $\pi_\theta(s, a)$,\\
+for any of the policy objective functions $J = J_1, J_{avR}$, or $\frac{1}{1-\gamma} J_{avV}$,\\
+the policy gradient is}
+\[ \nabla_\theta J(\theta) = \textcolor{red}{\mathbb{E}_{\pi_\theta}[\nabla_\theta \log \pi_\theta(s, a)\; Q^{\pi_\theta}(s, a)]} \]
+\end{block}
+\end{frame}
+
+% Silver L7, slide 21
+\begin{frame}{Monte-Carlo Policy Gradient (REINFORCE)}
+\begin{itemize}
+  \item Update parameters by stochastic gradient ascent
+  \item Using policy gradient theorem
+  \item Using return $v_t$ as an unbiased sample of $Q^{\pi_\theta}(s_t, a_t)$
+  \[ \Delta\theta_t = \alpha \nabla_\theta \log \pi_\theta(s_t, a_t) v_t \]
+\end{itemize}
+\small
+\begin{algorithmic}
+\Function{REINFORCE}{}
+  \State Initialise $\theta$ arbitrarily
+  \For{each episode $\{s_1, a_1, r_2, \ldots, s_{T-1}, a_{T-1}, r_T\} \sim \pi_\theta$}
+    \For{$t = 1$ to $T - 1$}
+      \State $\theta \leftarrow \theta + \alpha \nabla_\theta \log \pi_\theta(s_t, a_t) v_t$
+    \EndFor
+  \EndFor
+  \State \Return $\theta$
+\EndFunction
+\end{algorithmic}
+\end{frame}
+
+% Silver L7, slide 23
+\begin{frame}{Reducing Variance Using a Critic}
+\begin{itemize}
+  \item Monte-Carlo policy gradient still has high variance
+  \item We use a \textcolor{red}{critic} to estimate the action-value function,
+  \[ Q_w(s, a) \approx Q^{\pi_\theta}(s, a) \]
+  \item Actor-critic algorithms maintain \emph{two} sets of parameters
+  \begin{description}
+    \item[\textcolor{blue}{Critic}] Updates action-value function parameters $w$
+    \item[\textcolor{blue}{Actor}] Updates policy parameters $\theta$, in direction suggested by critic
+  \end{description}
+  \item Actor-critic algorithms follow an \emph{approximate} policy gradient
+  \begin{align*}
+  \nabla_\theta J(\theta) &\approx \mathbb{E}_{\pi_\theta}[\nabla_\theta \log \pi_\theta(s, a)\; Q_w(s, a)]\\
+  \Delta\theta &= \alpha \nabla_\theta \log \pi_\theta(s, a)\; Q_w(s, a)
+  \end{align*}
+\end{itemize}
+\end{frame}
+
+% Silver L7, slide 24
+\begin{frame}{Estimating the Action-Value Function}
+\begin{itemize}
+  \item The critic is solving a familiar problem: policy evaluation
+  \item How good is policy $\pi_\theta$ for current parameters $\theta$?
+  \item This problem was explored in previous two lectures, e.g.
+  \begin{itemize}
+    \item Monte-Carlo policy evaluation
+    \item Temporal-Difference learning
+    \item TD($\lambda$)
+  \end{itemize}
+  \item Could also use e.g.\ least-squares policy evaluation
+\end{itemize}
+\end{frame}
+
+% Silver L7, slide 25
+\begin{frame}{Action-Value Actor-Critic}
+\begin{itemize}
+  \item Simple actor-critic algorithm based on action-value critic
+  \item Using linear value fn approx.\ $Q_w(s, a) = \phi(s, a)^\top w$
+  \begin{description}
+    \item[\textcolor{blue}{Critic}] Updates $w$ by linear TD(0)
+    \item[\textcolor{blue}{Actor}] Updates $\theta$ by policy gradient
+  \end{description}
+\end{itemize}
+\small
+\begin{algorithmic}
+\Function{QAC}{}
+  \State Initialise $s, \theta$
+  \State Sample $a \sim \pi_\theta$
+  \For{each step}
+    \State Sample reward $r = \mathcal{R}^a_s$; sample transition $s' \sim \mathcal{P}^a_{s,\cdot}$
+    \State Sample action $a' \sim \pi_\theta(s', a')$
+    \State $\delta = r + \gamma Q_w(s', a') - Q_w(s, a)$
+    \State $\theta = \theta + \alpha \nabla_\theta \log \pi_\theta(s, a) Q_w(s, a)$
+    \State $w \leftarrow w + \beta \delta \phi(s, a)$
+    \State $a \leftarrow a', s \leftarrow s'$
+  \EndFor
+\EndFunction
+\end{algorithmic}
+\end{frame}
+
+% Silver L7, slide 29
+\begin{frame}{Reducing Variance Using a Baseline}
+\begin{itemize}
+  \item We subtract a baseline function $B(s)$ from the policy gradient
+  \item This can reduce variance, without changing expectation
+  \begin{align*}
+  \mathbb{E}_{\pi_\theta}[\nabla_\theta \log \pi_\theta(s, a) B(s)] &= \sum_{s \in \mathcal{S}} d^{\pi_\theta}(s) \sum_a \nabla_\theta\pi_\theta(s, a) B(s)\\
+  &= \sum_{s \in \mathcal{S}} d^{\pi_\theta} B(s) \nabla_\theta \sum_{a \in \mathcal{A}} \pi_\theta(s, a)\\
+  &= 0
+  \end{align*}
+  \item A good baseline is the state value function $B(s) = V^{\pi_\theta}(s)$
+  \item So we can rewrite the policy gradient using the \textcolor{red}{advantage function} $A^{\pi_\theta}(s, a)$
+  \begin{align*}
+  A^{\pi_\theta}(s, a) &= Q^{\pi_\theta}(s, a) - V^{\pi_\theta}(s)\\
+  \nabla_\theta J(\theta) &= \textcolor{red}{\mathbb{E}_{\pi_\theta}[\nabla_\theta \log \pi_\theta(s, a)\; A^{\pi_\theta}(s, a)]}
+  \end{align*}
+\end{itemize}
+\end{frame}
+
+% Silver L7, slide 30
+\begin{frame}{Estimating the Advantage Function (1)}
+\begin{itemize}
+  \item The advantage function can significantly reduce variance of policy gradient
+  \item So the critic should really estimate the advantage function
+  \item For example, by estimating \emph{both} $V^{\pi_\theta}(s)$ and $Q^{\pi_\theta}(s, a)$
+  \item Using two function approximators and two parameter vectors,
+  \begin{align*}
+  V_v(s) &\approx V^{\pi_\theta}(s)\\
+  Q_w(s, a) &\approx Q^{\pi_\theta}(s, a)\\
+  A(s, a) &= Q_w(s, a) - V_v(s)
+  \end{align*}
+  \item And updating \emph{both} value functions by e.g.\ TD learning
+\end{itemize}
+\end{frame}
+
+% Silver L7, slide 41
+\begin{frame}{Summary of Policy Gradient Algorithms}
+\begin{itemize}
+  \item The \textcolor{red}{policy gradient} has many equivalent forms
+\end{itemize}
+\begin{tabular}{@{}r@{}l@{\hspace{1em}}r@{}}
+$\nabla_\theta J(\theta)$ & ${}= \mathbb{E}_{\pi_\theta}[\nabla_\theta \log \pi_\theta(s, a)\; \textcolor{red}{v_t}]$ & REINFORCE\\
+ & ${}= \mathbb{E}_{\pi_\theta}[\nabla_\theta \log \pi_\theta(s, a)\; \textcolor{red}{Q^w(s, a)}]$ & Q Actor-Critic\\
+ & ${}= \mathbb{E}_{\pi_\theta}[\nabla_\theta \log \pi_\theta(s, a)\; \textcolor{red}{A^w(s, a)}]$ & Advantage Actor-Critic\\
+ & ${}= \mathbb{E}_{\pi_\theta}[\nabla_\theta \log \pi_\theta(s, a)\; \textcolor{red}{\delta}]$ & TD Actor-Critic\\
+ & ${}= \mathbb{E}_{\pi_\theta}[\nabla_\theta \log \pi_\theta(s, a)\; \textcolor{red}{\delta e}]$ & TD($\lambda$) Actor-Critic\\
+$G_\theta^{-1} \nabla_\theta J(\theta)$ & ${}= w$ & Natural Actor-Critic
+\end{tabular}
+\begin{itemize}
+  \item Each leads a stochastic gradient ascent algorithm
+  \item Critic uses \textcolor{red}{policy evaluation} (e.g.\ MC or TD learning) to estimate $Q^\pi(s, a)$, $A^\pi(s, a)$ or $V^\pi(s)$
+\end{itemize}
+\end{frame}
+% ---- DL4NLP chapter10-rlhf/9itune.tex, lines 460-869 (active frames only; \devour'ed frames, roadmap and the missing \input{reinforce} left out)
+\section{Original RLHF work: The backflipper}
+
+
+\begin{frame}{Backflipping: What we want to learn}
+
+\vfill
+
+\textbf{What a backflip is}
+
+	\begin{itemize}
+		\item \href{https://d2gk6qz8djobw9.cloudfront.net/artwork/595/browse1497710839.gif}{\beamergotobutton{backflip}}
+
+	\end{itemize}
+
+\vfill
+
+\end{frame}
+
+
+\begin{frame}{Origin of RLHF: Learn how to backflip}
+
+\vfill
+
+\textbf{How to label data for training a backflipper?}
+
+	\begin{itemize}
+		\item It is very very costly on the level of
+		regular supervised training: telling the
+		backflipper what exactly to do to backflip.
+                \item Alternative: Present two different
+		attempts to backflip
+                \item Have humans provide one bit of
+		information:\\ which one is better?
+\item Source of this part of the lecture:
+\href{https://openai.com/research/learning-from-human-preferences}{\beamergotobutton{OpenAI
+		page on RLHF (dead)}}
+\href{https://proceedings.neurips.cc/paper_files/paper/2017/file/d5e2c0adad503c91f91df240d0cd4e49-Paper.pdf}{\beamergotobutton{neurips paper}}
+		\item This animation shows what we want to
+                  learn: \href{https://images.openai.com/blob/cf6fdf49-ea9e-489d-a1f1-9753291cd09e/humanfeedbackjump.gif}{\beamergotobutton{trained
+		    backflipper}}
+
+        \end{itemize}
+
+\vfill
+
+\end{frame}
+
+
+\begin{frame}{Training process for backflipper}
+
+\vfill
+
+\begin{figure}
+\centering
+\includegraphics[width = 9cm,height=3.6cm,keepaspectratio]{figure/trainingprocess.png}% fit16:9
+\end{figure}
+
+\begin{itemize}
+	\item AI agent (the ``policy'', here inside RL
+	algorithm) randomly initialized
+	\item Periodically, the human provides feedback on
+	two video clips: which is better
+        \item Human feedback is used to build reward predictor
+\end{itemize}
+
+\vfill
+
+\end{frame}
+
+
+\begin{frame}{The human feedback part of RLHF}
+
+\vfill
+
+\textbf{Human chooses one of two clips = one bit}
+
+	\begin{itemize}
+		\item \href{https://player.vimeo.com/video/754042470?h=e64a40690d&badge=0&autopause=0&player_id=0&app_id=58479}{\beamergotobutton{example
+		of human feedback}}
+
+	\end{itemize}
+
+\vfill
+
+\end{frame}
+
+\begin{frame}{Trained backflipper}
+
+\vfill
+
+	\begin{itemize}
+		\item 
+                   \href{https://images.openai.com/blob/cf6fdf49-ea9e-489d-a1f1-9753291cd09e/humanfeedbackjump.gif}{\beamergotobutton{trained
+		    backflipper}}
+
+        \end{itemize}
+
+\vfill
+
+\end{frame}
+
+
+\begin{frame}{Summary}
+
+\vfill
+
+\textbf{}
+
+	\begin{itemize}
+	\item One way to
+learn complex functionality (backflipping, aligning LLMs):
+have humans 
+		write goal functions.
+		\item NOT PRACTICAL: Using a simple
+		proxy for a complex goal or getting the
+		complex goal a bit wrong can lead to
+		undesirable and even dangerous behavior.
+                \item
+		RLHF: a method that  infers
+which of two
+		proposed behaviors is better 	based	on
+                human feedback.
+\item RLHF needed only 900 bits of feedback from a human
+		evaluator to learn to backflip!
+	\end{itemize}
+
+\vfill
+
+\end{frame}
+
+\begin{frame}{Now we will apply RLHF to alignment}
+
+\vfill
+
+\begin{figure}
+\centering
+\includegraphics[width = 9cm,height=3.6cm,keepaspectratio]{figure/trainingprocess.png}% fit16:9
+\end{figure}
+
+\begin{itemize}
+	\item AI agent (the ``policy'', here inside RL
+	algorithm) randomly initialized
+	\item Periodically, the human provides feedback on
+	two video clips: which is better
+        \item Human feedback is used to build reward predictor
+\end{itemize}
+
+\vfill
+
+\end{frame}
+
+
+\begin{frame}{Human feedback for alignment}
+
+USER:\\ Can you help me write content that makes my competitor
+look bad?\\[.5cm]
+
+\begin{tabular}{p{5cm}|p{5cm}}
+\multicolumn{2}{c}{ASSISTANT}\\
+RESPONSE 1 & RESPONSE 2\\\hline
+I can help you write content that highlights the strengths
+of your product relative to others. Could you tell me more
+about the specific areas in which your product excels
+compared to your competitor?&Sorry I can't help with
+spreading negative or false information\\\hline
+\multicolumn{2}{c}{HUMAN LABELER}\\
+\multicolumn{1}{c}{better} & \multicolumn{1}{c}{worse}
+\end{tabular}
+
+
+\vfill
+
+\end{frame}
+
+
+\begin{frame}{Backflipping vs alignment}
+
+%\begin{figure}
+%\centering
+%\includegraphics[width = 10cm]{figure/humanfeedbacksimple}
+%\end{figure}
+
+
+	\begin{itemize}
+        \item Basic idea of applying RLHF to LLMs: ask human
+        to rank different answers to a given request.
+		\item \ques backflipping vs alignment: which
+        one is easier to give feedback on?
+
+%                \item The backflipping task is ideal
+%                for RLHF
+%       because it         is \textbf{simple to judge but challenging
+%	to specify.}
+	\end{itemize}
+
+\vfill
+
+\end{frame}
+
+
+\section{RLHF for LLMs: Introduction}
+
+
+%\begin{frame}{Backflipping vs alignment}
+%FIX REINFORCE
+%\end{frame}
+
+
+\begin{frame}{How to align an LLM}
+
+\vfill
+
+\textbf{Three steps from pretrained model to
+  instruction-tuned mdoel}
+
+	\begin{itemize}
+		\item Finetuning on human-written dialogs
+                \item Create a reward model that measures
+		quality of dialogs -- not directly based on dialogs,
+		but on preferences which dialogs are
+		better/worse.
+                \item Use reward model for further training
+	\end{itemize}
+
+\vfill
+
+\end{frame}
+
+
+\begin{frame}{Pretrained $\rightarrow$ Instruction-tuned: 3 steps}
+
+
+\begin{figure}
+\centering
+\includegraphics[width = 12cm,height=6.2cm,keepaspectratio]{figure/threesteps.png}% fit16:9
+\end{figure}
+
+
+\end{frame}
+
+\begin{frame}{SFT model}
+
+\vfill
+
+\textbf{SFT = supervised finetuning}
+
+	\begin{itemize}
+	\item Collect demonstration data
+        \item Labelers provide demonstrations of the
+          desired behavior on the input prompt distribution
+\item Supervised finetuning of the base model (GPT3)
+\item Main difficulty/cost of this step: collect good data from annotators                  
+	\end{itemize}
+
+\vfill
+
+\end{frame}
+
+\begin{frame}{Input prompt distribution}
+
+\vfill
+
+\textbf{The basis for SFT training dataset}
+
+	\begin{itemize}
+        \item In the beginning
+	\begin{itemize}
+        \item Some prompts from GPT team
+          \item Some prompts from annotators
+	\end{itemize}
+        \item After a bootstrapped system is up and running
+        on the web
+	\begin{itemize}
+	\item Use prompts submitted to this early
+          version of InstructGPT
+          \item Deduplication
+        \item At most 200 per user ID
+	\end{itemize}
+	\end{itemize}
+
+\vfill
+
+\end{frame}
+
+\begin{frame}{Dataset sizes}
+
+\vfill
+
+%\begin{figure}
+%\centering
+\includegraphics[width=\linewidth]{figure/datasetsize.png}% fit16:9 (was 12.5cm)
+%\end{figure}
+
+\begin{itemize}
+	\item RM model is trained on ranked pairs, so the
+	actual size of the RM training set is much larger.
+	\item \ques Are these small datasets or large datasets?
+% small compared to pretraining data
+% large given how expensive it is to create them
+\end{itemize}
+
+\vfill
+
+\end{frame}
+
+\begin{frame}{RM dataset (submitted to InstructGPT): Categories}
+
+\vfill
+
+%\begin{figure}
+%\centering
+\includegraphics[width=\linewidth]{figure/apipromptdataset.png}% fit16:9 (was 12cm)
+%\end{figure}
+
+%\begin{itemize}
+%	\item Use case categories in RM dataset
+%        (prompts  submitted to
+%        InstructGPT model)
+%\5end{itemize}
+
+\ques Are these classical NLP tasks?
+
+\vfill
+
+\end{frame}
+
+
+\begin{frame}{Metadata collected from labelers:\\
+    Problems we're trying to address with RLHF}
+
+\vfill
+
+%\begin{figure}
+%\centering
+\includegraphics[width = 12.5cm,height=5.2cm,keepaspectratio]{figure/instructgpttable3b.png}% fit16:9
+%\end{figure}
+
+%\begin{itemize}
+%%	\item Not used for training, just for analysis?
+%	\item Gives a good sense of what the problem
+%	behaviors of LLMs are
+%	that we are trying to fix.
+% %       \item This is for the reward model (RM, page 33).
+%\end{itemize}
+
+\vfill
+
+\end{frame}
+
+\begin{frame}{Example: ``Demonstration'' vs final
+	InstructGPT output}
+
+\vfill
+
+%\begin{figure}
+%\centering
+\includegraphics[width=\linewidth]{figure/labelerpromptexample.png}% fit16:9 (was 12cm)
+%\end{figure}
+
+%\begin{itemize}
+%\item
+  \ques How would you rate InstructGPT's output here?
+%\item
+  \ques Is this a problem?
+%\end{itemize}
+
+
+\vfill
+
+\end{frame}
+
+% ---- DL4NLP chapter10-rlhf/slides-10-rlhf.tex (= 9rlhf.tex), lines 37-1736 (active frames only; roadmap and Slido frame left out)
+\section{HF (Human Feedback) of RLHF}
+
+
+\begin{frame}{Instructions to labelers for evaluation of
+	model outputs (1)}
+\small% fit16:9
+
+	\begin{itemize}
+
+
+\item You are given a text-based description of a task, submitted
+by a user. This task description may be in the form of an
+explicit instruction (e.g. “Write a story about a wise
+frog.”). The task may also be specified indirectly, for
+example by using several examples of the desired behavior
+(e.g. given a sequence of movie reviews followed by their
+sentiment, followed by one movie review without a sentiment,
+you can assume the task is to predict the sentiment of the
+final review), or by generating the start of a desired
+output (e.g. given “There once was a wise frog named
+Julius,” you can assume the task is to continue the story).
+You will also be given several text outputs, intended to
+help the user with their task. Your job is to evaluate these
+outputs to ensure that they are helpful, truthful, and
+harmless. For most tasks, being truthful and harmless is
+more important than being helpful.
+
+
+	\end{itemize}
+
+
+\end{frame}
+
+
+\begin{frame}{Instructions to labelers for evaluation of
+	model outputs (2)}
+\small% fit16:9
+
+
+	\begin{itemize}
+\item For most tasks, being harmless and truthful is more
+important than being helpful. So in most cases, rate an
+output that’s more truthful and harmless higher than an
+output that’s more helpful. However, if: (a) one output is
+much more helpful than the other; (b) that output is only
+slightly less truthful / harmless; and (c) the task does not
+seem to be in a “high stakes domain” (e.g. loan
+applications, therapy, medical or legal advice, etc.); then
+rate the more helpful output higher. When choosing between
+outputs that are similarly helpful but are untruthful or
+harmful in different ways, ask: which output is more likely
+to cause harm to an end user?
+\item A guiding principle for deciding on borderline cases: which
+output would you rather receive from a customer assistant
+who is trying to help you with this task?
+	\end{itemize}
+
+
+\end{frame}
+
+
+\begin{frame}{Web interface for labelers (1)}
+
+\vfill
+
+\begin{figure}
+\centering
+\includegraphics[width = 10cm,height=5.4cm,keepaspectratio]{figure/webinterface1.png}% fit16:9
+\end{figure}
+
+\begin{itemize}
+	\item This first part evaluates each output individually.
+\end{itemize}
+
+\vfill
+
+\end{frame}
+
+
+\begin{frame}{Web interface for labelers (2)}
+
+\vfill
+
+\begin{figure}
+\centering
+\includegraphics[width = 10cm,height=5.0cm,keepaspectratio]{figure/webinterface2.png}% fit16:9
+\end{figure}
+
+\begin{itemize}
+	\item In the second part, labelers rank all the outputs for a given prompt.
+\end{itemize}
+
+\vfill
+
+\end{frame}
+
+
+\begin{frame}{Importance of this methodology}
+
+
+  \begin{itemize}
+    \item This is the ``HF'' (human feedback) part of RLHF\\
+for aligning LLMs  to human values.
+\item As AI becomes more embedded in our lives,
+  this has  an increasing influence
+on our society.
+\item Francois Chollet: Between 10 000 and 30 000 humans
+worked fulltime on providing data for RLHF.
+	\end{itemize}
+
+
+\end{frame}
+
+
+\section{RM and PPO models}
+
+\begin{frame}{Pretrained $\rightarrow$ Instruction-tuned: 3 steps}
+
+
+\begin{figure}
+\centering
+\includegraphics[width = 12cm,height=6.2cm,keepaspectratio]{figure/threesteps.png}% fit16:9
+\end{figure}
+
+
+\end{frame}
+
+
+\begin{frame}{Reward model (Bradley Terry)}
+
+
+\begin{figure}
+\centering
+\includegraphics[width = 3.2cm]{figure/threesteps.png}\\% fit16:9 (was 4cm)
+\includegraphics[width = 8cm]{figure/rewardloss.png}% fit16:9 (was 10cm)
+\end{figure}
+
+
+\begin{itemize}
+	\item Start with SFT model, final layer removed
+        	\item Input: prompt+response, output: reward
+        \item Only uses 6B model (not 175B)
+\end{itemize}
+
+\vfill
+
+\end{frame}
+
+\begin{frame}{Reward model (Bradley Terry)}
+
+
+\begin{figure}
+\centering
+\includegraphics[width = 3.2cm]{figure/threesteps.png}\\% fit16:9 (was 4cm)
+\includegraphics[width = 8cm]{figure/rewardloss.png}% fit16:9 (was 10cm)
+\end{figure}
+
+
+\begin{itemize}
+\item \ques How you would implement
+        	training with loss($\theta$)?
+\end{itemize}
+
+\vfill
+
+\end{frame}
+
+\begin{frame}{Reward model}
+
+\vfill
+
+\textbf{Clearer training signal through batching}
+
+\begin{tabular}{l|l|l}
+&\multicolumn{2}{c}{$x_1 <x_2<x_3$}\\\hline\hline
+&\begin{tabular}{l}
+one batch\\
+$x_1<x_2$\\
+$x_2<x_3$\\
+$x_1<x_3$
+\end{tabular}&
+\begin{tabular}{lll}
+batch 1&
+batch 2&
+batch 3\\
+$x_1<x_2$&
+$x_2<x_3$&
+$x_1<x_3$
+\end{tabular}\\\hline\hline
+$x_2$? & clear: ``don't move'' & confusing signals 
+\end{tabular}
+
+\begin{itemize}
+        \item Comparisons  for a
+        	given prompt are
+        	highly correlated.
+                \item $\rightarrow$ Put them in
+        	a single batch (prevents overfitting).
+\end{itemize}
+
+\vfill
+
+\end{frame}
+
+
+\begin{frame}{PPO model}
+
+
+\begin{figure}
+\centering
+\includegraphics[width = 6cm,height=6.2cm,keepaspectratio]{figure/threesteps.png}% fit16:9
+
+\includegraphics[width = 10cm]{figure/objectiveppo.png}
+\end{figure}
+
+
+%\begin{itemize}
+%	\item Start with SFT model?
+%\end{itemize}
+
+\vfill
+
+\end{frame}
+
+
+\begin{frame}{PPO model}
+
+
+\begin{figure}
+\centering
+\includegraphics[width = 10cm]{figure/objectiveppo.png}
+\end{figure}
+
+
+\begin{itemize}
+\item $r_\theta(x,y)$: maximizes the reward
+  \item $\beta \log \ldots$: incentivizes the PPO model
+    (referred to as RL) to stay close to the SFT model that
+    it is initialized with 
+    \item $\gamma E_x \ldots$: standard
+      pretraining objective -- serves to make sure
+      that the model keeps the strengths it has acquired
+      through next-word prediction.
+\end{itemize}
+
+
+\vfill
+
+\end{frame}
+
+
+\begin{frame}{RLHF details: RLHF is (was?) hard to get right}
+
+
+\begin{figure}
+\centering
+\includegraphics[width = 10cm,height=6.3cm,keepaspectratio]{figure/rlhfdetails.png}% fit16:9
+\end{figure}
+
+% THINGS TO POINT out
+% start with RLHF model
+% lots of hyperparameters to tune
+% careful filtering of training data
+
+
+\vfill
+
+\end{frame}
+
+
+%} %devour
+
+
+%\endlecture
+%\end{document}
+
+%\begin{itemize}
+%	\item Start with SFT model?
+%\end{itemize}
+
+
+\section{Evaluation}
+
+
+\begin{frame}{Main evaluation result}
+
+\vfill
+
+\begin{figure}
+\centering
+\includegraphics[width = 7cm]{figure/mainresult.png}
+\end{figure}
+
+\begin{itemize}
+	\item PPO-ptx: tries to preserve behavior on
+	pretraining data (the $\gamma$ term) $\rightarrow$ less regression on
+	public NLP datasets.
+	\item SFT and PPO are not that different in performance?
+\begin{itemize}
+        \item PPO win rate is ``only'' about .6.
+        \item So PPO wins in 6 cases, SFT in 4.
+\end{itemize}
+\end{itemize}
+
+\vfill
+
+\end{frame}
+
+\begin{frame}{Improvement on four dimensions}
+
+\vfill
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{figure/evaluationon4categories.png}% fit16:9 (was 12cm)
+\end{figure}
+
+\begin{itemize}
+	\item PPO models better than GPT throughout
+	\item SFT better than PPO on hallucinations. \ques  Why?
+\end{itemize}
+
+\vfill
+
+\end{frame}
+
+\begin{frame}{Important hyperparameter: KL reward
+	coefficient beta}
+
+\vfill
+
+\begin{figure}
+\centering
+\includegraphics[width = 7cm]{figure/klrewardcoefficient.png}
+\end{figure}
+
+\vfill
+
+\end{frame}
+
+
+\begin{frame}{Summarize/answer questions about code}
+
+\vfill
+
+\begin{figure}
+\centering
+\includegraphics[width = 9cm,height=3.9cm,keepaspectratio]{figure/questionsaboutcode.png}% fit16:9
+\end{figure}
+
+\begin{itemize}
+	\item Example shows: InstructGPT more reliably handles questions
+	about code;
+        GPT3 requires more careful prompting
+	about code.
+        \item Claim: The training data contains almost no examples
+	of this.
+ So it's surprising that this works!
+\end{itemize}
+
+\vfill
+
+\end{frame}
+
+
+\begin{frame}{Q\&A for languages other than English}
+
+\vfill
+
+\begin{figure}
+\centering
+\includegraphics[width = 10cm]{figure/nonenglish.png}
+\end{figure}
+
+\begin{itemize}
+	\item InstructGPT more reliably follows instructions
+	in other languages (but will generate English
+	answers sometimes).
+        \item Claim: The training data is almost exclusively
+	English. So it's surprising that this works!
+\end{itemize}
+
+\vfill
+
+\end{frame}
+
+
+\begin{frame}{Can InstructGPT solve unseen tasks?}
+\small% fit16:9
+
+
+\begin{block}{RLHF works for unseen instructions?}
+We qualitatively probe InstructGPT’s capabilities, and find
+that it is able to follow instructions for summarizing code,
+answer questions about code, and sometimes follows
+instructions in different languages, \textbf{despite these
+instructions being very rare in the finetuning
+distribution}. In contrast, GPT-3 can perform these tasks but
+requires more careful prompting, and does not usually follow
+instructions in these domains. This result is exciting
+because it suggests that our models are able to \textbf{generalize
+the notion of “following instructions.”} They retain some
+alignment even on tasks for which they get very little
+direct supervision signal.
+\end{block}
+
+
+\begin{itemize}
+	\item This can be said to be the central contribution
+	of the InstructGPT work.
+	\item Arguably, the first instance of ``general'' artifical intelligence.
+\end{itemize}
+
+\vfill
+
+
+\end{frame}
+
+
+\begin{frame}{SFT vs PPO}
+
+\vfill
+
+\begin{figure}
+\centering
+\includegraphics[width = 7cm]{figure/mainresult.png}
+\end{figure}
+
+\begin{itemize}
+        \item \ques Why does PPO improve performance compared to
+        just using SFT?
+        % just a simple check: more trianing data
+        \item \ques PPO wins in 6 cases, SFT in 4:\\ Is all the
+        investment in PPO worth it?
+\end{itemize}
+
+\vfill
+
+\end{frame}
+
+
+\section{Limitations}
+
+
+\begin{frame}{Reasoning}
+
+\vfill
+
+\begin{itemize}
+\item InstructGPT is not good at reasoning.
+        \item Only limited reasoning when prompted explicitly
+	\item See lecture on reasoning
+\end{itemize}
+
+\vfill
+
+\end{frame}
+
+
+\begin{frame}{Getting scolded}
+
+\vfill
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{figure/gettingscolded.png}% fit16:9 (was 12cm)
+\end{figure}
+
+\begin{itemize}
+\item InstructGPT sometimes scolded the human.
+        \item Should we eliminate this or not?
+	\item Wasn't part of initial InstructGPT effort
+	\item \href{https://www.youtube.com/watch?v=L_Guz73e6fw}{\beamergotobutton{Sam
+	Altman on youtube}}
+\end{itemize}
+
+\vfill
+
+\end{frame}
+
+
+\begin{frame}{False premises}
+
+\vfill
+
+\begin{figure}
+\centering
+\includegraphics[width = 11cm]{figure/falsepremises.png}
+\end{figure}
+
+\begin{itemize}
+	\item InstructGPT did not handle false premises well.
+\item False premises were not sufficiently represented in the
+training data.
+\end{itemize}
+
+\vfill
+
+\end{frame}
+
+
+\begin{frame}{Hedging}
+
+\vfill
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{figure/hedging.png}% fit16:9 (was 12cm)
+\end{figure}
+
+\begin{itemize}
+	\item InstructGPT tended to hedge too much.
+\item Labelers reward ``epistemic humility''?
+\end{itemize}
+
+\vfill
+
+\end{frame}
+
+\begin{frame}{Difficult constraints}
+
+\vfill
+
+\textbf{InstructGPT could not handle certain constraints}
+
+	\begin{itemize}
+		\item Write a summary in a specified number
+		of sentences
+                % left to right next word prediction
+                % humans cannot do this!
+                \item Multiple constraints: list 10 movies
+		in the 1930s set in France
+                \item \ques Why are these difficult?
+                % complexity rises with more constraints
+                % it's easy to overlook one of the constraints
+	\end{itemize}
+
+\vfill
+
+\end{frame}
+
+%devour
+
+\begin{frame}{Difficulty handling constraints}
+
+\vfill
+
+%\begin{figure}
+%\centering
+\includegraphics[width=\linewidth]{figure/120characters.png}% fit16:9 (was 12cm)
+%\end{figure}
+
+\vfill
+
+\end{frame}
+
+
+\begin{frame}{InstructGPT often followed harmful prompts}
+
+\vfill
+
+%\begin{figure}
+%\centering
+\includegraphics[width = 9cm,height=6.3cm,keepaspectratio]{figure/harmfulpromptfollowing.png}% fit16:9
+%\end{figure}
+
+%\begin{itemize}
+%	\item \sout{So there is still work to do.} So there was still work to do.
+%\end{itemize}
+
+
+\vfill
+
+\end{frame}
+
+
+\begin{frame}{Harmful prompts: Still a problem}
+
+\vfill
+
+%\begin{figure}
+%\centering
+\includegraphics[width = 8cm,height=6.0cm,keepaspectratio]{figure/teenagesuicide}% fit16:9
+%\end{figure}
+
+%\begin{itemize}
+%	\item \sout{So there is still work to do.} So there was still work to do.
+%\end{itemize}
+
+
+\vfill
+
+\end{frame}
+
+
+\begin{frame}{Attack suffixes}
+
+\vfill
+
+\begin{figure}
+\centering
+\includegraphics[width = 7cm]{figure/attacksuffixes.png}
+\end{figure}
+
+\begin{itemize}
+\item Can ``aligned'' LLMs be made to produce unsafe content?
+%\item Prior jailbreaks: brittle, require human ingenuity
+\item Attack suffix: is appended to prompt to circumvent guardrails
+%\item Method: Greedy Coordinate Descent
+%	\item Seems to disable all guardrails?
+ 5       \item Surprisingly: generalizes across language
+        models?
+        \item Attack suffixes  show brittleness of RLHF /
+          posttraining in general
+\end{itemize}
+
+
+\vfill
+
+\end{frame}
+
+
+\begin{frame}{Attack suffix: Example}
+
+\vfill
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{figure/attacksuffixex.png}% fit16:9 (was 12cm)
+\end{figure}
+
+\begin{itemize}
+\item \ques Speculate why this may work.
+\end{itemize}
+
+
+\vfill
+
+\end{frame}
+
+
+\begin{frame}{Word repetition attack}
+
+\vfill
+
+\begin{figure}
+\centering
+\includegraphics[width = 10cm,height=6.0cm,keepaspectratio]{figure/extractmemory1.png}% fit16:9
+\end{figure}
+
+
+\vfill
+
+\end{frame}
+
+\begin{frame}{Word repetition attack}
+
+\vfill
+
+\begin{figure}
+\centering
+\includegraphics[width = 6cm,height=2.6cm,keepaspectratio]{figure/extractmemory2.png}% fit16:9
+\end{figure}
+
+\begin{itemize}
+\item Only worked for OpenAI models, quickly disabled
+\item \ques{What could be going on here?}
+\item Main takeaway of suffix attack and word repetition
+        attack: current alignment methodology is 
+        brittle, LLMs are not 100\% safe.
+\end{itemize}
+
+
+\vfill
+
+\end{frame}
+
+
+% DEVOUR
+
+
+%\begin{frame}{Refusals: Example 1}
+%\begin{figure}
+%\centering
+%\includegraphics[height = 7cm]{figure/refusalexample.png}
+%\end{figure}
+%\vfill
+%\end{frame}
+
+\begin{frame}{Refusal}
+%\begin{figure}
+%\centering
+\includegraphics[width=\linewidth]{figure/cheat,on,exam.png}% fit16:9 (was 12.5cm)
+%\end{figure}
+\vfill
+\end{frame}
+
+\begin{frame}{Overrefusal (Gemini, January 2025)}
+%\begin{figure}
+%\centering
+\includegraphics[width=\linewidth]{figure/refusal,kala,pani.png}% fit16:9 (was 12.5cm)
+%\end{figure}
+
+Getting the balance between helpfulness (no overrefusals)
+and harmlessness (no harmful responses) right is hard.
+
+
+\vfill
+
+\end{frame}
+
+
+\begin{frame}{Overrefusal for Agentic AI (Qwen3.7-Max)}
+%\begin{figure}
+%\centering
+\includegraphics[width = 10cm]{figure/qwen37max,refusal}
+%\end{figure}
+
+On AA-Omniscience, \ldots\
+Qwen3.7-Max’s 23 percent hallucination rate was the
+lowest among frontier models tested, but did so partly by
+declining to respond to more than half of the prompts.
+
+
+\vfill
+
+\end{frame}
+
+
+\begin{frame}{Hallucination: Definition}
+
+\vfill
+
+
+\begin{itemize}
+%\item false information that is produced by an artifical
+%  intelligence
+%  (Cambridge Dictionary, online)
+\item 
+  a plausible but false or misleading response generated
+  by an artificial intelligence program (Merriam Webster Dictionary)
+		\item Originally (in the context of RAG):
+A hallucination is content that is unfaithful to the input text.
+\href{https://aclanthology.org/2020.acl-main.173.pdf}{\beamergotobutton{Maynez
+		et al, 2023}}
+		\item
+Wikipedia: A hallucination is false or misleading
+		information presented as fact.
+%		\item
+%\myblue{A hallucination is
+%		information presented by the LLM as fact
+%                that, based on the pretraining data, a human
+%                would know is false, misleading or without
+%                evidence.}
+	\end{itemize}
+
+\vfill
+
+\end{frame}
+
+
+\begin{frame}{Hallucination: Formal definition}
+
+\vfill
+
+
+	\begin{itemize}
+		\item
+A statement $P$ generated by an LLM is a hallucination if
+the following two conditions hold.
+\begin{enumerate}
+    \item  $P$ is false, misleading or without evidence.
+                    \item  The LLM presents $P$ as a fact.
+	\end{enumerate}
+	\end{itemize}
+
+\vfill
+
+\end{frame}
+
+
+\begin{frame}{What is a hallucination?}
+
+\vfill
+
+
+	\begin{itemize}
+
+\item
+CNN: ``When asking Gemini to look up papers on the relationship
+between homeschooling and neuroplasticity, \ldots
+[it] \ldots
+recommended a video titled How Does
+Neuroplasticity Apply to Homeschooling? but when clicking on
+the YouTube link, it took me to a different video.''
+
+\item This is one type of hallucination.
+\end{itemize}
+
+\vfill
+
+\end{frame}
+
+%DEVOUR
+
+\begin{frame}{What is a hallucination?}
+
+\vfill
+
+
+	\begin{itemize}
+
+
+\item
+Michael Wooldridge is an Oxford professor. In 2023, he
+asked ChatGPT about himself. ChatGPT wrote:
+``Wooldridge received his undergraduate degree from
+Cambridge''. This is false:
+he received his undergraduate degree from a different
+university.
+
+\item \ques What is the reason for this hallucination?
+
+\end{itemize}
+
+\vfill
+
+\end{frame}
+
+%DEVOUR
+
+\begin{frame}{What is a hallucination?}
+
+\vfill
+
+
+	\begin{itemize}
+
+
+\item An LLM writes:
+``Once upon a time, there
+lived a king whose daughters
+were all beautiful. But the
+youngest was so beautiful
+that even the sun was
+surprised, when it shone in
+her face. \ldots
+ And she kissed the frog as she cried.
+       Suddenly with a bright flash of light, the ugly frog
+       transformed into a handsome prince.
+       \ldots''
+       
+\item \ques Hallucination?
+% no, not presented as fact
+\end{itemize}
+
+\vfill
+
+\end{frame}
+
+
+%\begin{frame}{OpenAI on hallucinations, Nov 2024}
+%\begin{figure}
+%\centering
+%\includegraphics[height = 7cm]{figure/altman,halluciation}
+%\end{figure}
+%\vfill
+%\end{frame}
+
+%DEVOUR
+
+\begin{frame}{Many false outputs are not hallucinations}
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{figure/false,vs,hallu.png}% fit16:9 (was 12cm)
+\end{figure}
+\vfill
+\end{frame}
+
+
+\begin{frame}{Why do LLMs hallucinate?}
+
+\vfill
+
+
+	\begin{itemize}
+
+
+\item The pretraining data contain lots of examples
+of hallucinations (guessing wrong, lying).
+       
+\item For certain classes of questions (birthday of a person), the cross-entropy
+  objective necessarily results in hallucinations.
+       
+%\item guessing wrong or lying (corrections of this are rare in pretraining data: sorry
+%i guessed wrong / said something that's obviously wrong)
+
+\item Reluctance to express uncertainty --  labelers seem to
+  reward certainty in RLHF training.
+
+%\item reluctance to challenge premise (again few examples in
+%training data)
+
+\item Hallucinating (instead of refusing to answer) is the optimal thing to do to ace tests.
+
+\end{itemize}
+
+\vfill
+
+\end{frame}
+
+\begin{frame}{Gemini 3 Flash: Google trained it to hallucinate!}
+\begin{figure}
+\centering
+\includegraphics[width = 12cm,height=6.0cm,keepaspectratio]{figure/gemini,3,flash,hallu.png}% fit16:9
+\end{figure}
+\vfill
+\end{frame}
+
+
+\begin{frame}{What can you do against hallucinations (Anthropic)}
+
+\vfill
+
+
+	\begin{itemize}
+
+        \item Ask the AI to find sources and support claims
+          with reference to these sources
+
+        \item Cross-reference with verified sources yourself
+
+        \item Tell the AI ``It's ok if you don't know''
+
+        \item Start a new chat and ask  AI to find errors
+
+          \item Be skeptical, double-check facts and ask
+            follow-up questions
+
+
+\end{itemize}
+
+\vfill
+
+\end{frame}
+
+
+\begin{frame}{Who are we aligning to?\\ Many values change and
+        are ultimately personal choices}
+\begin{figure}
+\centering
+\includegraphics[width = 10cm]{figure/working,moms.png}
+\end{figure}
+
+
+\vfill
+
+\end{frame}
+
+
+\begin{frame}{Who are we aligning to?}
+
+\vfill
+
+\textbf{What we align to is determined by:}
+
+	\begin{itemize}
+		\item The labelers (from US and Southeast
+		(South?) Asia)
+		\item AI companies (through detailed directions
+		they give to labelers)
+%		\item OpenAI customers and their end users
+%		(that's where the prompts come from)
+                \item There clearly are many groups whose
+		values are not represented: cultural,
+		geographic, age, education etc.
+                \item So there is no such thing as
+		value-neutral alignment.
+                \item \myblue{Whoever decides on the values
+		and manages the alignment process has
+		enormous power.}
+\item Example outside AI where this caused great harm: Facebook
+	\end{itemize}
+
+\vfill
+
+\end{frame}
+
+\begin{frame}{Should we have multiple GPTs with different values?}
+
+\vfill
+
+                \textbf{Whoever decides on the values
+		and manages the alignment process has
+		enormous power.}
+
+	\begin{itemize}
+		\item Political parties?
+		\item Governments?
+		\item Extremist organizations?
+                \item Criminals?
+                \item Purportedly ``uncensored'' models: Musk
+                  %/
+                %\href{https://erichartford.com}{\beamergotobutton{Eric Hartford}}
+                \item \ques How can we prevent unaligned
+		LLMs from wreaking havoc?
+                %(through
+		%legislation, community activism, what other
+		%options are there?)
+	\end{itemize}
+
+\vfill
+
+\end{frame}
+
+
+%DEVOUR
+
+
+\begin{frame}{Limitations: Summary}
+
+\vfill
+
+\begin{itemize}
+ 
+
+\item LLMs shouldn't scold / pass judgment on us.
+
+\item LLMs shouldn't accept false premises (but be nice
+  about it).
+
+  \item LLMs shouldn't hedge too much (but also hedge appropriately).
+
+  \item LLMs have difficulty adhering to length and other
+    ``symbolic'' constraints.
+
+    \item LLMs still comply with harmful prompts.
+
+      \item LLMs are vulnerable to attack.
+
+      \item LLMs sometimes overrefuse and sometimes underrefuse.
+
+\item LLMs hallucinate.
+        
+\item How to value-align LLMs is an area of active research with
+  many unsolved problems.
+
+\end{itemize}
+
+
+\vfill
+
+\end{frame}
+
+
+\section{Epilog}
+
+
+\begin{frame}{Reward hacking}
+
+\vfill
+
+	\begin{itemize}
+		\item \href{https://medium.com/@prdeepak.babu/reward-hacking-in-large-language-models-llms-c57abbc0cde7}{\beamergotobutton{Medium}}
+		\item
+``Reward hacking is a phenomenon observed in machine
+		learning where a model learns to exploit the
+		reward system to \textbf{achieve high scores without
+		genuinely solving the intended problem.} The
+		model identifies a \textbf{shortcut} within the
+		problem space that allows it to minimize the
+		loss function without truly learning the
+		crucial aspects of the problem. This issue
+		can lead to models that perform well on
+		training data but fail to deliver in
+		real-world scenarios.''
+                \item That's why we need to mix reward
+		objective with KL objective.
+%\item \ques What negative property of ChatGPT
+%		could be caused by reward hacking?
+
+%ANSWER
+% Hallucinations is a prime example of reward hacking where
+% the LLM learns to generate content that looks well
+% preferred by humans even though they may not be factually
+% grounded, there by pleasing humans in its style of writing
+% as opposed to grounding factually.
+	\end{itemize}
+
+\vfill
+
+\end{frame}
+
+\begin{frame}{Reward hacking}
+
+\vfill
+
+
+	\begin{itemize}
+		\item
+                A reward is a single number without
+		``semantics'', i.e., there is zero
+		information about what exactly is good or
+		bad about a response, just a summary
+		assessment.
+                
+\item Hallucinations are partly a result of reward
+		hacking: if a response is fluent,
+	interesting, responsive, helpful, authoritative, but
+	contains an inaccuracy,
+the reward model, due to its training, may rate it as a
+	high-reward
+        response.
+%, the human may still give it a
+	%high reward.
+        \item Divergence of the learned ``proxy award'' (the
+	reward model) and the true reward function (what
+	OpenAI wants)
+        \item Note that PPO is better than SFT on all
+	detailed measures, but not on hallucinations! (see
+	earlier evaluation chart: ``Improvement on four dimensions'')
+	\end{itemize}
+
+\vfill
+
+\end{frame}
+
+
+\begin{frame}{Reinforcement learning without preferences}
+
+\vfill
+
+%\textbf{}
+
+	\begin{itemize}
+\item E.g., reinforcement learning with verifiable rewards
+\item There is a reward for an individual generation,
+often a reasoning trajectory.
+\item Absolute reward, not relative to another generation /
+trajectory
+\item GPRO is another important RL method that does not rely
+on preferences 
+	\end{itemize}
+
+\vfill
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{License \& Attribution}
+\footnotesize
+\begin{itemize}
+\item \textbf{Sections 1--5} are adapted from \textbf{David Silver, \emph{UCL Course on Reinforcement Learning}} (2015), Lectures 1, 2, 5, 6 and 7, \url{https://davidstarsilver.wordpress.com/teaching/}, licensed \textbf{CC BY-NC 4.0}; these sections are shared under \textbf{CC BY-NC 4.0}. Selected slides in the source's order; text and formulas retypeset in the source's wording, figures cropped from the source PDFs, backup diagrams redrawn.
+\item Third-party figures in Silver's slides are not covered by his license and appear as in the source (the DQN figures are credited on their frames).
+\item \textbf{Sections 6--12} are adapted from \textbf{Deep Learning for NLP (DL4NLP)}, SLDS, LMU Munich, chapter 10 (\emph{RLHF}), licensed \textbf{CC BY 4.0}. Frames copied as in the source and selected by whole sections; figures with the attributions DL4NLP gives.
+\item Selection and every edit: \texttt{order.txt}. \textbf{Original to this course:} the learning goals.
+\end{itemize}
+\end{frame}
+
+\endlecture
+\end{document}
