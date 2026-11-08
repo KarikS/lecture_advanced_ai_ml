@@ -7,3 +7,4 @@ tensorboard
 tqdm
 transformers
 datasets
+gymnasium
