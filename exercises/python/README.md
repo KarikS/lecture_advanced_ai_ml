@@ -94,6 +94,13 @@ modified and shortened. Changed from the source: no Hub login, upload or replay 
 Unit 4 ported from `gym` to `gymnasium`; REINFORCE trained for 500 instead of 1,000
 episodes; Exercise 4 (three seeds) is new. Needs `gymnasium`.
 
+Lab 10 (`templates/py-lab-10-template.md`, Session 13) is a fresh implementation of the
+experiment-tooling chain planned for Session 13: sentence embeddings with
+`sentence-transformers/all-MiniLM-L6-v2` (mean pooling as on the model's card) on an
+AG News subset, the TensorBoard embedding projector, MLflow tracking in a local SQLite
+file, and optionally the same runs in Weights & Biases (offline mode by default, so no
+account is needed). Needs `mlflow`; `wandb` is installed by the optional exercise itself.
+
 ## USER: How to get started
 
 Every lab session is contained in one notebook. The recommended way to run them is
