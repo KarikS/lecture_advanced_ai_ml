@@ -1,0 +1,20 @@
+\begin{columns}[T]
+\begin{column}{0.4\textwidth}
+\centering
+\includegraphics[page=4,trim=79 5 385 68,clip,width=\linewidth,height=165pt,keepaspectratio]{figure/cs336-l3.pdf}
+\end{column}
+\begin{column}{0.58\textwidth}
+\small
+\textbf{Review:} choices in the standard transformer
+
+\medskip
+\textbf{Position embedding:} sines and cosines
+\begin{align*}
+PE_{(pos,2i)} &= \sin\left(pos/10000^{2i/d_{\text{model}}}\right)\\
+PE_{(pos,2i+1)} &= \cos\left(pos/10000^{2i/d_{\text{model}}}\right)
+\end{align*}
+\textbf{FFN:} ReLU
+\[ \text{FFN}(x) = \max(0, xW_1 + b_1)W_2 + b_2 \]
+\textbf{Norm type:} post-norm, LayerNorm
+\end{column}
+\end{columns}

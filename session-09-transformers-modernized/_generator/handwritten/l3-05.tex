@@ -1,0 +1,19 @@
+\begin{columns}[T]
+\begin{column}{0.45\textwidth}
+\centering
+\includegraphics[page=5,trim=24 58 363 100,clip,width=\linewidth,height=150pt,keepaspectratio]{figure/cs336-l3.pdf}
+\end{column}
+\begin{column}{0.53\textwidth}
+\textbf{Differences:}
+\begin{itemize}
+  \item \textbf{LayerNorm} is in front of the block
+  \item \textbf{Rotary position embeddings (RoPE)}
+  \item FF layers use \textbf{SwiGLU}, not ReLU
+  \item Linear layers (and layernorm) have \textbf{no bias} (constant) terms
+\end{itemize}
+\bigskip
+\centering
+\textbf{Why did we pick these?}\\
+\textbf{What should you pick?}
+\end{column}
+\end{columns}

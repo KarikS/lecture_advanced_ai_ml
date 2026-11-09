@@ -1,0 +1,42 @@
+\begin{columns}[T]
+\begin{column}{0.48\textwidth}
+\centering
+Monolingual models -- 30-50k vocab
+
+\medskip
+\small
+\begin{tabular}{@{}lr@{}}
+\toprule
+\textbf{Model} & \textbf{Token count}\\
+\midrule
+Original transformer & 37000\\
+GPT & 40257\\
+GPT2/3 & 50257\\
+T5/T5v1.1 & 32128\\
+LLaMA & 32000\\
+\bottomrule
+\end{tabular}
+\end{column}
+\begin{column}{0.48\textwidth}
+\centering
+Multilingual / production systems 100-250k
+
+\medskip
+\small
+\begin{tabular}{@{}lr@{}}
+\toprule
+\textbf{Model} & \textbf{Token count}\\
+\midrule
+mT5 & 250000\\
+PaLM & 256000\\
+GPT4 & 100276\\
+Command A & 255000\\
+DeepSeek & 100000\\
+Qwen 15B & 152064\\
+Yi & 64000\\
+\bottomrule
+\end{tabular}
+\end{column}
+\end{columns}
+\medskip
+{\centering Monolingual vocabs don't need to be huge, but multilingual ones do\par}

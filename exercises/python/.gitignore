@@ -142,3 +142,10 @@ questions/*.md
 
 /.quarto/
 **/*.quarto_ipynb
+
+# Lab outputs (TensorBoard logs, MLflow and W&B run data)
+runs/
+mlflow.db
+mlruns/
+mlartifacts/
+wandb/

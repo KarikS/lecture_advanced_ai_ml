@@ -1,0 +1,11 @@
+What's the incremental arithmetic intensity?
+
+\bigskip
+\textbf{Total arithmetic operations} $(bnd^2)$, \textbf{total memory accesses}
+\[ (\overset{\text{\scriptsize X}}{bn^2 d} + \overset{\text{\scriptsize projection}}{nd^2}) \]
+
+\bigskip
+Arithmetic intensity is not good $O\left(\left(\frac{n}{d} + \frac{1}{b}\right)^{-1}\right)$ -- need large batches + short seq length (n) or big model dimensions (d)
+
+\bigskip
+Is there some way around this? The n/d term is difficult to reduce.

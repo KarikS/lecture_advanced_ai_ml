@@ -1,0 +1,22 @@
+\begin{center}
+\footnotesize
+\renewcommand{\arraystretch}{0.92}
+\begin{tabular}{@{}lrrrc@{}}
+\toprule
+\textbf{Model} & \textbf{Routed} & \textbf{Active} & \textbf{Shared} & \textbf{Fine-grained ratio}\\
+\midrule
+GShard & 2048 & 2 & 0 & \\
+Switch Transformer & 64 & 1 & 0 & \\
+ST-MOE & 64 & 2 & 0 & \\
+Mixtral & 8 & 2 & 0 & \\
+DBRX & 16 & 4 & 0 & \\
+Grok & 8 & 2 & 0 & \\
+DeepSeek v1 & 64 & 6 & 2 & 1/4\\
+Qwen 1.5 & 60 & 4 & 4 & 1/8\\\midrule
+DeepSeek v3 & 256 & 8 & 1 & 1/14\\
+OlMoE & 64 & 8 & 0 & 1/8\\
+MiniMax & 32 & 2 & 0 & $\sim$1/4\\
+Llama 4 (maverick) & 128 & 1 & 1 & 1/2\\
+\bottomrule
+\end{tabular}
+\end{center}

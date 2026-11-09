@@ -1,0 +1,30 @@
+\begin{columns}[T]
+\begin{column}{0.58\textwidth}
+\footnotesize
+\renewcommand{\arraystretch}{0.95}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Model} & \textbf{Dropout*} & \textbf{Weight decay}\\
+\midrule
+Original transformer & 0.1 & 0\\
+GPT2 & 0.1 & 0.1\\
+T5 & 0.1 & 0\\
+GPT3 & 0.1 & 0.1\\
+T5 v1.1 & 0 & 0\\
+PaLM & 0 & (variable)\\
+OPT & 0.1 & 0.1\\
+LLaMA & 0 & 0.1\\
+Qwen 14B & 0.1 & 0.1\\
+\bottomrule
+\end{tabular}
+\end{column}
+\begin{column}{0.4\textwidth}
+\vspace{2.5em}
+\begin{itemize}
+  \item Many older models used dropout during pretraining
+  \item Newer models (except Qwen) rely only on weight decay
+\end{itemize}
+\end{column}
+\end{columns}
+\vfill
+{\scriptsize * Most of the times papers just don't discuss dropout. On open models, this closely matches not doing dropout. This may not be true of closed models.\par}

@@ -1,0 +1,12 @@
+\small
+As we have (and will) see, most LMs are have boring, conservative hyperparameters.
+One exception is T5 [Raffel et al 2020] which has some \emph{very bold} settings.
+
+\smallskip
+In particular, for the 11B model, they set
+\[ d_{ff} = \text{65,536} \qquad d_{model} = 1024 \]
+For an astounding 64-times multiplier.
+\begin{center}
+\includegraphics[page=39,trim=116 34 116 276,clip,width=0.8\linewidth]{figure/cs336-l3.pdf}
+\end{center}
+Other, recent exceptions -- Gemma 2 (8x), SmolLM/Gemma 3 (4x, GLU)

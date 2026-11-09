@@ -1,0 +1,14 @@
+\textbf{How can we solve this problem?}
+\begin{itemize}
+  \item We want our embeddings to be \textbf{invariant to absolute position}
+  \item We know that inner products are invariant to arbitrary rotation.
+\end{itemize}
+\medskip
+\footnotesize
+\renewcommand{\arraystretch}{1.1}
+\makebox[\textwidth][c]{%
+\begin{tabular}{@{}*{3}{>{\centering\arraybackslash}p{125pt}}@{}}
+\includegraphics[page=32,trim=122 107 472 169,clip,width=\linewidth,height=58pt,keepaspectratio]{figure/cs336-l3.pdf} & \includegraphics[page=32,trim=342 105 280 169,clip,width=\linewidth,height=58pt,keepaspectratio]{figure/cs336-l3.pdf} & \includegraphics[page=32,trim=467 112 89 192,clip,width=\linewidth,height=45pt,keepaspectratio]{figure/cs336-l3.pdf}\\[4pt]
+\textbf{Position independent embedding} & \textbf{Embedding ``we know that''} & \textbf{Embedding ``of course we know''}\\
+ & Rotate we by `0 positions'\newline know by `1 positions' & Rotate we by `2 positions'\newline Rotate know by `3 positions'
+\end{tabular}}

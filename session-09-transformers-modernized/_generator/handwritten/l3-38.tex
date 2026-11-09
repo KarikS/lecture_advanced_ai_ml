@@ -1,0 +1,22 @@
+\small
+Remember that GLU variants scale down by 2/3rd. This means most GLU variants have $d_{ff} = \frac{8}{3} d_{model}$. This is mostly what happens. Some notable such examples.
+
+\begin{center}
+\footnotesize
+\renewcommand{\arraystretch}{0.9}
+\begin{tabular}{@{}lr@{}}
+\toprule
+\textbf{Model} & $\boldsymbol{d_{ff}/d_{model}}$\\
+\midrule
+PaLM & 4\\
+Mistral 7B & 3.5\\
+LLaMA-2 70B & 3.5\\
+LLaMA 70B & 2.68\\
+Qwen 14B & 2.67\\
+DeepSeek 67B & 2.68\\
+Yi 34B & 2.85\\
+T5 v1.1 & 2.5\\
+\bottomrule
+\end{tabular}
+\end{center}
+Models are roughly in this range, though PaLM, LLaMA2 and Mistral are slightly larger

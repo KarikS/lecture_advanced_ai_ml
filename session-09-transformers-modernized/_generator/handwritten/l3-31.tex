@@ -1,0 +1,11 @@
+\small
+\textbf{High level thought process:} a \emph{relative} position embedding should be some $f(x, i)$ s.t.
+\[ \langle f(x, i), f(y, j) \rangle = g(x, y, i - j) \]
+That is, the attention function \emph{only} gets to depend on the relative position ($i-j$). How do existing embeddings not fulfill this goal?
+\begin{itemize}
+  \item \textbf{Sine:} Has various cross-terms that are not relative
+  \[ \langle \mathit{Embed}(x, i), \mathit{Embed}(y, i) \rangle = \langle v_x, v_y \rangle + \langle PE_i, v_y \rangle \ldots \]
+  \item \textbf{Absolute:} obviously not relative
+  \item \textbf{Relative embeddings:}
+  \[ e_{ij} = \frac{x_i W^Q \left(x_j W^K + a_{ij}^K\right)^T}{\sqrt{d_z}} \quad \text{is not an inner product} \]
+\end{itemize}

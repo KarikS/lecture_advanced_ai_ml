@@ -85,6 +85,22 @@ down substantially from the source tutorial's 180-epoch/full-CIFAR-10 run (under
 on an NVIDIA TitanRTX) to a CPU-feasible subset/epoch budget for a 2h session; the exact
 numbers are documented in the template's own header note.
 
+Lab 9 (`templates/py-lab-09-template.md`, Session 11) implements tabular Q-learning
+(FrozenLake, Taxi, the slippery FrozenLake) and REINFORCE with a small policy network
+(CartPole). Adapted from the Hugging Face Deep Reinforcement Learning Course
+(`huggingface/deep-rl-class`, commit `dbc53d8`), notebooks Unit 2 and Unit 4, licensed
+Apache 2.0 (verified from the repo's `LICENSE.md` at that commit); code and prose are
+modified and shortened. Changed from the source: no Hub login, upload or replay videos;
+Unit 4 ported from `gym` to `gymnasium`; REINFORCE trained for 500 instead of 1,000
+episodes; Exercise 4 (three seeds) is new. Needs `gymnasium`.
+
+Lab 10 (`templates/py-lab-10-template.md`, Session 13) is a fresh implementation of the
+experiment-tooling chain planned for Session 13: sentence embeddings with
+`sentence-transformers/all-MiniLM-L6-v2` (mean pooling as on the model's card) on an
+AG News subset, the TensorBoard embedding projector, MLflow tracking in a local SQLite
+file, and optionally the same runs in Weights & Biases (offline mode by default, so no
+account is needed). Needs `mlflow`; `wandb` is installed by the optional exercise itself.
+
 ## USER: How to get started
 
 Every lab session is contained in one notebook. The recommended way to run them is

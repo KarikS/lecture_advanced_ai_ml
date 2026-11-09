@@ -7,6 +7,7 @@ import pymupdf as fitz
 
 OVR_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "overrides.json")
 OVR = json.load(open(OVR_PATH)) if os.path.exists(OVR_PATH) else {}
+HAND_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "handwritten")
 
 PAGE_W, PAGE_H = 720, 405
 SCALE = 0.6           # source pt -> frame pt for crops (frame is ~0.63 of the slide width)
@@ -104,6 +105,12 @@ def slide_frame(pg, n, figpath, src="l3"):
         ttl = ovr["title"]
     opt = f"[shrink={ovr['shrink']}]" if ovr.get("shrink") else ""
     out = [f"% CS336 slide {n}", f"\\begin{{frame}}{opt}{{{ttl}}}"]
+    # hand-typeset body: keeps text in the course font where the automatic layout
+    # would fall back to a full-body crop (text rendered in the source's font)
+    hand = os.path.join(HAND_DIR, f"{src}-{n:02d}.tex")
+    if os.path.exists(hand):
+        out += ["% hand-typeset (_generator/handwritten/)", open(hand).read().rstrip("\n"), "\\end{frame}\n"]
+        return "\n".join(out)
     items = []
     BUL = "•❖▪◦"
     for b in text_blocks:

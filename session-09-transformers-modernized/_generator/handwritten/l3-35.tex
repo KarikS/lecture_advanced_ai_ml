@@ -1,0 +1,22 @@
+\makebox[\textwidth][c]{\begin{minipage}{400pt}
+{\footnotesize\textcolor{dhbwink}{$\triangleright$ Usual attention stuff}\par}
+{\ttfamily\fontsize{6.4}{7.6}\selectfont query\_states = self.q\_proj(hidden\_states)\\
+key\_states = self.k\_proj(hidden\_states)\\
+value\_states = self.v\_proj(hidden\_states)\\
+\mbox{}\\
+\# Flash attention requires the input to have the shape\\
+\# batch\_size x seq\_length x head\_dim x hidden\_dim\\
+\# therefore we just need to keep the original shape\\
+query\_states = query\_states.view(bsz, q\_len, self.num\_heads, self.head\_dim).transpose(1, 2)\\
+key\_states = key\_states.view(bsz, q\_len, self.num\_key\_value\_heads, self.head\_dim).transpose(1, 2)\\
+value\_states = value\_states.view(bsz, q\_len, self.num\_key\_value\_heads, self.head\_dim).transpose(1, 2)\par}
+\smallskip
+{\footnotesize\textcolor{dhbwink}{$\triangleright$ Get the RoPE matrix cos/sin}\par}
+{\ttfamily\fontsize{6.4}{7.6}\selectfont cos, sin = self.rotary\_emb(value\_states, position\_ids)\par}
+\smallskip
+{\footnotesize\textcolor{dhbwink}{$\triangleright$ Multiply query/key inputs}\par}
+{\ttfamily\fontsize{6.4}{7.6}\selectfont query\_states, key\_states = apply\_rotary\_pos\_emb(query\_states, key\_states, cos, sin)\par}
+{\centering\footnotesize \ldots\ Same stuff as the usual multi-head self attention below\par}
+\end{minipage}}\par
+\vspace{8pt}
+{\centering \textbf{Note:} embedding at \emph{each attention operation} to enforce position invariance\par}

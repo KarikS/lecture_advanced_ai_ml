@@ -1,0 +1,18 @@
+The one thing \emph{everyone} agrees on (in 2024)
+\begin{columns}[T]
+\begin{column}{0.36\textwidth}
+\centering
+\includegraphics[page=10,trim=51 75 441 103,clip,width=\linewidth,height=95pt,keepaspectratio]{figure/cs336-l3.pdf}\\
+{\scriptsize Figure from Xiong 2020\par}
+\end{column}
+\begin{column}{0.62\textwidth}
+\centering
+\includegraphics[page=10,trim=290 154 20 127,clip,width=\linewidth]{figure/cs336-l3.pdf}\par
+\medskip
+\small Set up LayerNorm so that it doesn't affect the main residual signal path (on the left)
+\end{column}
+\end{columns}
+\medskip
+{\small\centering
+\textbf{Almost all modern LMs use pre-norm (but BERT was post-norm)}\\
+(One somewhat funny exception -- OPT350M. I don't know why this is post-norm)\par}

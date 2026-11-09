@@ -1,0 +1,19 @@
+\small
+\renewcommand{\arraystretch}{1.3}
+\makebox[\textwidth][c]{%
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{270pt}@{\hspace{12pt}}>{\raggedright\arraybackslash}p{110pt}@{}}
+\toprule
+ & \textbf{Notable models}\\
+\midrule
+\textbf{GeGLU}\newline
+$\text{FFN}_{\text{GEGLU}}(x, W, V, W_2) = (\text{GELU}(xW) \otimes xV)\,W_2$
+ & T5 v1.1, mT5, LaMDA, Phi3, Gemma 2, Gemma 3\\
+\midrule
+\textbf{SwiGLU} (swish is $x * \text{sigmoid}(x)$)\newline
+$\text{FFN}_{\text{SwiGLU}}(x, W, V, W_2) = (\text{Swish}_1(xW) \otimes xV)\,W_2$
+ & LLaMa 1/2/3, PaLM, Mistral, OlMo, \emph{most models post 2023}\\
+\bottomrule
+\end{tabular}}
+
+\bigskip
+{\centering Note: Gated models use smaller dimensions for the $d_{ff}$ by 2/3\par}

@@ -1,0 +1,26 @@
+\footnotesize
+\renewcommand{\arraystretch}{1.2}
+\makebox[\textwidth][c]{%
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{130pt}@{\hspace{10pt}}>{\centering\arraybackslash}p{160pt}@{\hspace{10pt}}>{\raggedright\arraybackslash}p{100pt}@{}}
+\toprule
+ & & \textbf{Notable models}\\
+\midrule
+\textbf{Sine embeddings:} add sines and cosines that enable localization
+ & $\mathit{Embed}(x, i) = v_x + PE_{pos}$\newline
+   $PE_{(pos,2i)} = \sin\left(pos/10000^{2i/d_{\text{model}}}\right)$\newline
+   $PE_{(pos,2i+1)} = \cos\left(pos/10000^{2i/d_{\text{model}}}\right)$
+ & Original transformer\\
+\midrule
+\textbf{Absolute embeddings:} add a position vector to the embedding
+ & $\mathit{Embed}(x, i) = v_x + u_i$
+ & GPT1/2/3, OPT\\
+\midrule
+\textbf{Relative embeddings:} add a vector to the \emph{attention computation}
+ & $e_{ij} = \dfrac{x_i W^Q \left(x_j W^K + a_{ij}^K\right)^T}{\sqrt{d_z}}$
+ & T5, Gopher, Chinchilla\\
+\midrule
+\textbf{Rope embeddings} (next slides..)
+ &
+ & GPTJ, PaLM, LLaMA,\newline \emph{Most 2024+ models}\\
+\bottomrule
+\end{tabular}}

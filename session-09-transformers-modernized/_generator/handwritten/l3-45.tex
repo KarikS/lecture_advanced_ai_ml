@@ -1,0 +1,21 @@
+\begin{itemize}
+  \item Should my model be deep or wide? \emph{How} deep and how wide?
+  \item Most models are surprisingly consistent on this one too!
+\end{itemize}
+\begin{center}
+\small
+\renewcommand{\arraystretch}{0.95}
+\begin{tabular}{@{}llr@{}}
+\toprule
+ & \textbf{Model} & $\boldsymbol{d_{model}/n_{layer}}$\\
+\midrule
+ & BLOOM & 205\\
+ & T5 v1.1 & 171\\
+\rowcolor{blue!8} & PaLM (540B) & 156\\
+\rowcolor{blue!8} \emph{Sweet spot?} & GPT3/OPT/Mistral/Qwen & 128\\
+\rowcolor{blue!8} & LLaMA / LLaMA2 / Chinchila & 102\\
+ & T5 (11B) & 43\\
+ & GPT2 & 33\\
+\bottomrule
+\end{tabular}
+\end{center}

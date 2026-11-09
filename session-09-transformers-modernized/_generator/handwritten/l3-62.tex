@@ -1,0 +1,11 @@
+\small
+\textbf{Key idea} -- have multiple queries, but just one dimension for keys and values
+\begin{center}
+\includegraphics[page=62,trim=181 91 181 112,clip,width=\linewidth,height=82pt,keepaspectratio]{figure/cs336-l3.pdf}
+\end{center}
+We have much fewer items to move in and out of memory (KV Cache)
+
+\smallskip
+\textbf{Total memory access} $(bnd + bn^2 k + nd^2)$, \textbf{Arithmetic intensity} $O\big(\big(\textcolor{red}{\tfrac{1}{d}} + \tfrac{n}{\textcolor{red}{d}h} + \tfrac{1}{b}\big)^{-1}\big)$
+
+{\raggedleft\tiny [figure from \url{https://blog.fireworks.ai/multi-query-attention-is-all-you-need-db072e758055}]\par}
