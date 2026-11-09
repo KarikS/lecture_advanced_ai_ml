@@ -1,0 +1,57 @@
+This session compiles to a single deck: slides-transformer-variants.tex (222 pages, built 2026-10-04).
+
+SOURCING PRINCIPLE
+
+One source, used verbatim and in its own order:
+  DL4NLP (SLDS, LMU Munich, CC BY 4.0)
+    - chapter04-bert/slides-41..45
+    - chapter05-bert-based/slides-51..53
+    - chapter06-post-bert-t5/slides-61..63
+No supplements and no original text apart from the learning goals and the
+License & Attribution frame. Copies of all source files are in _sources/.
+
+Cutting rule for later passes: drop whole source files (or whole frame groups),
+never condense several source frames into one summary frame -- the build-ups are
+where the intuition lives.
+
+SECTIONS (one \section per source file, titled with the file's titlemeta subtitle)
+
+ 1. ARLMs vs. MLM                              ch04/slides-41-arlm-mlm
+ 2. Measuring Performance                      ch04/slides-42-metrics
+ 3. The Architecture                           ch04/slides-43-corefacts
+ 4. Pre-training & Fine-Tuning                 ch04/slides-44-pretrain-finetune
+ 5. Basic definitions and challenges           ch04/slides-45-transferlearning-selfsup
+ 6. Implications for Future Work & BERTology   ch05/slides-51-bertology
+ 7. BERT-based Architectures                   ch05/slides-52-bert-based (RoBERTa, ALBERT)
+ 8. Model Distillation                         ch05/slides-53-distilbert
+ 9. Post-BERT Architectures                    ch06/slides-61-postbert (ELECTRA, XLNet)
+10. Tasks as Text-to-Text Problem              ch06/slides-62-text2text
+11. Text-to-Text Transfer Transformer          ch06/slides-63-t5
+
+Candidates to cut on review (whole files): 42 (generic NLP evaluation metrics;
+overlaps session 9's ch08/slides-85), 61 (XLNet mechanics), 51 (BERTology).
+
+ADAPTATION (everything that differs from the source text)
+
+- Page geometry: DL4NLP is 4:3, this course is 16:9 (about 17pt less height), so
+  34 frames overflowed. Fixed per frame by scaling \includegraphics sizes by 0.85
+  (twice where needed; 26 of the edits are the 13-page ARLM toy-example build-up)
+  and, for two text-only frames ("Approximate Parameter Count (2)", "(3) bertology
+  summary"), a \small / \footnotesize line marked "% fit16:9". No text was changed.
+- Source bugs fixed: figure/52-albert-sota.png and ../chapter01-basics/figure/
+  seq2seq.png are .PNG on disk (only resolves on case-insensitive filesystems);
+  copied under the referenced names, cross-chapter path flattened to figure/.
+- Preamble: DL4NLP macros (\citebutton, \ques, \myblue, \blu, \org, \devour,
+  \warning) and \usepackage{animate} added to the deck. The course's typewriter
+  font (laett) has no bold shape, which DL4NLP's \textbf{\texttt{...}} needs; a
+  deck-local font-shape substitution maps it to regular.
+
+HISTORY
+
+2026-09-27  First build: condensed DL4NLP ch04-06 (~206 frames -> 46) with
+            relocated ViT/CLIP/Flamingo/GPT-4 frames, a new Whisper frame and
+            original recap/synthesis frames. Kept in _previous/.
+2026-10-04  Rebuilt to the single-source principle above after review found the
+            condensed version lost the source's step-by-step intuition and mixed
+            sources frame to frame. Non-NLP frames dropped (session 10 covers
+            vision/multimodal). 222 pages, no errors, no overfull vboxes.

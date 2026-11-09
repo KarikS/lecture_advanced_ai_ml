@@ -1,0 +1,153 @@
+This session compiles to a single deck: slides-transformer-variants.tex
+
+Built 2026-09-27, as the second half of splitting the original single "Transformer"
+session into two (session 7: Attention & Transformer Architecture; this one: BERT/T5
+variants), per the scope conversation in git history / the conversation this was built
+in. Source material is DL4NLP chapters 4-6 (~206 raw frames across 11 files), which is
+far more than a single session can carry -- this deck condenses aggressively rather than
+reproducing it close to verbatim (unlike session 7's first pass, which overshot its page
+target by including nearly everything). Concretely: many multi-frame figure walkthroughs,
+ablation-by-ablation result frames, and near-duplicate animated-buildup frames were
+collapsed into single frames stating the finding, with the source cited so the full
+detail is still one click away.
+
+Sections, in order, with sourcing:
+
+1. Recap: The Three Transformer Families [adapted from original text first written for
+   session 7] -- opens with the same taxonomy table before diving into detail, so the
+   encoder-only/decoder-only/encoder-decoder distinction the user asked to make
+   structurally prominent carries across both sessions, not just session 7.
+
+2. Transformers Beyond NLP [RELOCATED from session 7's original "Transformer Motivation
+   & Applications" section, not newly authored] -- Vision Transformer, CLIP x2, Flamingo,
+   GPT-4. Moved here (with a new one-frame bridge) specifically to address a scope
+   concern raised mid-conversation: sessions 7-9 read as "general Transformer course,
+   NLP only" once 8-9 are BERT/T5 and GPT. Opening this session with non-NLP evidence
+   before its otherwise-100%-NLP content (BERT, RoBERTa, ALBERT, DistilBERT, ELECTRA, T5)
+   was judged a better fix than leaving the frames in session 7, where they didn't serve
+   this purpose. See session 7's order.txt for the corresponding removal.
+
+3. BERT: Predecessors and Core Facts [dl4nlp/chapter04-bert/{slides-43-corefacts,
+   slides-44-pretrain-finetune}.tex] -- the 5-frame animated "Predecessors of BERT"
+   build-up (chapter05's identical device, "successors" chains, repeats 3-5 times across
+   chapters 4-6) condensed to 1 frame using only the final, most complete build-up image;
+   ELMo/ULMFiT/GPT shortcomings kept as prose. BERT key facts, the ELMo/GPT/BERT
+   comparison, architecture numbers, causality remark, input/output embeddings, and the
+   parameter-count derivation (explicit callback to session 7's own derivation) kept
+   close to complete -- this is the flagship encoder-only model, the one place in this
+   session where depth matters most.
+
+4. Autoregressive vs. Masked Language Modeling [dl4nlp/chapter04-bert/
+   slides-41-arlm-mlm.tex] -- the single biggest cut in this session: the original
+   ARLM "toy example" is 13 near-identical frames, each showing one more page of the
+   same animated build-up PDF (meant for live reveal during a lecture, not 13 static
+   slides in a deck people read). Condensed to 1 frame using the final page (the
+   complete, fully-built-up sentence), which shows the same information. Two other
+   pairs of near-identical "Examples of ARLMs" frames similarly merged.
+
+5. Pre-Training and Fine-Tuning BERT [dl4nlp/chapter04-bert/slides-44-pretrain-finetune,
+   slides-42-metrics.tex] -- MLM/NSP mechanics and BERT's actual pretrain/fine-tune
+   recipe kept, condensed from ~14 frames to 5 (the three near-identical MLM masking
+   examples merged into one worked example; the two fine-tuning figures merged). From
+   slides-42-metrics.tex (20 raw frames), only perplexity was kept (2 frames, condensed
+   from 5) -- the ranking-metrics content (MAP/MRR) and the generated-text-evaluation
+   survey (BLEU/ROUGE/BERTScore/human eval) are generic NLP-evaluation material, only
+   loosely BERT-specific, and were judged not worth the page budget here.
+
+6. Self-Supervision and Transfer Learning [dl4nlp/chapter04-bert/
+   slides-45-transferlearning-selfsup.tex] -- condensed from 11 frames to 3: kept the
+   feature-based-vs-fine-tuning distinction and the self-supervision definition (both
+   genuinely load-bearing concepts used throughout this session), cut the
+   transductive/inductive transfer-learning taxonomy (3 frames, generic ML-transfer-
+   learning content, not specific to this session's models) and the multilinguality
+   remark (already covered, better, as BERTology's language-diversity limitation next).
+
+7. BERTology: What Does BERT Actually Learn? [dl4nlp/chapter05-bert-based/
+   slides-51-bertology.tex] -- condensed from 19 frames to 7. Kept: the implications
+   framing, language diversity, max sequence length (a direct callback to session 7's
+   O(n^2) discussion), bias/StereoSet, and a summary of the two headline BERTology
+   findings (Clark et al.'s attention-pattern analysis, Michel et al.'s head-pruning
+   result) plus the Jain & Wallace caveat. Cut: the individual attention-pattern figures
+   (3 frames) and head-pruning figures (3 frames) in favor of stating the findings
+   directly with a citation, and the "pretrain-finetune + transformer" paradigm-shift
+   frame (redundant with points made elsewhere in this session).
+
+8. RoBERTa [dl4nlp/chapter05-bert-based/slides-52-bert-based.tex, first half] --
+   condensed from ~8 frames to 2: dynamic masking, dropping NSP, and more/longer
+   training as the three changes, with one figure. The repeated "Successors of BERT"
+   animated timeline (4 frames, same device as BERT's own predecessor timeline) was cut
+   entirely as duplicate framing.
+
+9. ALBERT [same file, second half] -- condensed from ~8 frames to 2: the E/H
+   disentanglement argument and cross-layer parameter sharing kept (genuine architectural
+   ideas), sentence-order prediction kept as a one-line contrast with NSP, the detailed
+   ablation-by-ablation walkthrough (3 frames) and n-gram-masking detail (1 frame) cut in
+   favor of stating the results.
+
+10. DistilBERT [dl4nlp/chapter05-bert-based/slides-53-distilbert.tex] -- condensed from
+    16 frames to 2: kept the model-compression motivation, soft/hard targets with
+    temperature, DistilBERT's specific recipe, and headline results/ablations. Cut the
+    "related approaches" frames on quantization and pruning (2 frames) -- interesting but
+    not DistilBERT-specific, and this session already cut similarly-tangential material
+    elsewhere for the same reason.
+
+11. ELECTRA [dl4nlp/chapter06-post-bert-t5/slides-61-postbert.tex, first half] --
+    condensed from 7 frames to 2: the generator/discriminator setup, why a smaller
+    generator works better, and the headline compute-efficiency result. XLNet/permutation
+    language modeling (same file, second half, 13 frames on content-stream/query-stream
+    attention mechanics) was cut to a single one-sentence mention under "Self-Supervised
+    Objectives, Beyond MLM" -- a deliberate scope call: XLNet's mechanics are a genuine
+    rabbit hole and it is less central to this session's BERT/T5 spine than RoBERTa,
+    ALBERT, DistilBERT, or ELECTRA.
+
+12. From BERT to Text-to-Text / T5 [dl4nlp/chapter06-post-bert-t5/{slides-62-text2text,
+    slides-63-t5}.tex] -- condensed from ~28 frames to 10. The "Problems with BERT"
+    motivation (8 frames of Socratic build-up) condensed to 2 frames stating the two
+    core problems directly. The text-to-text idea and worked examples condensed from 9
+    frames to 1. T5 itself kept fairly complete (architecture, pretraining objective, C4,
+    experiments/conclusions, parameter count, following the same session-7-callback style
+    as BERT's parameter count) since T5 is this session's flagship encoder-decoder model
+    -- but the three separate GLUE/SuperGLUE/MT benchmark-figure frames were condensed
+    into one sentence in the conclusions frame, and the non-standard-head-dimension 3B/11B
+    parameter-count derivation (2 frames of algebra) was cut as a scaling detail beyond
+    this session's scope, noted as a footnote instead.
+
+13. Encoder-Decoder Beyond NLP: Whisper [NEW, freshly drafted, 1 frame] -- Whisper
+    (Radford et al., 2022) as the encoder-decoder analog to ViT's encoder-only example,
+    reinforcing the "this isn't NLP-specific" framing a second time, right where the
+    encoder-decoder deep dive (T5) ends. No source material existed for this in either
+    i2dl or DL4NLP; drafted fresh and cited directly to the original paper.
+
+14. Closing Synthesis [NEW, original text, 1 frame] -- the three-families table one final
+    time, now filled in with every model this session covered plus a GPT/decoder-only
+    row (even though GPT itself is session 9's subject), so the picture is complete.
+
+Not included at all: slides-23-elmo.tex (ELMo itself; judged as belonging conceptually to
+this session's BERT lineage rather than session 7's attention lineage, but its content
+--- contextual embeddings via bidirectional LSTMs --- turned out to add little beyond
+what "Predecessors of BERT" already covers in one paragraph, so it was left out
+entirely rather than given its own frames).
+
+Figures: 28 images copied from dl4nlp/slides/chapter0{4,5,6}-*/figure/ (flattened) plus
+5 moved from session-07-transformer/figure/ (the relocated CV/multimodal frames). No
+collisions found. Two figures (bert-problem.png, stereoset.png) are actually stored in
+chapter05's figure/ directory despite being referenced from a chapter06 file
+(slides-62-text2text.tex) --- the same kind of source/figure-directory mismatch session
+6's order.txt flagged as a recurring gotcha in this material; caught by checking the
+actual file location rather than assuming it matched the referencing chapter.
+
+Macros: this deck needed \citebutton and \warning in addition to the \ques/tikzstyle set
+already added in session 7 (dl4nlp's preamble_new.tex defines both; copied verbatim,
+verified against the source file, not reconstructed from memory). Both were caught as
+fatal "Undefined control sequence" errors on the first two build attempts and fixed
+before a successful build, rather than discovered later.
+
+Build: 105 pages, no errors, no missing figures, no undefined references (confirmed via
+log grep for "not found"/"undefined"/"! LaTeX Error"/"Fatal error", and by rendering the
+taxonomy table, the T5 parameter-count derivation, and the closing synthesis table with
+pdftoppm --- all render cleanly with no overflow, unlike session 7's taxonomy table on
+the first attempt there). This lands inside the ~80-110 page target on the first
+successful build, in contrast to session 7's 156-165 pages -- the difference is
+deliberate: this session was scoped for aggressive condensation from the start, given
+the much larger raw-material surplus (206 frames) and the lesson already learned from
+session 7's overshoot.

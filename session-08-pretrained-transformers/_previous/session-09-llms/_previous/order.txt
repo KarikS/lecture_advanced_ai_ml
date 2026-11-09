@@ -1,0 +1,197 @@
+This session compiles to a single deck: slides-llms.tex
+
+Built 2026-09-27, as the fourth and final session in the Transformer arc (7: Attention
+& Architecture, 8: BERT & T5 variants, 9: this session, 10: Transformers Outside NLP).
+Source material is DL4NLP chapters 7 (GPT), 9 (LLMs), and 11 (Training LLMs) -- by far
+the largest raw-material surplus of any session built this way (chapter07 ~91 frames,
+chapter09 ~100+ real frames across four usable files, chapter11 ~60+ frames), so this
+session was scoped aggressively from the start (the "lean from the start" lesson learned
+from session 7's overshoot and confirmed by sessions 8 and 10's on-target first builds),
+rather than ported close to verbatim and trimmed afterwards.
+
+Sections, in order, with sourcing:
+
+1. Recap: The Decoder-Only Family [original text] -- one frame, closing the taxonomy
+   loop that sessions 7/8/10 all deferred to "session 9's subject."
+
+2. GPT-1: The Original Recipe [dl4nlp/chapter07-gpt/slides-71-gpt.tex] -- kept nearly
+   complete (5 frames from 6 raw frames): architecture, pretraining objective plus
+   BooksCorpus, fine-tuning recipe (the three separate raw frames on task-specific input
+   transformations condensed into one), and the parameter-count derivation, kept in the
+   same style as BERT's and T5's derivations in session 8 so the three can be compared.
+   The "SOTA results" frame was dropped -- its figure (gpt-sota.png) does not exist in
+   the source repository's figure/ directory (confirmed by a failed copy, not assumed
+   missing), and the result itself is stated in the surrounding text instead.
+
+3. GPT-2: Language Models as Multitask Learners [slides-72-gpt2.tex] -- condensed from
+   14 frames to 5: the staged-release "controversy" frame and the architecture frame
+   were merged into one text-only "Scale and a New Corpus" frame (its own figures,
+   72-gpt2-release.png and 72-gpt2-size.png, were not found in the source figure
+   directory either); the two Q&A/factual-knowledge frames were condensed into one,
+   keeping the headline 117M-vs-1.5B factual-recall numbers as the session's first
+   concrete "scale changes capability" data point, a thread picked up again in the
+   scaling-laws section.
+
+4. GPT-3: In-Context Learning at Scale [slides-73-gpt3xshot.tex] -- the biggest single
+   condensation in this session: ~20 raw frames (many of them the Schick et al.\
+   prompting-history detour, and one near-duplicate figure frame per shot-count) down to
+   6. The zero-/one-/few-shot frames (3 raw frames, each showing one figure) were merged
+   into a single three-column frame showing all three side by side -- the same kind of
+   merge session 8 used for BERT's near-duplicate MLM examples. The Schick (2020)
+   "history of prompting" detour (2 frames) was cut in favor of one sentence in the
+   "Prompting: Precise Definitions" frame later in this session (Schick is still
+   credited there, for verbalizers). Training-corpus and x-shot-comparison figures
+   (traincorp.png, xshotlargecorpora.png) were not copied -- their headline numbers
+   (499B tokens; few-shot scaling faster than zero-shot) are stated in text instead,
+   consistent with the same-repo-image-license reasoning below.
+
+5. GPT-3: Discussion and Limitations [slides-73-gpt3xshot.tex tail; ethics content
+   summarized, not sourced from slides-75-discussion.tex -- see note below] -- 2 frames
+   (human-vs-machine Turing-style test, bias) plus a bridging frame. Kept deliberately
+   short: this is the same kind of "ethics/limitations survey" material session 8 also
+   kept brief for BERTology, and this session already has a full skepticism thread later
+   (emergent abilities, the scaling-plateau debate) that carries more of the critical
+   weight than a long limitations list would.
+
+6. Fine-Tuning and Prompting, Precisely [dl4nlp/chapter09-llm/slides-91-instruction-
+   tuning.tex] -- condensed from ~25 real frames (excluding devoured/commented-out ones)
+   to 7. Kept: single-task fine-tuning + verbalizers (merged, since the verbalizer figure
+   itself, schickverbalizer.png, was not copied), the precise prompting-terminology frame
+   (this is the deck's canonical zero-/few-shot definition, referenced back from the
+   GPT-3 section rather than duplicated there), multi-task fine-tuning (T0/T5/FLAN),
+   T0's held-out-task evaluation protocol, the instruction-tuning terminology frame (with
+   an explicit forward-pointer to RLHF in session 11, rather than pulling RLHF-adjacent
+   depth into this session), and the fine-tuning conclusions frame (the PaLM 540B
+   0.2%-compute-for-9.4%-improvement number). Cut: individual BERT fine-tuning example
+   figures, the "continued pretraining" frame (a third, less central sense of
+   "fine-tuning," judged not worth a full frame here), and the T0-vs-FLAN comparison and
+   FLAN-scaling frames (T0 and FLAN are both already covered qualitatively).
+
+7. Chain-of-Thought Reasoning [chapter09-llm/slides-92-chain-of-thought.tex] --
+   condensed from ~25 frames to 6, same pattern as session 8's BERT MLM-example cut: of
+   six near-identical worked-example figures (cotex1-6.png), only one (cotex1.png) is
+   shown; of two near-identical performance-vs-scale figures, only one
+   (cot_performance1.png) is shown. Tree-of-thought (Yao et al., 2023) kept as one frame,
+   not derived in depth -- the BeliefBank/creative-writing extensions and the multiple
+   sli.do frames were cut as out of scope for this deck. A new closing frame
+   ("Is the Chain of Thought Faithful?") was added -- not itself sourced from this file,
+   but a deliberate bridge planted here so the DeepSeek section's own unfaithfulness
+   finding (below) has somewhere to land structurally, rather than appearing
+   unmotivated.
+
+8. Emergent Abilities: A Real Effect, or a Mirage? [chapter09-llm/slides-93-emergent-
+   abilities.tex] -- condensed from ~15 frames to 2, keeping only the core claim (Wei et
+   al., 2022) and the core rebuttal (Schaeffer et al., 2023, the "mirage of metric
+   choice" argument). This is a deliberate scope choice, not a space-filler: the
+   metric-choice skepticism is exactly the kind of "is this result real or an artefact"
+   check this course's persona is meant to model, and it sets up the scaling-plateau
+   debate two sections later. The individual metrics/experiments figures (metrics.png,
+   emergent_experiments.png) were cut in favor of stating the argument directly.
+
+9-10-11. Training LLMs: Compute / Memory / Distributed and Efficient
+   [chapter11-training-llms/slides-111-compute-memory.tex,
+   slides-112-reduce-comp.tex] -- condensed from ~35 real frames (excluding devoured
+   ones) to 11. The $C\approx 6PD$ derivation, number representations, and the
+   memory-component breakdown are kept close to complete, since this is genuinely new
+   material for the course (no prior session covers training cost at all). The INT8
+   quantization \textit{algebra} (absmax/zero-point formulas, 3 raw frames) was cut down
+   to one descriptive frame with no derivation -- the formulas are a rabbit hole relative
+   to this session's scope, and the two Maarten Grootendorst figures illustrating them
+   were not copied for the same reason. Data parallelism and tensor parallelism were each
+   condensed from 2 raw frames to 1. FlashAttention (4 raw frames) was condensed to 2,
+   explicitly framed as a callback to session 7's O(n^2) attention-cost discussion --
+   this is one of the strongest concrete callbacks in the whole session, since it
+   revisits a cost flagged three sessions ago and finally explains what production
+   systems actually do about it.
+
+12. Scaling Laws [chapter11-training-llms/slides-113-scaling.tex] -- condensed from ~30
+    real frames (excluding devoured ones) to 7. Kept: Kaplan et al.'s power laws,
+    Chinchilla's compute-optimal reframing and headline result (with both of Hoffmann et
+    al.'s own figures), the scaling-plateau debate (Sutskever's quote, with an added
+    question about incentives -- a deliberate persona-consistent addition, not sourced
+    from the slide itself, prompting skepticism about whose interests a "scaling has/
+    hasn't plateaued" claim serves), the data-quality/model-size tradeoff with the Phi-4
+    example, and a main-takeaway frame. Cut: the optimal-batch-size frames (devoured in
+    the source itself), the MMLU/QA-specific Chinchilla figures (the general finding is
+    already established by the two figures kept), Epoch AI/Andrew Ng/Jensen Huang
+    commentary frames (opinion pieces without a figure worth reproducing), and the
+    context-utilization-scaling and "what is a trillion" frames (tangential to this
+    session's spine).
+
+13. DeepSeek-R1: Reasoning via Reinforcement Learning [chapter09-llm/slides-94-
+    deepseek.tex] -- kept as this session's capstone, condensed from ~20 frames to 8.
+    This is genuinely rich, current, real content (not a stub -- see the discovered-gap
+    note below), and it ties together three threads planted earlier in this session:
+    chain-of-thought (the <think>/<answer> format, and the faithfulness question),
+    reinforcement learning (a first, lighter-weight preview of session 11's RLHF, with
+    an explicit note that DeepSeek's rewards are automatic/verifiable rather than
+    human-preference-based), and the scaling debate (inference-time scaling as a second
+    axis for trading compute against quality, argued as directly extending the
+    "holistic, not just pretraining" reframing from the scaling-laws section). The
+    unfaithfulness-of-reasoning frame is stated in text rather than with its source
+    figures (sixplusnine,0.png / sixplusnine,1.png were not copied, to keep this frame
+    to a single page) -- the described example (a written trace describing one
+    calculation while the final answer matches a different one) is taken directly from
+    the source file's own frames, not invented.
+
+14. Closing Synthesis: Four Sessions, One Taxonomy [NEW, original text, 1 frame] -- the
+    three-families table one final time, now genuinely complete (GPT/DeepSeek-R1 filled
+    into the decoder-only column instead of "session 9's subject"), the payoff frame for
+    the whole 7-8-9-10 arc.
+
+Discovered content gap, flagged per this course's practice of documenting such gaps
+(cf.\ session 6's diffusion-models gap, session 8's XLNet scope-cut): two files named in
+this session's original planning stub, slides-94-big-models.tex and
+slides-95-big-model-benchmarks.tex, are confirmed unfilled template stubs -- both contain
+only generic placeholder content (a "Categorization of NLP Tasks" / POS-tagging example
+with no big-models or benchmarks content at all), not real material. Neither is used
+anywhere in this deck. slides-94-deepseek.tex, by contrast, is genuine and was used as
+described above.
+
+Explicitly scoped out: chapter10-rlhf/9itune.tex (named in the original planning stub
+for this session's fine-tuning section) was not read or used. Reasoning: RLHF's real
+depth belongs to session 11 (Reinforcement Learning), and slides-91-instruction-
+tuning.tex's own "Terminology" frame already draws the fine-tuning / instruction-tuning /
+RLHF boundary this session needs, with an explicit forward-pointer rather than importing
+RLHF content early. chapter11-training-llms/slides-114-x-optimize.tex (prompt-engineering
+strategies) was also not read or used -- a deliberate scope cut, analogous to session
+8's XLNet cut: generic prompt-engineering listicle content judged lower-value than the
+material already included, given this session's already-large raw-material surplus.
+
+Figures: 26 images copied from dl4nlp/slides/chapter0{7,9}-*/figure/ and
+chapter11-training-llms/figure/ (flattened), all under the same CC BY 4.0 license as the
+rest of this course's DL4NLP-derived sessions (5-8, 10) -- confirmed by the same
+repo-license reasoning already established for those sessions, not re-verified from
+scratch. A handful of figures referenced in the source .tex files (gpt-sota.png,
+72-gpt2-release.png, 72-gpt2-size.png, schickverbalizer.png, 81-flan.png, traincorp.png,
+xshotlargecorpora.png, absmax/zero-point quantization figures, sixplusnine
+unfaithfulness figures) do not exist in the source repository's figure/ directories or
+were deliberately left out to keep frames to a single page; in every such case the
+figure's headline finding is stated in text instead, not silently dropped.
+
+Two real bugs were caught and fixed during the build, both found via pdftoppm visual
+inspection rather than assumed fine from a clean pdflatex log:
+- The auto-generated learning-goals title frame overflowed vertically with the initial
+  7-bullet \learninggoals list (visually confirmed: the last bullet was clipped at the
+  page edge). Fixed by trimming to 5 bullets and merging the chain-of-thought and
+  DeepSeek-R1 goals into one -- the same kind of title-frame overflow session 7 first
+  flagged as a recurring risk whenever \learninggoals runs long.
+- Two image-heavy frames (the GPU-memory-hierarchy/FlashAttention frame, and the
+  DeepSeek example-reasoning-trace frame) triggered "Overfull \vbox" warnings from
+  oversized images. Fixed by reducing \includegraphics widths (both confirmed
+  visually afterwards to render cleanly, no clipping).
+The closing taxonomy table's "NLP" row (originally listing five BERT-family model names
+in a narrow column) produced ugly hyphenated line breaks and a genuine overfull \hbox --
+fixed by widening the encoder-only column, narrowing decoder-only (its row now has only
+two short entries), and replacing the five-model list with "BERT family (session 8)",
+consistent with how this table already treats "Beyond NLP" cells.
+
+Build: 102 pages, no errors, no missing figures, no undefined references (confirmed via
+log grep for "not found"/"undefined"/"! LaTeX Error"/"Fatal", and by rendering the
+title/learning-goals page, the zero/one/few-shot three-column frame, the FlashAttention
+memory-hierarchy frame, the DeepSeek reasoning-trace frame, and the closing taxonomy
+table with pdftoppm -- all render cleanly with no overflow or clipping). This lands
+inside the ~80-110 page target on the first build after fixing the three issues above,
+despite this session having by far the largest raw-material surplus of the four
+Transformer sessions -- consistent with sessions 8 and 10's "lean from the start"
+condensation approach, in contrast to session 7's 156-165-page first-pass overshoot.
