@@ -15,10 +15,7 @@ jupyter:
 <!-- #region pycharm={"name": "#%% md\n"} -->
 # Lab 10
 
-> Not adapted from an existing lab: a fresh implementation for this course, following the
-> tool chain planned for Session 13 (sentence embeddings from Hugging Face -> TensorBoard
-> projector -> MLflow tracking -> the same runs in Weights & Biases). The mean-pooling
-> recipe for `sentence-transformers/all-MiniLM-L6-v2` follows that model's card on the
+> The recipe for `sentence-transformers/all-MiniLM-L6-v2` follows that model's card on the
 > Hugging Face Hub (Apache 2.0).
 
 Training a model is only part of the work. You also want to *look* at what a model has
@@ -35,12 +32,42 @@ TensorBoard and MLflow run entirely on your machine (or Colab runtime): no accou
 nothing leaves the computer. W&B is a hosted service; the optional exercise runs it in
 offline mode by default.
 
-> **Instructor timing (2h session).** ~10 min: intro and setup (the model and dataset
-> downloads take a minute). ~25 min: Exercise 1 - mean pooling, embed the data (about a
-> minute on CPU). ~20 min: Exercise 2 - write the embeddings for TensorBoard and explore
-> them in the projector. ~40 min: Exercise 3 - the tracked training function, a small
-> hyperparameter grid, comparing runs in MLflow. ~15 min: Exercise 4 (optional) - W&B.
-> ~10 min buffer and discussion.
+## Working Together: Three Groups, Three Tools
+
+For our group of seven, form groups of **2 + 2 + 3**. Everyone completes Exercise 1
+individually; then each group becomes the guide for one tool. Exercises 2-4 provide
+the preparation material for your group. W&B is optional for individual study, but
+is Group 3's focus in this format.
+
+| Group | Members | Tool and preparation | Show the class |
+| --- | --- | --- | --- |
+| 1 | 2 | **TensorBoard Projector**, Exercise 2 | Inspect labelled articles and neighbours; compare PCA and t-SNE; explain a misleading projection. |
+| 2 | 2 | **MLflow**, Exercise 3 | Compare configurations across seeds, inspect metric histories and save reproducibility artifacts. |
+| 3 | 3 | **Weights & Biases**, Exercises 3-4 | Build a comparison dashboard, inspect prediction errors and share a short results report. |
+
+**Group 3 has three people** because it combines instrumenting the training loop,
+organising the hosted dashboard and analysing example-level predictions. Divide these
+three responsibilities among the members, then prepare the demonstration together.
+Group 2 should use a local installation for MLflow's web UI; in Colab, use the Python
+run table and plots instead. Group 3 can reuse Exercise 3's classifier helper and
+training loop. Complete W&B signup before class.
+
+**Each group gives a 10-15 minute live demonstration, with no question period or
+audience tasks.** Everyone in the group presents part of it. No slide deck is needed.
+Use roughly 2-3 minutes for the workflow and logging code, 6-9 minutes to demonstrate
+results in the tool, and 2-3 minutes for your finding, limitation and recommendation.
+Prepare runs and visualisations beforehand so the demonstration does not wait on training.
+
+Show at least one finding supported by your own results, one limitation of the tool
+or analysis, and a concrete situation in which you would use it. Share your notebook
+and screenshots afterwards; Group 3 also shares an accessible project/report link.
+Keep API keys out of shared material.
+
+> **Instructor timing (2h session).** ~20 min: setup and individual work on Exercise 1.
+> ~50 min: group preparation. ~30-45 min: three demonstrations of 10-15 minutes each,
+> without Q&A. Use the remaining 5-20 minutes for transitions, finishing and sharing
+> materials. Reuse the embeddings and existing small training budgets; do not increase
+> dataset size or epochs for the group tasks. Aim for less than 10 minutes per training cell.
 
 ## Setup
 
@@ -195,6 +222,27 @@ up in batches.
 
 ## Exercise 2: Looking at the Embeddings in TensorBoard
 
+### Group 1: Inspect Examples, Not Just Clusters
+
+Extend the basic projector export below for your demonstration:
+
+1. Export metadata with two columns, `category` and `text`, using
+   `metadata_header=['category', 'text']`. Build one metadata row per test article;
+   replace tabs and newlines in its text with spaces. Use category for colour and text
+   to identify individual points. Keep metadata in the same order as `X_test`.
+2. Pick one Business article and one Sci/Tech article. Compute their five nearest
+   neighbours in the original embedding space with `X_test @ X_test[index]`, excluding
+   the selected article itself. Show the texts, categories and cosine similarities.
+3. Locate these examples in PCA and t-SNE. Compare the visible neighbours with the
+   original-space neighbours; record the t-SNE settings used. Show one case where the
+   projection makes the relationship look different. Projection distance is not cosine
+   similarity in the original 384-dimensional space.
+
+**Demo deliverable:** a labelled projector view, a small neighbour table for the two
+selected articles and a concrete explanation of one overlap or projection distortion.
+No additional model training is needed.
+
+
 TensorBoard's **projector** shows high-dimensional vectors in 2D or 3D, using PCA, t-SNE
 or UMAP, and can colour every point by a label. `SummaryWriter.add_embedding` writes the
 vectors and one metadata label per vector into a log directory.
@@ -248,6 +296,29 @@ the classes are inseparable - Exercise 3 measures that directly.
 #!TAG HWEND
 
 ## Exercise 3: Tracking Experiments with MLflow
+
+### Group 2: Compare Repeated Runs and Record Their Provenance
+
+Extend the basic tracked experiment below:
+
+1. Run the four `(lr, hidden)` settings with seeds 0, 1 and 2: 12 runs, still with
+   20 epochs and the existing embeddings. Include the seed in each run name. Log
+   the encoder name, dataset name, subset shuffle seed and relevant library versions
+   alongside the existing parameters.
+2. Query the runs and group by `(lr, hidden)`. Show the mean and standard deviation
+   of final test accuracy across the three seeds, plus the individual results.
+   Restrict the query to this experiment batch, for example with a shared batch tag,
+   so older notebook runs do not silently enter the comparison.
+3. Save a JSON file describing the model/data settings and library versions, and a
+   CSV of the aggregate comparison. Log both with `mlflow.log_artifact` in a separate
+   summary run. Show how to locate and download those artifacts.
+4. Demonstrate parameter filtering and metric histories in the UI or Python. Explain
+   why the highest single accuracy is weaker evidence than a consistent improvement
+   across seeds, and label this comparison exploratory because it uses the test set.
+
+**Demo deliverable:** a reproducibility artifact, a comparison across seeds and one
+metric-history view that supports your conclusion. Reuse the embeddings for every run.
+
 
 We now train classifiers on the frozen embeddings - a linear layer, and a small MLP - with
 a few learning rates. That is already 4 runs, each with its own settings, curves and
@@ -375,14 +446,68 @@ MLflow can aggregate them) and compare means and spreads.
 
 ## Exercise 4 (optional): The Same Runs in Weights & Biases
 
+### Group 3: Build a Shared Experiment Story
+
+After signup and the basic logging exercise below, divide the extension among your
+three members, then combine it into one demonstration:
+
+1. **Logging:** run the four settings with seeds 0, 1 and 2 (12 small runs). Add the
+   seed to run names and use `group` in `wandb.init` to collect seeds for the same
+   configuration. Log the encoder/data settings as configuration. Keep epochs and
+   dataset size unchanged and reuse the embeddings.
+2. **Dashboard:** compare grouped accuracy curves with variation across seeds, and
+   show how filtering changes the runs included. Prepare a compact comparison of
+   final accuracy by configuration and seed. Explain both the typical result and
+   the variability rather than selecting only the highest run.
+3. **Error analysis and sharing:** inside one run, after training and before
+   `run.finish()`, use the still-available classifier to predict `X_test`. Log a
+   `wandb.Table` with up to 20 misclassified examples: article text, true category,
+   predicted category and predicted-class softmax probability. Log a confusion-matrix
+   plot for all 500 test examples. Find one recurring error and relate it to the
+   embedding overlap. Treat softmax probability as a score, not calibrated certainty.
+
+Create a short W&B report containing a comparison plot, the error table and a few
+sentences stating your finding and its limitation. Check access to the project and
+report with another group member's account before presenting. If online access fails,
+prepare the same table and confusion matrix in the notebook and show saved screenshots.
+
+**Demo deliverable:** a dashboard comparing repeated runs, an example-level error
+analysis and a report link accessible to the class. All three members demonstrate
+their contribution; finish with when you would choose W&B over local MLflow.
+
+
 W&B does the same job as MLflow, but as a hosted service: runs are uploaded to
 `wandb.ai`, where you get dashboards and can share them with a team. Students and
 academics can apply for a free academic license (sign up with your university email).
 
-The cell below runs W&B in **offline** mode: it logs to a local `wandb/` folder and needs
-no account. To upload, create an account, run `wandb login` with the API key from your
-account settings, set `WANDB_MODE` to `'online'` below, and re-run - or upload the offline
-runs later with `wandb sync wandb/offline-run-*`.
+### Before Class: Sign Up for the Online Demonstration
+
+W&B offers free academic access for students and educators, including coursework.
+Use the [academic signup/application route](https://site.wandb.ai/research/) with your
+university email and follow the eligibility steps shown there. Check the current
+[plans](https://site.wandb.ai/pricing/) if creating a shared workspace: the ordinary
+free plan lists up to five model seats, so use the academic route for a workspace
+that includes all seven students. Each student who logs in uses their own account;
+do not share passwords or API keys.
+
+1. Create your account before class and confirm that you can open your workspace.
+2. Run the next cell once to install/import W&B. It defaults to **offline** mode,
+   which writes to a local `wandb/` folder and needs no account.
+3. For the online demonstration, change the `WANDB_MODE` assignment in that cell to
+   `'online'` and run the cell again **before** starting training.
+4. In a separate notebook code cell, run `wandb.login()`, then follow the login prompt.
+   If asked for an API key, enter it through the hidden prompt; do not paste it into
+   notebook source, slides or chat. Locally, `wandb login` in a terminal also works.
+5. Run the training cell below. Open the project in your W&B workspace, compare the
+   four runs, and check that the people you want to share with can access the link.
+   If using a shared academic workspace, pass its name as `entity='your-team-name'`
+   to `wandb.init(...)`; otherwise use your own workspace.
+
+The online exercise uploads run metrics and configuration to W&B. If signup or
+workspace access is unavailable, keep offline mode, demonstrate the logging code
+and local run files, and use the MLflow plots for the results discussion. The hosted
+W&B dashboard requires online runs and an account. You can upload offline runs later
+with `wandb sync wandb/offline-run-*` after logging in.
 <!-- #endregion -->
 
 ```python pycharm={"name": "#%%\n"}
