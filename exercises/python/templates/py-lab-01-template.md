@@ -957,7 +957,7 @@ you're sweeping hyperparameters or comparing a dozen architectures.
 interactive, zoomable curves, one line of logging per metric. We log the runs we
 already trained above into TensorBoard - in your own training loops going forward,
 you'd call `writer.add_scalar` inside the epoch loop instead of appending to a dict.
-We'll build on this - alongside MLflow and Weights & Biases - in Session 10.
+We'll build on this - alongside MLflow and Weights & Biases - in Session 13.
 <!-- #endregion -->
 
 ```python pycharm={"name": "#%%\n"}

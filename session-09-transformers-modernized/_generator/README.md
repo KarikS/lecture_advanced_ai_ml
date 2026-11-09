@@ -4,7 +4,7 @@ Run from the repository root (needs `uv`; PyMuPDF is pulled in a throwaway envir
 
     python3 session-09-transformers-modernized/_generator/skeleton.py      # rewrites the .tex skeleton incl. [O] and License frames
     python3 session-09-transformers-modernized/_generator/autoshrink.py l3:3-8 l3:9-14 l3:15-19 l3:20-29 l3:30-35 \
-        l3:36-52 l3:53-57 l3:58-58 l3:59-68 l4:2-12 l4:13-23 l4:24-37 l4:38-47
+        l3:36-52 l3:53-57 l3:58-58 l3:59-68 l4:2-12 l4:13-23
 
 `handwritten/<src>-<NN>.tex` (e.g. `l3-30.tex`) replaces the generated body of that slide's frame
 verbatim. It is used for slides the automatic layout could only show as a full-body crop, whose

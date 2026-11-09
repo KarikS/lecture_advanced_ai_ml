@@ -1,141 +1,280 @@
-This session compiles to a single deck: slides-reinforcement-learning.tex
-(182 pages, 169 frames, built 2026-11-07).
+This session compiles to a single deck: slides-reinforcement-learning.tex.
+Revised 2026-11-08 following the approved reduction to 100--115 PDF slides.
 
-SOURCING PRINCIPLE
+SOURCE STRATEGY
 
-Two main sources, one per part, each used in its own order and cut by whole
-slides/frames only (no summary frames replacing several source frames):
+Primary teaching source: David Silver, UCL Course on Reinforcement Learning
+(2015), Lectures 1, 2, 5, 6 and 7. 75 retained/adapted teaching frames.
+https://davidstarsilver.wordpress.com/teaching/
+License: CC BY-NC 4.0; adaptations of these frames retain that license.
+Third-party figures are excluded from the source license. DQN figures are
+credited to Mnih et al. (2015), Nature, on their frames.
+Original source PDFs remain unchanged in figure/silver-l{1,2,5,6,7}.pdf.
 
-  Part A, sections 1-5 (RL basics)
-    David Silver, UCL Course on Reinforcement Learning (2015), lectures 1, 2,
-    5, 6, 7. https://davidstarsilver.wordpress.com/teaching/
-    License: CC BY-NC 4.0 ("Some content comes from third parties and is not
-    included in the license"). These sections are shared under CC BY-NC 4.0.
-    The source PDFs are figure/silver-l{1,2,5,6,7}.pdf (downloaded 2026-11-07,
-    unchanged); frames crop their figures from these files.
+Secondary teaching source: DL4NLP (SLDS, LMU Munich), chapter 10, CC BY 4.0.
+20 retained/adapted frames form a focused RLHF application. Originals remain
+unchanged in _sources/9itune.tex and _sources/slides-10-rlhf.tex.
 
-  Part B, sections 6-12 (RLHF)
-    DL4NLP (SLDS, LMU Munich, CC BY 4.0), chapter10-rlhf:
-      9itune.tex       sections "Original RLHF work: The backflipper",
-                       "RLHF for LLMs: Introduction"
-      slides-10-rlhf.tex (= 9rlhf.tex) sections "HF (Human Feedback) of RLHF"
-                       to "Epilog"
-    Copies of both files are in _sources/. Only frames that DL4NLP actually
-    renders are used (\devour{}'ed frames left out); checked against the
-    compiled 9itune.pdf and 9rlhf.pdf.
+Three short course bridges (not another teaching deck):
+- MC returns versus one-step TD targets, before SARSA.
+- Mapping RL states/actions/policies/rewards to autoregressive LLMs,
+  explicitly connecting to sessions 7--8.
+- PPO-Clip probability ratio, surrogate and distinction between the old
+  sampling policy and the frozen SFT reference.
+Primary research references for clarifications, not additional slide decks:
+Schulman et al. (2017), https://arxiv.org/abs/1707.06347
+Ouyang et al. (2022), https://arxiv.org/abs/2203.02155
+Shao et al. (2024), https://arxiv.org/abs/2402.03300
 
-  [O] original to this course: the learning goals (draft, for Karik to
-      rewrite) and the License & Attribution frame.
+SELECTION AND FLOW
 
-Outline bullet "Computation" (lecture_outline_dhbw.md): no RL- or
-RLHF-specific source exists; skipped on decision 2026-11-07. The RLHF frames
-touch it only where DL4NLP does ("RLHF details: RLHF is (was?) hard to get
-right").
+Keep source order within each part, cutting whole frames. Edit retained
+frames where needed for correctness, prerequisites and the application.
+Silver: introduction 20, MDPs 20, control 8, approximation/DQN 10,
+policy gradients 17 (=75). Add one MC/TD prerequisite bridge to control.
+DL4NLP: 20 frames. Add the LLM mapping and PPO update bridges.
+Total: 98 teaching frames + 1 attribution frame + 13 generated introductory/
+section pages = 112 PDF slides (compiled and checked 2026-11-08). No removed material appended as backup slides.
 
-PART A: HOW SILVER'S SLIDES ARE ADAPTED
+The main cuts remove duplicate introductions/taxonomies, assumed prior RL
+lectures, generic optimisation already taught in sessions 2--4, advanced
+untaught policy-gradient methods, RLHF dataset metadata, repeated pipeline
+figures, qualitative evaluation galleries and most limitations examples.
+Session 8's instruction tuning is recalled briefly; its reasoning/verifiable
+reward material is revisited at the end rather than taught again.
 
-- One frame per selected source slide, frame title = slide title.
-  Slide numbers below are PDF page numbers of the source file.
-- Text and formulas retypeset in the course font, in Silver's wording;
-  Silver's red highlighting kept as \textcolor{red}; his "Definition" and
-  "Theorem" boxes as beamer blocks.
-- Figures (agent/environment diagrams, student Markov chain/MRP/MDP graphs,
-  mazes, gridworlds, taxonomy diagrams, plots) are vector crops of the source
-  page.
-- The backup diagrams (L2 slides 20, 31, 32, 43, 44) are redrawn in TikZ: in
-  the source PDF, two different subsets of CMMI10/CMSY10 share one font name,
-  so pdfTeX drops the labels' glyphs when the page is cropped.
-- Algorithms: the Q-learning box (L5 slide 38, an image in the source) and
-  REINFORCE/QAC (L7 slides 21, 25) are typeset; same wording and layout.
+CORRECTIONS AND ADAPTATIONS IN THIS REVISION
 
-SECTIONS
+- Remove inherited references to previous/next RL lectures.
+- Agent/environment chronology: observe O_t,R_t before choosing A_t.
+- Introduce Markov-chain transitions in the retained MRP definition;
+  qualify stationary Markov policy and deterministic-optimum claims.
+- Epsilon-greedy: test the queried action against a tie-broken greedy action.
+- Q-learning: sample successor actions conditioned on S_{t+1}, not S_t.
+- State finite tabular Q-learning convergence assumptions explicitly;
+  do not extend the claim to DQN.
+- DQN: terminal mask, fixed target parameters and periodic copying;
+  split target and loss into two lines for readability.
+- Action-value approximation: label the per-sample gradient as sampled,
+  rather than equating it to the full expected gradient.
+- Keep G_t for sampled returns. State the episodic policy gradient with
+  explicit discounted trajectory sum; retain continuing objectives only as
+  alternatives. REINFORCE scores are computed at the sampled policy before
+  updating parameters, with the matching discount factor.
+- QAC: initialise critic weights, fix action sampling notation and terminal
+  handling; use assignment notation. Correct missing state argument in
+  baseline derivation. Explain the state-value critic/TD-error advantage.
+- Frame the application explicitly as InstructGPT (2022). Rewrite the RLHF
+  objective explanation; distinguish reward-model parameters from policy
+  parameters, frozen SFT reference, and the optional PPO-ptx mixture.
+- The historical objective figure uses gamma as a pretraining mixture
+  weight; explicitly distinguish it from the RL discount factor.
+- Replace the long hallucination gallery with one factuality slide, and
+  the broad alignment claims with a focused preference-representation slide.
+- Reward hacking: KL may mitigate over-optimisation, not guarantee safety.
+- GRPO spelling corrected; distinguish the optimiser from reward source,
+  and connect verifiable rewards to session 8.
+- Original 16:9 image fitting and Silver vector crops/TikZ redraws retained.
 
- 1. Introduction to Reinforcement Learning -- Silver L1, slides
-      7, 8, 9, 13, 14, 15, 16, 17, 18, 19, 20, 23, 24, 25, 26, 27, 29, 30, 31,
-      32, 33, 34, 35, 36, 37, 40, 41, 43, 44, 45                    (30 frames)
-    left out: 1-5 (title, outline, admin, textbooks), 6 (many faces of RL),
-      10-12 (helicopter/robot videos, Atari screenshots), 21 (information
-      state), 22 (rat example), 28 (Atari value video), 38-39 (Atari
-      learning/planning screenshots), 42 (exploration examples), 46 (course
-      outline)
- 2. Markov Decision Processes -- Silver L2, slides
-      3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 19, 20, 24, 25, 26, 28, 30, 31, 32,
-      35, 37, 40, 41, 43, 44, 48                                    (27 frames)
-    left out: 1-2, 9 (transition matrix example), 15-18 (MRP return/value
-      examples), 21-23 (MRP Bellman example, matrix form, solving), 27
-      (policies 2), 29 (MDP value example), 33-34, 36 (second-level Bellman
-      expectation, matrix form), 38-39 (optimal value examples), 42 (optimal
-      policy example), 45-47 (second-level Bellman optimality, example),
-      49-57 (extensions to MDPs)
- 3. Model-Free Control -- Silver L5, slides
-      3, 5, 11, 19, 20, 31, 35, 36, 37, 38, 40                      (11 frames)
-    left out: 1-2, 4 (uses of model-free control), Monte-Carlo control and
-      GLIE (6-10, 12-18), Sarsa details and Sarsa(lambda) (21-30), importance
-      sampling (32-34), Q-learning demo (39), DP vs TD tables (41-42), 43. Silver's lectures 3 (dynamic programming) and 4
-      (model-free prediction) are not used.
- 4. Value Function Approximation -- Silver L6, slides
-      5, 6, 7, 8, 11, 12, 21, 22, 37, 38, 39, 40, 41                (13 frames)
-    left out: 1-4, 9-10, linear/table-lookup features (13-15), incremental
-      prediction algorithms (16-20), linear control examples and convergence
-      (23-33), batch RL and least squares prediction (34-35), 36 (build-up
-      step of 37), least squares methods (42-56)
- 5. Policy Gradient -- Silver L7, slides
-      3, 4, 5, 7, 8, 9, 10, 11, 12, 16, 17, 19, 20, 21, 23, 24, 25, 29, 30, 41
-                                                                    (20 frames)
-    left out: 1-2, 6 (rock-paper-scissors photo), finite differences and
-      AIBO (13-15), Gaussian policy (18), puck world (22), compatible function
-      approximation (26-28), 31-34 (TD error/eligibility traces), natural
-      policy gradient and snake domain (35-40)
- 6. Original RLHF work: The backflipper -- 9itune.tex, all 9 frames
- 7. RLHF for LLMs: Introduction -- 9itune.tex, all 8 rendered frames
- 8. HF (Human Feedback) of RLHF -- slides-10-rlhf.tex, all 5 frames
- 9. RM and PPO models -- slides-10-rlhf.tex, all 7 rendered frames
-10. Evaluation -- slides-10-rlhf.tex, all 7 frames
-11. Limitations -- slides-10-rlhf.tex, all 28 rendered frames
-12. Epilog -- slides-10-rlhf.tex, all 3 rendered frames (reward hacking x2,
-      RL without preferences)
-    left out of Part B: the roadmap frame (roadmap.tex; lists DL4NLP's
-      motivation section, which is not used), the 9itune frame
-      "Reinforcement learning" (\input{reinforce}: chapter09-llm/reinforce.tex,
-      missing from chapter10; reasoning-specific and covered by Part A), the
-      Slido frame, the Administrivia section; 9itune's motivation section
-      (instruction tuning; session 08 covers it from ch09/91).
+RETAINED SOURCE FRAMES
 
-ADAPTATION (everything that differs from the sources)
+IDs below refer to the original 169-frame deck (excluding generated pages).
 
-Part A
-- Silver L1 slide 14 "Examples of Rewards": two columns in a widened box (the
-  six examples do not fit one 16:9 column at the course's fixed sub-item size).
-- Silver L6 slides 39-40: credit line "Figure: Mnih et al. (2015), Nature"
-  added. Silver's slides show the DQN figures without a source; they are
-  third-party content (see license note above).
-- Typos/notation copied as in the source, e.g. L7 slide 25 "theta = theta +
-  ..." (= instead of <-), L7 slide 41 "Each leads a stochastic gradient ascent
-  algorithm", L5 slide 36 "max_a' gamma Q" order.
-- Font size \small on L7 slides 12 (left column), 21 and 25 (algorithms).
+Section 1:
+  original frame 1: Branches of Machine Learning [Silver L1, slide 7]
+  original frame 2: Characteristics of Reinforcement Learning [Silver L1, slide 8]
+  original frame 4: Rewards [Silver L1, slide 13]
+  original frame 5: Examples of Rewards [Silver L1, slide 14]
+  original frame 6: Sequential Decision Making [Silver L1, slide 15]
+  original frame 8: Agent and Environment [Silver L1, slide 17]
+  original frame 9: History and State [Silver L1, slide 18]
+  original frame 12: Fully Observable Environments [Silver L1, slide 23]
+  original frame 13: Partially Observable Environments [Silver L1, slide 24]
+  original frame 14: Major Components of an RL Agent [Silver L1, slide 25]
+  original frame 15: Policy [Silver L1, slide 26]
+  original frame 16: Value Function [Silver L1, slide 27]
+  original frame 17: Model [Silver L1, slide 29]
+  original frame 18: Maze Example [Silver L1, slide 30]
+  original frame 19: Maze Example: Policy [Silver L1, slide 31]
+  original frame 20: Maze Example: Value Function [Silver L1, slide 32]
+  original frame 21: Maze Example: Model [Silver L1, slide 33]
+  original frame 27: Exploration and Exploitation (2) [Silver L1, slide 41]
+  original frame 29: Gridworld Example: Prediction [Silver L1, slide 44]
+  original frame 30: Gridworld Example: Control [Silver L1, slide 45]
 
-Part B
-- vbframe -> frame throughout (vbframe broke most image frames into a nearly
-  empty first page plus the figure on a second page at 16:9).
-- Figures fitted to 16:9, each marked "% fit16:9" in the .tex:
-  height caps (keepaspectratio) on trainingprocess, threesteps, instructgpttable3b,
-  webinterface1/2, rlhfdetails, questionsaboutcode, harmfulpromptfollowing,
-  teenagesuicide, extractmemory1/2, gemini,3,flash,hallu; width 12/12.5cm ->
-  \linewidth (11 figures); reward model frames: threesteps 4cm -> 3.2cm,
-  rewardloss 10cm -> 8cm.
-- \small on "Instructions to labelers ... (1)", "(2)" and "Can InstructGPT
-  solve unseen tasks?".
-- Reward hacking (2): "(see earlier evaluation chart: page 45)" ->
-  "(see earlier evaluation chart: ``Improvement on four dimensions'')"
-  (DL4NLP page number).
-- figure/qwen37max,refusal.png is missing from the DL4NLP repository; it was
-  extracted from DL4NLP's compiled 9rlhf.pdf (page 42), unchanged.
-- Kept as in the source, worth a look when reviewing: "Reasoning" ends with
-  "See lecture on reasoning" (session 08 covers reasoning); "Harmful prompts:
-  Still a problem" shows a news photo on teenage suicide.
+Section 2:
+  original frame 32: Markov Property [Silver L2, slide 4]
+  original frame 37: Markov Reward Process [Silver L2, slide 10]
+  original frame 38: Example: Student MRP [Silver L2, slide 11]
+  original frame 39: Return [Silver L2, slide 12]
+  original frame 40: Why discount? [Silver L2, slide 13]
+  original frame 42: Bellman Equation for MRPs [Silver L2, slide 19]
+  original frame 43: Bellman Equation for MRPs (2) [Silver L2, slide 20]
+  original frame 44: Markov Decision Process [Silver L2, slide 24]
+  original frame 45: Example: Student MDP [Silver L2, slide 25]
+  original frame 46: Policies (1) [Silver L2, slide 26]
+  original frame 47: Value Function [Silver L2, slide 28]
+  original frame 48: Bellman Expectation Equation [Silver L2, slide 30]
+  original frame 49: Bellman Expectation Equation for $V^\pi$ [Silver L2, slide 31]
+  original frame 50: Bellman Expectation Equation for $Q^\pi$ [Silver L2, slide 32]
+  original frame 51: Example: Bellman Expectation Equation in Student MDP [Silver L2, slide 35]
+  original frame 52: Optimal Value Function [Silver L2, slide 37]
+  original frame 54: Finding an Optimal Policy [Silver L2, slide 41]
+  original frame 55: Bellman Optimality Equation for $v_*$ [Silver L2, slide 43]
+  original frame 56: Bellman Optimality Equation for $Q^*$ [Silver L2, slide 44]
+  original frame 57: Solving the Bellman Optimality Equation [Silver L2, slide 48]
+
+Section 3:
+  original frame 59: On and Off-Policy Learning [Silver L5, slide 5]
+  original frame 60: $\epsilon$-Greedy Exploration [Silver L5, slide 11]
+  original frame 62: Updating Action-Value Functions with Sarsa [Silver L5, slide 20]
+  original frame 64: Q-Learning [Silver L5, slide 35]
+  original frame 65: Off-Policy Control with Q-Learning [Silver L5, slide 36]
+  original frame 66: Q-Learning Control Algorithm [Silver L5, slide 37]
+  original frame 67: Q-Learning Algorithm for Off-Policy Control [Silver L5, slide 38]
+  original frame 68: Cliff Walking Example [Silver L5, slide 40]
+
+Section 4:
+  original frame 69: Large-Scale Reinforcement Learning [Silver L6, slide 5]
+  original frame 70: Value Function Approximation [Silver L6, slide 6]
+  original frame 71: Types of Value Function Approximation [Silver L6, slide 7]
+  original frame 74: Value Function Approx.\ By Stochastic Gradient Descent [Silver L6, slide 12]
+  original frame 75: Control with Value Function Approximation [Silver L6, slide 21]
+  original frame 76: Action-Value Function Approximation [Silver L6, slide 22]
+  original frame 78: Experience Replay in Deep Q-Networks (DQN) [Silver L6, slide 38]
+  original frame 79: DQN in Atari [Silver L6, slide 39]
+  original frame 80: DQN Results in Atari [Silver L6, slide 40]
+  original frame 81: How much does DQN help? [Silver L6, slide 41]
+
+Section 5:
+  original frame 82: Policy-Based Reinforcement Learning [Silver L7, slide 3]
+  original frame 83: Value-Based and Policy-Based RL [Silver L7, slide 4]
+  original frame 84: Advantages of Policy-Based RL [Silver L7, slide 5]
+  original frame 85: Example: Aliased Gridworld (1) [Silver L7, slide 7]
+  original frame 86: Example: Aliased Gridworld (2) [Silver L7, slide 8]
+  original frame 87: Example: Aliased Gridworld (3) [Silver L7, slide 9]
+  original frame 88: Policy Objective Functions [Silver L7, slide 10]
+  original frame 90: Policy Gradient [Silver L7, slide 12]
+  original frame 91: Score Function [Silver L7, slide 16]
+  original frame 92: Softmax Policy [Silver L7, slide 17]
+  original frame 93: One-Step MDPs [Silver L7, slide 19]
+  original frame 94: Policy Gradient Theorem [Silver L7, slide 20]
+  original frame 95: Monte-Carlo Policy Gradient (REINFORCE) [Silver L7, slide 21]
+  original frame 96: Reducing Variance Using a Critic [Silver L7, slide 23]
+  original frame 98: Action-Value Actor-Critic [Silver L7, slide 25]
+  original frame 99: Reducing Variance Using a Baseline [Silver L7, slide 29]
+  original frame 100: Estimating the Advantage Function (1) [Silver L7, slide 30]
+
+Section 6:
+  original frame 103: Origin of RLHF: Learn how to backflip [DL4NLP chapter 10; adapted for this course]
+  original frame 104: Training process for backflipper [DL4NLP chapter 10; adapted for this course]
+  original frame 106: Trained backflipper [DL4NLP chapter 10; adapted for this course]
+  original frame 109: Human feedback for alignment [DL4NLP chapter 10; adapted for this course]
+
+Section 7:
+  original frame 112: Pretrained $\rightarrow$ Instruction-tuned: 3 steps [DL4NLP chapter 10; adapted for this course]
+  original frame 113: SFT model [DL4NLP chapter 10; adapted for this course]
+
+Section 8:
+  original frame 120: Instructions to labelers for evaluation of model outputs (2) [DL4NLP chapter 10; adapted for this course]
+  original frame 122: Web interface for labelers (2) [DL4NLP chapter 10; adapted for this course]
+
+Section 9:
+  original frame 125: Reward model (Bradley Terry) [DL4NLP chapter 10; adapted for this course]
+  original frame 126: Reward model (Bradley Terry) [DL4NLP chapter 10; adapted for this course]
+  original frame 128: PPO model [DL4NLP chapter 10; adapted for this course]
+  original frame 129: PPO model [DL4NLP chapter 10; adapted for this course]
+
+Section 10:
+  original frame 131: Main evaluation result [DL4NLP chapter 10; adapted for this course]
+  original frame 132: Improvement on four dimensions [DL4NLP chapter 10; adapted for this course]
+  original frame 133: Important hyperparameter: KL reward coefficient beta [DL4NLP chapter 10; adapted for this course]
+
+Section 11:
+  original frame 146: Attack suffixes [DL4NLP chapter 10; adapted for this course]
+  original frame 154: Hallucination: Formal definition [DL4NLP chapter 10; adapted for this course]
+  original frame 163: Who are we aligning to? [DL4NLP chapter 10; adapted for this course]
+
+Section 12:
+  original frame 167: Reward hacking [DL4NLP chapter 10; adapted for this course]
+  original frame 168: Reinforcement learning without preferences [DL4NLP chapter 10; adapted for this course]
+
+REMOVED ORIGINAL FRAMES (original IDs; source originals preserved)
+  3: Examples of Reinforcement Learning
+  7: Agent and Environment
+  10: Environment State
+  11: Agent State
+  22: Categorizing RL agents (1)
+  23: Categorizing RL agents (2)
+  24: RL Agent Taxonomy
+  25: Learning and Planning
+  26: Exploration and Exploitation (1)
+  28: Prediction and Control
+  31: Introduction to MDPs
+  33: State Transition Matrix
+  34: Markov Process
+  35: Example: Student Markov Chain
+  36: Example: Student Markov Chain Episodes
+  41: Value Function
+  53: Optimal Policy
+  58: Model-Free Reinforcement Learning
+  61: MC vs. TD Control
+  63: Off-Policy Learning
+  72: Which Function Approximator?
+  73: Gradient Descent
+  77: Stochastic Gradient Descent with Experience Replay
+  89: Policy Optimisation
+  97: Estimating the Action-Value Function
+  101: Summary of Policy Gradient Algorithms
+  102: Backflipping: What we want to learn
+  105: The human feedback part of RLHF
+  107: Summary
+  108: Now we will apply RLHF to alignment
+  110: Backflipping vs alignment
+  111: How to align an LLM
+  114: Input prompt distribution
+  115: Dataset sizes
+  116: RM dataset (submitted to InstructGPT): Categories
+  117: Metadata collected from labelers:\\ Problems we're trying to address with RLHF
+  118: Example: ``Demonstration'' vs final InstructGPT output
+  119: Instructions to labelers for evaluation of model outputs (1)
+  121: Web interface for labelers (1)
+  123: Importance of this methodology
+  124: Pretrained $\rightarrow$ Instruction-tuned: 3 steps
+  127: Reward model
+  130: RLHF details: RLHF is (was?) hard to get right
+  134: Summarize/answer questions about code
+  135: Q\&A for languages other than English
+  136: Can InstructGPT solve unseen tasks?
+  137: SFT vs PPO
+  138: Reasoning
+  139: Getting scolded
+  140: False premises
+  141: Hedging
+  142: Difficult constraints
+  143: Difficulty handling constraints
+  144: InstructGPT often followed harmful prompts
+  145: Harmful prompts: Still a problem
+  147: Attack suffix: Example
+  148: Word repetition attack
+  149: Word repetition attack
+  150: Refusal
+  151: Overrefusal (Gemini, January 2025)
+  152: Overrefusal for Agentic AI (Qwen3.7-Max)
+  153: Hallucination: Definition
+  155: What is a hallucination?
+  156: What is a hallucination?
+  157: What is a hallucination?
+  158: Many false outputs are not hallucinations
+  159: Why do LLMs hallucinate?
+  160: Gemini 3 Flash: Google trained it to hallucinate!
+  161: What can you do against hallucinations (Anthropic)
+  162: Who are we aligning to?\\ Many values change and are ultimately personal choices
+  164: Should we have multiple GPTs with different values?
+  165: Limitations: Summary
+  166: Reward hacking
 
 HISTORY
-
-2026-11-07  First build: Part A from Silver (101 frames, selection generous
-            on request; Karik reviews and cuts whole frames), Part B from
-            DL4NLP chapter 10 (67 frames). 182 pages.
+2026-11-07: Initial generous selection, 168 teaching frames, 182 PDF pages.
+2026-11-08: Approved Silver-led reduction, 95 retained teaching frames plus
+three prerequisite/application bridges; corrections documented above.

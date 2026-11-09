@@ -1,0 +1,84 @@
+This session compiles to a single deck: slides-transformers-outside-nlp.tex (67 pages, built 2026-10-04).
+
+SOURCING PRINCIPLE
+
+One source, in its own order:
+  Hugging Face Community Computer Vision Course (MIT license; copy of the license in
+  _sources/LICENSE-hf-computer-vision-course), https://github.com/johko/computer-vision-course,
+  commit 5a52b43 (2025-08-03). Copies of every page used are in _sources/.
+Neither i2dl nor DL4NLP covers vision/multimodal Transformers, so unlike sessions
+7-8 the source is prose, not slides: each frame condenses the text of one source
+subsection into bullets, keeping the source's wording where possible and adding
+nothing. Whole pages are either in or out; no frames from other sources.
+
+Cutting/adding rule for later passes: whole source pages.
+
+SECTIONS (one \section per source page, in course order)
+
+ 1. Vision Transformers for Image Classification   unit3/vision-transformers-for-image-classification
+ 2. Swin Transformer                                unit3/swin-transformer (code blocks summarized, not shown)
+ 3. DEtection TRansformer (DETR)                    unit3/detr (incl. the paper's minimal PyTorch code)
+ 4. Transformer-Based Image Segmentation            unit3/vision-transformers-for-image-segmentation (MaskFormer)
+ 5. Knowledge Distillation with Vision Transformers unit3/knowledge-distillation
+ 6. Introduction to Vision Language Models          unit4/vlm-intro
+ 7. CLIP and Relatives                              unit4/clip-and-relatives/Introduction
+ 8. Losses                                          unit4/clip-and-relatives/losses
+ 9. Contrastive Language-Image Pre-training (CLIP)  unit4/clip-and-relatives/clip
+10. Multimodal Text Generation (BLIP)               unit4/clip-and-relatives/blip
+11. Multimodal Object Detection (OWL-ViT)           unit4/clip-and-relatives/owl_vit
+12. Transformers in Video Processing                unit7/transformers-based-models (ViViT, TimeSformer)
+
+Pages of the same units NOT used (candidates to add, whole pages):
+  unit3: cvt, dinat, mobilevit (further ViT variants), vision-transformer-for-object-detection
+         (fine-tuning tutorial, mostly code), oneformer
+  unit4: pre-intro, a_multimodal_world (general multimodality), tasks-models-part1
+         (task/model survey, code-heavy), transfer_learning, supplementary-material
+  unit7: the CNN/RNN/multimodal video pages
+Candidates to cut on review: 5 (knowledge distillation; overlaps DL4NLP
+ch05/slides-53 DistilBERT, not used in session 8), the ViT recap at the start of 12 (repeats section 1 -- it is in the
+source because unit 7 recaps unit 3).
+
+DEVIATIONS FROM THE SOURCE TEXT (all deliberate, all small)
+
+- Citation buttons: author/year labels added to the paper links the course gives;
+  all arXiv IDs and author names verified against arXiv metadata on 2026-10-04.
+  One link is not in the course: Winoground (Thrush et al., 2022, arXiv 2204.03162),
+  whose figure the course shows without a link.
+- Distillation loss: the course shows it as an image (KL-Loss.png); typeset in LaTeX
+  instead, with the symbols explained.
+- TimeSformer: the course lists the first scheme as "Sparse Attention"; the paper
+  (and the figure) call it "Space attention". Written as "Space".
+- ViT cost: the course says "2,500 days on TPU-v3" and prices it per core-hour; the
+  ViT paper's unit is TPUv3-core-days, so it is written "2,500 TPU-v3 days" at
+  "$2 per TPU-v3 core-hour" (same arithmetic, $120,000).
+- CLIP code: imports of PIL/requests and the image download omitted; the model,
+  processor, prompts and softmax are the course's code.
+- Omitted: links to Colab notebooks, Gradio demos, inference output dumps, and the
+  vlm-intro page's poem.
+
+FIGURES
+
+Downloaded from the URLs the course embeds (mostly hf-vision/course-assets) and
+attributed as the course attributes them: most are from the original papers
+(linked on each frame), the CLIP pre-training figure is OpenAI's (SVG converted to
+PNG), MaskFormer and OWL-ViT come via the Hugging Face documentation images.
+NOTE: these figures are not themselves MIT-licensed; they are paper figures reused
+with attribution, the same practice as DL4NLP in sessions 7-8. Review if that
+matters for distribution beyond the course.
+
+LAYOUT
+
+16:9 fit: figures in 14 frames scaled (repeatedly by 0.85), a \small/\footnotesize
+line (marked "% fit16:9") in 14 text frames. Five two-column frames were rebuilt as
+figure-above-text (the narrow text columns overflowed). "Distillation for Edge
+Devices" split into two frames. The OWL-ViT architecture figure ended up small;
+splitting that frame would help.
+
+HISTORY
+
+2026-09-27  First build (three passes): HF CV course + LMU Multimodal DL seminar +
+            original text, TikZ figures only. Kept in _previous/.
+2026-10-04  Rebuilt from the HF CV course alone, in its own order (user decision,
+            "option A"). 67 pages, no errors, no overfull vboxes above 1pt.
+2026-10-18  Renumbered from session 10 to 09 after sessions 08 and 09 were
+            merged; cross-references in this file updated. Deck unchanged.

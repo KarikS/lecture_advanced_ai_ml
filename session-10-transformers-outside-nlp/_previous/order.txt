@@ -1,0 +1,179 @@
+This session compiles to a single deck: slides-transformers-outside-nlp.tex
+
+Built 2026-09-27, as a direct structural fix to a recurring scope concern raised while
+building sessions 7-8: with BERT/T5 (session 8) and GPT (session 9) both purely NLP, the
+whole four-session Transformer arc read as "general Transformer course, NLP only," and
+the light CV/multimodal callback frames added to sessions 7-8 only partially addressed
+it. This session is the real fix -- a full session dedicated to non-NLP Transformer
+applications.
+
+Unlike sessions 7-8, there is no i2dl or DL4NLP source material for this topic (neither
+course covers vision/multimodal Transformers), so nothing here is "adapted from this
+course's usual sources" in the way earlier sessions were. Content follows two external,
+license-checked sources instead (see below), and is freshly written throughout -- there
+is no _sources/ directory for this session, since nothing was copied from an existing
+Beamer deck.
+
+Sections, in order, with sourcing:
+
+1. Recap and Roadmap [original text] -- one frame bridging from session 8's brief
+   CV/multimodal callbacks to this session's depth.
+
+2. Vision Transformers, In Depth [Hugging Face Community Computer Vision Course, MIT
+   license, verified directly from the repo's LICENSE file] -- patch embedding mechanics
+   (own knowledge of the well-established Dosovitskiy et al. 2020 architecture, not
+   quoted from a source), and the CNN-vs-ViT inductive-bias argument (locality,
+   translational equivariance, the data-size crossover point), which IS drawn directly
+   from the course's "Vision Transformers for Image Classification" chapter and its
+   transfer-learning framing.
+
+3. DETR: A Third Encoder-Decoder Pattern [same HF course, "DETR" chapter] -- the
+   deliberate conceptual hook for this section: every encoder-decoder example so far
+   (T5, Whisper) decodes autoregressively; DETR's parallel, non-autoregressive decoding
+   via learned object queries and bipartite matching is a genuinely different pattern
+   within the same family, not just another model. The minimal PyTorch implementation
+   shown is the HF course's own code (itself adapted from Carion et al.'s original
+   minimal implementation) -- included specifically to make the "no anchors, no NMS"
+   simplicity claim concrete rather than asserted.
+
+4. Combining Modalities: Two Architectural Patterns [LMU Multimodal Deep Learning
+   seminar, https://slds-lmu.github.io/seminar_multimodal_dl/, licensed CC BY-NC-SA 4.0
+   -- confirmed directly in the book's own front matter, not assumed from being in the
+   same GitHub org as i2dl/DL4NLP, which are CC BY 4.0 and NOT the same license] --
+   contrastive dual-encoders (CLIP) vs. fusion architectures (UniT), framed as a genuine
+   design choice (fast retrieval/zero-shot vs. fine-grained cross-modal interaction), not
+   just two examples. Image captioning and text-to-image generation are kept deliberately
+   short: captioning is explicitly named as "the same encoder-decoder pattern as Whisper,
+   nothing new," and text-to-image is framed as a callback to session 6's diffusion
+   models plus session 7's cross-attention derivation, specifically to avoid re-teaching
+   material that already exists elsewhere in this course.
+
+5. Unified, Domain-Agnostic Architectures [same LMU seminar, "Multi-Purpose Models"
+   chapter] -- Gato kept as the one fully-explained example (its "tokenize everything,
+   including robot actions, then it's just next-token prediction" pitch is the cleanest
+   possible statement of this session's overall thesis); UniT, OFA, and LIMoE mentioned
+   at landscape level only, not derived in depth -- the seminar source covers six such
+   architectures (MultiModel, UniT, OFA, Gato, LIMoE, muNet) and going deep on all of them
+   would have re-created session 7/8's overshoot problem for comparatively little
+   additional insight, since they mostly vary in tokenization/routing details rather than
+   introducing new attention mechanics.
+
+6. Video: One More Dimension [original text, high-level only] -- deliberately brief (one
+   frame): space-time patch tokenization and the factorized-attention response to the
+   resulting O(n^2) blowup, framed entirely as a callback to session 7's efficiency
+   discussion rather than new content. Video Transformers are a large enough topic to
+   justify their own session; going deeper here was judged out of scope for a single
+   session already covering vision, detection, and multimodal architectures.
+
+7. Closing Synthesis: Four Sessions, One Architecture [original content] -- the
+   three-families table one final time, now fully populated across NLP, vision, audio,
+   and cross-modal/unified entries -- the payoff frame for the whole 7-8-9-10 arc.
+
+Not included: Stanford CS25 ("Transformers United") was checked for scope/topic-list
+purposes only and confirmed to carry no license or reuse statement anywhere (Stanford
+copyright by default) -- no content, code, or figures from it appear anywhere in this
+deck, per the license concern raised when this session was first proposed.
+
+Figures: no external images were downloaded or embedded from either source course --
+both courses' own figures were left out entirely because their individual provenance
+wasn't independently verified (some images in course material like this often originate
+from the papers being described, under their own separate copyright, not from the
+course's own MIT/CC license). Instead, three original TikZ diagrams were drawn from
+scratch (patch-embedding illustration, DETR architecture, CLIP dual-encoder diagram),
+plus one compiled standalone image (figure/vit-patches.png, the title-page figure,
+rendered from the same patch-embedding TikZ code via a separate pdflatex+pdftoppm pass
+since \titlefigure requires an image file, not inline TikZ).
+
+Two real bugs were caught and fixed during the build: the DETR and CLIP TikZ diagrams
+both used fixed absolute coordinates with manually-guessed minimum-width boxes, which
+were too narrow for their actual text ("Transformer encoder", "text encoder
+(Transformer)") and caused overlapping boxes and garbled overlapping text. Fixed by
+switching both diagrams to the tikz `positioning` library's relative placement
+(`right=of`, `below=of`) with `align=center` and no manual width, so box size follows
+content instead of a guessed constant.
+
+First build: 41 pages, no errors. Flagged as well under the ~90-100 page estimate,
+deliberately (depth-over-breadth scoping), for the user's review.
+
+Second pass, same day, per the user's explicit request ("add material back aiming for
+similar scope [to] the others"): added six new frames/subsections rather than padding
+existing ones --
+
+- Efficient Vision Transformers (Swin Transformer, DeiT) -- inserted between the
+  inductive-bias frame and DETR. Swin is a direct callback to session 7's local-attention
+  efficiency discussion; DeiT directly answers the "needs massive data" pain point raised
+  two frames earlier, and is a vision-domain callback to session 8's DistilBERT.
+- Segmentation Transformers (MaskFormer) -- a new section after DETR, completing the
+  classification/detection/segmentation trio of core vision tasks, plus a synthesis table
+  comparing ViT/DETR/MaskFormer's query mechanisms directly.
+- CLIP's actual training objective (the N x N contrastive loss, zero-shot classification
+  mechanics) -- the original build only described CLIP qualitatively; this adds the actual
+  mechanism.
+- OFA promoted from a one-bullet mention to its own frame, since it's conceptually
+  distinct from UniT (task-in-the-input seq2seq vs. task-specific decoder) and directly
+  extends session 8's T5 text-to-text framing into a cross-modal setting.
+- Video expanded from 1 frame to 4 (the O(n^2) problem stated on its own; ViViT's four
+  factorization variants; tubelet vs. uniform-sampling tokenization; TimeSformer's divided
+  space-time attention) -- sourced from the HF course's actual Unit 7 content, not just
+  asserted at a high level as in the first pass.
+- Text-to-image and image captioning expanded using material already gathered from the
+  LMU seminar but not used in the first pass: the Meshed-Memory Transformer's specific
+  innovations for captioning, and the real GAN-to-DALL-E-to-diffusion evolution
+  (StackGAN/AttnGAN, DALL-E 1, GLIDE, DALL-E 2/unCLIP, Imagen, Parti, Stable Diffusion)
+  for generation, instead of naming only DALL-E 2/Imagen/Stable Diffusion in passing.
+
+One real bug caught in this pass: none -- the two TikZ diagrams fixed in the first pass
+were not touched again, and the new tables (CV-tasks synthesis) were built with the same
+fixed-width `p{}` column pattern already proven not to overflow in sessions 7-8 and this
+session's closing-synthesis table, checked again by rendering with pdftoppm rather than
+assumed safe.
+
+Second build (this pass): 66 pages, no errors.
+
+Third pass, same day, per explicit instruction: no new topics, only go deeper on
+subtopics already present, with an intuitive/high-level framing to match this course's
+established style, and add visualizations wherever they help. Nine additions, all
+worked examples or analogies for existing subtopics, not new material:
+
+- ViT patch tokenization: a concrete worked example with real numbers (224x224 image,
+  16x16 patches -> 196 patches + [CLS] = 197 tokens; why patches instead of per-pixel
+  tokens, tied back to session 7's O(n^2) cost).
+- CNN vs. ViT inductive bias: a concrete "shifted photo" thought experiment (a cat
+  centered vs. in a corner) making the locality/translation-equivariance argument
+  tangible instead of abstract.
+- Swin's shifted windows: a "reading a book paragraph by paragraph, then shifting where
+  paragraphs begin" analogy, explicitly tied back to Transformer-XL's segment recurrence
+  (session 7) as the same underlying idea (cross a hard boundary without full quadratic
+  attention).
+- DETR bipartite matching: a worked numeric example (3 queries, 2 ground-truth objects,
+  a small matching diagram) -- the same "worked example" convention session 7 used for
+  BPE. This diagram needed three rounds of fixing: edge labels initially collided at the
+  lines' crossing point, then collided with a ground-truth box after the first fix;
+  final version places both labels directly on their own line segment, well before the
+  crossing point, confirmed by rendering at 100dpi.
+- A new similarity-matrix diagram and "matching game in a room" analogy for CLIP's
+  contrastive loss -- the column labels (image1..5) initially overlapped illegibly at
+  scriptsize/scale=0.62; fixed by rotating them 90 degrees (vertical text takes far less
+  horizontal room than horizontal text at tight column spacing) and enlarging the grid.
+- A concrete task-based comparison (reverse image search vs. visual question answering)
+  for when dual-encoder vs. fusion architectures actually differ in practice.
+- A concrete token-sequence diagram for Gato, showing what one training example
+  literally looks like (image patch tokens | text tokens | action tokens) -- the three
+  captions initially overlapped since two were single-line and wide; fixed by making all
+  three two-line and staggering the middle one vertically.
+- A "how you actually watch a movie" analogy plus a joint-vs-factorised attention
+  diagram for ViViT -- captions under each panel initially overlapped since neither had
+  a bounded text width; fixed with explicit `text width` and by widening the gap between
+  the two panels.
+
+Every new diagram was rendered and visually inspected after fixing, not just after
+first writing -- four of the five new diagrams needed at least one overlap fix, all
+caught this way rather than left in the file unverified.
+
+Final build: 84 pages (up from 41 before this session's second and third passes), no
+errors, no missing figures, no undefined references. All frames added in this pass are
+either freshly-authored analogies/worked examples (not sourced from HF/LMU, since
+neither course phrases these subtopics as intuitively as this course's own style calls
+for) or, where noted inline, restate a fact already cited earlier in this same deck
+(e.g.\ the 224x224/16x16 patch-count arithmetic follows directly from Dosovitskiy et
+al.'s own patch size choice, already cited in the frame above it).
